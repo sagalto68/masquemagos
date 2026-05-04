@@ -145,7 +145,7 @@ ul  { list-style: none; }
   font-weight: 300;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 14px 36px;
+  padding: 18px 48px;
   border-radius: 100px;
   transition: all 0.3s;
   cursor: pointer;
@@ -153,43 +153,14 @@ ul  { list-style: none; }
 }
 
 .btn--outline {
-  position: relative;
-  border: none;
+  border: 1px solid rgba(245, 240, 232, 0.35);
   color: var(--white);
   background: transparent;
-  padding: 16px 52px;
-}
-
-.btn--outline::before,
-.btn--outline::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 28px;
-  border: 1px solid rgba(245, 240, 232, 0.5);
-  border-radius: 100px;
-  transition: border-color 0.3s;
-}
-
-.btn--outline::before {
-  left: 0;
-  border-right: none;
-  border-radius: 100px 0 0 100px;
-}
-
-.btn--outline::after {
-  right: 0;
-  border-left: none;
-  border-radius: 0 100px 100px 0;
 }
 
 .btn--outline:hover {
-  color: var(--gold);
-}
-
-.btn--outline:hover::before,
-.btn--outline:hover::after {
   border-color: var(--gold);
+  color: var(--gold);
 }
 
 /* ─── SHARED CTA SECTION ─────────────────────── */
