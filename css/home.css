@@ -267,6 +267,7 @@
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
+  object-position: center top;
   max-height: 580px;
   border-radius: 40px;
 }
