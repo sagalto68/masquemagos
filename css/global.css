@@ -153,15 +153,43 @@ ul  { list-style: none; }
 }
 
 .btn--outline {
-  border: 1px solid rgba(245, 240, 232, 0.55);
+  position: relative;
+  border: none;
   color: var(--white);
   background: transparent;
+  padding: 16px 52px;
+}
+
+.btn--outline::before,
+.btn--outline::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 28px;
+  border: 1px solid rgba(245, 240, 232, 0.5);
+  border-radius: 100px;
+  transition: border-color 0.3s;
+}
+
+.btn--outline::before {
+  left: 0;
+  border-right: none;
+  border-radius: 100px 0 0 100px;
+}
+
+.btn--outline::after {
+  right: 0;
+  border-left: none;
+  border-radius: 0 100px 100px 0;
 }
 
 .btn--outline:hover {
-  border-color: var(--gold);
   color: var(--gold);
-  background: rgba(201, 168, 76, 0.07);
+}
+
+.btn--outline:hover::before,
+.btn--outline:hover::after {
+  border-color: var(--gold);
 }
 
 /* ─── SHARED CTA SECTION ─────────────────────── */
