@@ -181,6 +181,30 @@ ul  { list-style: none; }
   font-style: italic;
 }
 
+.cta__info {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.cta__info-item {
+  font-family: var(--font-body);
+  font-size: clamp(14px, 1.4vw, 17px);
+  color: rgba(245, 240, 232, 0.65);
+  letter-spacing: 0.06em;
+}
+
+.cta__info-item a {
+  color: var(--gold-light);
+  transition: color 0.25s;
+}
+
+.cta__info-item a:hover {
+  color: var(--gold);
+}
+
 /* ─── FOOTER ─────────────────────────────────── */
 .footer {
   padding: 32px clamp(20px, 6vw, 80px);

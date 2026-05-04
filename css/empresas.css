@@ -110,7 +110,8 @@
 
 .servicio__body {
   padding: 28px 28px 36px;
-  background: var(--black-soft);
+  background: var(--black);
+  text-align: center;
 }
 
 .servicio__star {
