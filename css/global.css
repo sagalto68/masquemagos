@@ -7,8 +7,8 @@
 
 /* ─── CSS VARIABLES ─────────────────────────── */
 :root {
-  --black:      #0a0a0a;
-  --black-soft: #111111;
+  --black:      #000000;
+  --black-soft: #000000;
   --gold:       #c9a84c;
   --gold-light: #e8c97a;
   --white:      #f5f0e8;
@@ -56,7 +56,7 @@ ul  { list-style: none; }
 }
 
 .nav.scrolled {
-  background: rgba(10, 10, 10, 0.96);
+  background: rgba(0, 0, 0, 0.98);
   backdrop-filter: blur(10px);
 }
 
@@ -121,7 +121,7 @@ ul  { list-style: none; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10,10,10,0.97);
+  background: rgba(0,0,0,0.99);
   z-index: 99;
   flex-direction: column;
   align-items: center;
