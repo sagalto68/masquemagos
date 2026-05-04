@@ -1,0 +1,197 @@
+/* =============================================
+   EMPRESAS.CSS — Más que Magos
+   Styles for empresas.html
+   ============================================= */
+
+/* ─── HERO EMPRESAS ──────────────────────────── */
+.emp-hero {
+  position: relative;
+  width: 100%;
+  min-height: 70vh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.emp-hero__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.emp-hero__bg-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.emp-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.15) 0%,
+    rgba(0,0,0,0.5) 50%,
+    rgba(10,10,10,1) 100%
+  );
+}
+
+.emp-hero__content {
+  position: relative;
+  z-index: 2;
+  padding: clamp(60px, 10vw, 120px) clamp(20px, 6vw, 80px);
+  max-width: 800px;
+}
+
+.emp-hero__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(24px, 3.5vw, 50px);
+  line-height: 1.2;
+  color: var(--white);
+}
+
+.emp-hero__title strong {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ─── QUE HACEMOS ────────────────────────────── */
+.que-hacemos {
+  padding: var(--section-pad) clamp(20px, 6vw, 80px);
+  background: var(--black);
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.que-hacemos__title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 6vw, 80px);
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: clamp(50px, 8vw, 100px);
+  line-height: 0.95;
+}
+
+/* ─── SERVICIOS GRID ─────────────────────────── */
+.servicios__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+/* Each service card */
+.servicio {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border: 1px solid rgba(255,255,255,0.07);
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.servicio:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+.servicio__img-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.servicio__img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.servicio:hover .servicio__img {
+  transform: scale(1.05);
+}
+
+.servicio__body {
+  padding: 28px 28px 36px;
+  background: var(--black-soft);
+}
+
+.servicio__star {
+  display: block;
+  font-size: 22px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.servicio__title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(13px, 1.2vw, 15px);
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  color: var(--white);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+.servicio__desc {
+  font-size: clamp(14px, 1.1vw, 15px);
+  color: rgba(245, 240, 232, 0.6);
+  line-height: 1.7;
+}
+
+/* ─── FILOSOFIA EMPRESAS ─────────────────────── */
+.emp-filosofia {
+  position: relative;
+  padding: clamp(100px, 14vw, 180px) clamp(20px, 10vw, 160px);
+  overflow: hidden;
+  text-align: center;
+}
+
+.emp-filosofia__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.emp-filosofia__bg-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.25);
+}
+
+.emp-filosofia__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.65);
+}
+
+.emp-filosofia__content {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.emp-filosofia__text {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(18px, 2.2vw, 28px);
+  line-height: 1.7;
+  color: var(--white-dim);
+}
+
+/* ─── RESPONSIVE EMPRESAS ────────────────────── */
+@media (max-width: 1000px) {
+  .servicios__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .servicios__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-hero {
+    min-height: 60vh;
+  }
+}
