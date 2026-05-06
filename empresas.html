@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- ─── SEO PRIMARIO ─────────────────────── -->
   <title>Magia para Empresas | Eventos Corporativos, Teambuilding y Stands — Más que Magos</title>
   <meta name="description" content="Experiencias mágicas para empresas diseñadas a medida. Cenas de empresa, convenciones, stands, teambuilding, espectáculos personalizados y campañas de marketing con magia. Llámanos: 616 094 587." />
   <meta name="keywords" content="magia para empresas, mago para eventos corporativos, teambuilding magia, mago para cena de empresa, dinamización de stands, espectáculo personalizado empresa, mago convenciones, marketing con magia" />
@@ -12,7 +11,6 @@
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.masquemagos.com/empresas.html" />
 
-  <!-- ─── OPEN GRAPH ────────────────────────── -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.masquemagos.com/empresas.html" />
   <meta property="og:title" content="Magia para Empresas | Eventos Corporativos — Más que Magos" />
@@ -21,13 +19,11 @@
   <meta property="og:locale" content="es_ES" />
   <meta property="og:site_name" content="Más que Magos" />
 
-  <!-- ─── TWITTER CARD ─────────────────────── -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Magia para Empresas | Más que Magos" />
   <meta name="twitter:description" content="Experiencias mágicas para empresas diseñadas a medida. Cenas, convenciones, teambuilding y más." />
   <meta name="twitter:image" content="https://www.masquemagos.com/images/empresas/hero-empresas.jpg" />
 
-  <!-- ─── SCHEMA MARKUP ────────────────────── -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -38,24 +34,22 @@
       "name": "Más que Magos",
       "url": "https://www.masquemagos.com",
       "telephone": "+34616094587",
-      "email": "masqmagos@gmail.com"
+      "email": "masquemagia@gmail.com"
     },
-    "description": "Servicios de magia para eventos corporativos: cenas de empresa, convenciones, stands, teambuilding, espectáculos personalizados y campañas de marketing.",
-    "areaServed": "ES",
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Magia para Empresas",
-      "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Cenas de empresa y eventos corporativos con magia de cerca" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Magia en convenciones y presentaciones de producto" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Dinamización de stands en ferias y congresos" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Espectáculos de magia personalizados para empresas" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Talleres de magia y teambuilding" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Campañas de marketing con magia" } }
-      ]
-    }
+    "description": "Servicios de magia para eventos corporativos.",
+    "areaServed": "ES"
   }
   </script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Más que Magos" />
+  <link rel="apple-touch-icon" href="images/pwa/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="images/pwa/icon-96.png" />
 
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/empresas.css" />
@@ -65,7 +59,7 @@
   <!-- NAV -->
   <nav class="nav">
     <ul class="nav__links">
-      <li><a href="index.html" class="nav__link">Contratación de magos</a></li>
+      <li><a href="index.html#magos" class="nav__link">Contratación de magos</a></li>
       <li><a href="index.html#espectaculos" class="nav__link">Espectáculos de magia</a></li>
       <li><a href="index.html#festivales" class="nav__link">Festivales de magia</a></li>
       <li><a href="empresas.html" class="nav__link nav__link--active">Empresas</a></li>
@@ -75,13 +69,9 @@
     </ul>
   </nav>
 
-  <!-- HERO EMPRESAS -->
+  <!-- HERO EMPRESAS: texto izquierda / foto derecha a sangre -->
   <section class="emp-hero">
-    <div class="emp-hero__bg">
-      <img src="images/empresas/hero-empresas.jpg" alt="Magia para empresas" class="emp-hero__bg-img" />
-      <div class="emp-hero__overlay"></div>
-    </div>
-    <div class="emp-hero__content">
+    <div class="emp-hero__text">
       <h1 class="emp-hero__title">
         creamos y producimos<br>
         experiencias mágicas para<br>
@@ -89,102 +79,82 @@
         para cada evento.
       </h1>
     </div>
-  </section>
-
-  <!-- QUE HACEMOS -->
-  <section class="que-hacemos">
-    <h2 class="que-hacemos__title">¿ QUE<br>HACEMOS ?</h2>
-
-    <div class="servicios__grid">
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/cenas-empresa.jpg" alt="Cenas de empresa" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">CENAS DE EMPRESA,<br>EVENTOS CORPORATIVOS<br>Y MAGIA DE CERCA</h3>
-          <p class="servicio__desc">
-            Magia de cerca para sorprender a tus invitados en cenas y eventos corporativos,
-            creando momentos únicos e inolvidables entre mesas y conversaciones.
-          </p>
-        </div>
-      </article>
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/convenciones.jpg" alt="Convenciones y presentaciones" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">CONVENCIONES,<br>REUNIONES O<br>PRESENTACIONES<br>DE PRODUCTO</h3>
-          <p class="servicio__desc">
-            Integramos la magia en tus presentaciones y convenciones para que el mensaje
-            llegue con fuerza, emoción y un impacto que nadie olvidará.
-          </p>
-        </div>
-      </article>
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/stands.jpg" alt="Dinamización de stands" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">DINAMIZACIÓN<br>DE STANDS,<br>FERIAS Y<br>CONGRESOS</h3>
-          <p class="servicio__desc">
-            Atraemos visitantes a tu stand con actuaciones de magia en directo que generan
-            engagement y hacen que tu marca destaque entre la competencia.
-          </p>
-        </div>
-      </article>
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/espectaculos.jpg" alt="Espectáculos personalizados" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">ESPECTÁCULOS<br>PERSONALIZADOS</h3>
-          <p class="servicio__desc">
-            Creamos espectáculos únicos adaptados a los valores y objetivos de tu empresa,
-            integrando tu mensaje de forma mágica y memorable.
-          </p>
-        </div>
-      </article>
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/talleres.jpg" alt="Talleres y teambuilding" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">TALLERES,<br>FAMILYDAYS Y<br>TEAMBUILDINGS</h3>
-          <p class="servicio__desc">
-            Talleres de magia que potencian la creatividad, la comunicación y el trabajo
-            en equipo de una forma diferente y sorprendente.
-          </p>
-        </div>
-      </article>
-
-      <article class="servicio">
-        <div class="servicio__img-wrap">
-          <img src="images/empresas/marketing.jpg" alt="Campañas de marketing" class="servicio__img" />
-        </div>
-        <div class="servicio__body">
-          <span class="servicio__star">*</span>
-          <h3 class="servicio__title">CAMPAÑAS DE<br>MARKETING</h3>
-          <p class="servicio__desc">
-            Usamos la magia como herramienta de comunicación en tus campañas de marketing,
-            generando contenido viral y experiencias de marca únicas.
-          </p>
-        </div>
-      </article>
-
+    <div class="emp-hero__image">
+      <img src="images/empresas/hero-empresas.jpg" alt="Manos con cartas en llamas — Magia para empresas" />
     </div>
   </section>
 
-  <!-- FILOSOFIA EMPRESAS -->
+  <!-- QUE HACEMOS — layout editorial -->
+  <section class="que-hacemos">
+    <h2 class="que-hacemos__title">¿ QUE<br>HACEMOS ?</h2>
+
+    <!-- FILA 1: imagen centro + texto derecha -->
+    <div class="qh-row qh-row--1">
+      <div class="qh-item qh-item--img qh-item--img-center">
+        <img src="images/empresas/cenas-empresa.jpg" alt="Cenas de empresa" />
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">CENAS DE EMPRESA,<br>EVENTOS CORPORATIVOS<br>Y MAGIA DE CERCA</h3>
+        <p class="qh-desc">Magia de cerca para sorprender a tus invitados en cenas y eventos corporativos, creando momentos únicos e inolvidables entre mesas y conversaciones.</p>
+      </div>
+    </div>
+
+    <!-- FILA 2: img izq + texto + texto + img der -->
+    <div class="qh-row qh-row--2">
+      <div class="qh-item qh-item--img">
+        <img src="images/empresas/convenciones.jpg" alt="Convenciones" />
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">CONVENCIONES,<br>REUNIONES O<br>PRESENTACIONES<br>DE PRODUCTO</h3>
+        <p class="qh-desc">Integramos la magia en tus presentaciones y convenciones para que el mensaje llegue con fuerza, emoción y un impacto que nadie olvidará.</p>
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">DINAMIZACIÓN<br>DE STANDS,<br>FERIAS Y<br>CONGRESOS</h3>
+        <p class="qh-desc">Atraemos visitantes a tu stand con actuaciones de magia en directo que generan engagement y hacen que tu marca destaque.</p>
+      </div>
+      <div class="qh-item qh-item--img">
+        <img src="images/empresas/stands.jpg" alt="Stands y ferias" />
+      </div>
+    </div>
+
+    <!-- FILA 3: imagen grande + texto derecha -->
+    <div class="qh-row qh-row--3">
+      <div class="qh-item qh-item--img qh-item--img-large">
+        <img src="images/empresas/espectaculos.jpg" alt="Espectáculos personalizados" />
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">ESPECTÁCULOS<br>PERSONALIZADOS</h3>
+        <p class="qh-desc">Creamos espectáculos únicos adaptados a los valores y objetivos de tu empresa, integrando tu mensaje de forma mágica y memorable.</p>
+      </div>
+    </div>
+
+    <!-- FILA 4: img izq + texto + texto + img der -->
+    <div class="qh-row qh-row--4">
+      <div class="qh-item qh-item--img">
+        <img src="images/empresas/marketing.jpg" alt="Campañas de marketing" />
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">CAMPAÑAS DE<br>MARKETING</h3>
+        <p class="qh-desc">Usamos la magia como herramienta de comunicación en tus campañas, generando contenido viral y experiencias de marca únicas.</p>
+      </div>
+      <div class="qh-item qh-item--text">
+        <span class="qh-star">*</span>
+        <h3 class="qh-title">TALLERES,<br>FAMILYDAYS Y<br>TEAMBUILDINGS</h3>
+        <p class="qh-desc">Talleres de magia que potencian la creatividad, la comunicación y el trabajo en equipo de una forma diferente y sorprendente.</p>
+      </div>
+      <div class="qh-item qh-item--img">
+        <img src="images/empresas/talleres.jpg" alt="Talleres y teambuilding" />
+      </div>
+    </div>
+
+  </section>
+
+  <!-- FILOSOFIA -->
   <section class="emp-filosofia">
     <div class="emp-filosofia__bg">
       <img src="images/empresas/filosofia-empresas.jpg" alt="" class="emp-filosofia__bg-img" />
@@ -192,11 +162,9 @@
     </div>
     <div class="emp-filosofia__content">
       <p class="emp-filosofia__text">
-        En mas que magos utilizamos la magia como
-        herramienta para comunicar, emocionar y conectar
-        con el público ...y también desarrollamos talleres y
-        teambuildings que potencian la creatividad y el
-        trabajo en equipo.
+        En Más que Magos utilizamos la magia como herramienta para comunicar, emocionar
+        y conectar con el público ...y también desarrollamos talleres y teambuildings
+        que potencian la creatividad y el trabajo en equipo.
       </p>
     </div>
   </section>
@@ -207,9 +175,9 @@
       <h2 class="cta__title">
         Sueña en grande y nosotros<br>lo haremos realidad...
       </h2>
-      <a href="mailto:masqmagos@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
+      <a href="mailto:masquemagia@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
       <div class="cta__info">
-        <p class="cta__info-item">Email: <a href="mailto:Masqmagos@gmail.com">Masqmagos@gmail.com</a></p>
+        <p class="cta__info-item">Email: <a href="mailto:masquemagia@gmail.com">masquemagia@gmail.com</a></p>
         <p class="cta__info-item">Teléfono: <a href="tel:+34616094587">616 094 587</a></p>
       </div>
     </div>
@@ -221,5 +189,13 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
 </body>
 </html>

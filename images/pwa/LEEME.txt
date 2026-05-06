@@ -1,0 +1,4 @@
+Añade aquí los iconos PWA:
+- icon-192.png  (OBLIGATORIO)
+- icon-512.png  (OBLIGATORIO)
+- icon-96.png   (para favicon y shortcuts)

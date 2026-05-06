@@ -1,198 +1,123 @@
-/* =============================================
-   EMPRESAS.CSS — Más que Magos
-   Styles for empresas.html
-   ============================================= */
+/* EMPRESAS.CSS — Más que Magos */
 
-/* ─── HERO EMPRESAS ──────────────────────────── */
+/* ── HERO: texto izq / foto der a sangre ── */
 .emp-hero {
-  position: relative;
-  width: 100%;
-  min-height: 70vh;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 100svh; background: #000; overflow: hidden;
 }
-
-.emp-hero__bg {
-  position: absolute;
-  inset: 0;
+.emp-hero__text {
+  display: flex; align-items: center;
+  padding: calc(var(--nav-height) + 60px) clamp(28px, 5vw, 80px) 60px;
 }
-
-.emp-hero__bg-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center top;
-}
-
-.emp-hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.15) 0%,
-    rgba(0,0,0,0.5) 50%,
-    rgba(0,0,0,1) 100%
-  );
-}
-
-.emp-hero__content {
-  position: relative;
-  z-index: 2;
-  padding: clamp(60px, 10vw, 120px) clamp(20px, 6vw, 80px);
-  max-width: 800px;
-}
-
 .emp-hero__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(24px, 3.5vw, 50px);
-  line-height: 1.2;
-  color: var(--white);
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(20px, 3vw, 46px); line-height: 1.18; color: var(--white);
+}
+.emp-hero__title strong { font-weight: 700; font-style: italic; }
+.emp-hero__image { overflow: hidden; }
+.emp-hero__image img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
 }
 
-.emp-hero__title strong {
-  font-weight: 700;
-  font-style: italic;
-}
-
-/* ─── QUE HACEMOS ────────────────────────────── */
+/* ── QUE HACEMOS ── */
 .que-hacemos {
-  padding: var(--section-pad) clamp(20px, 6vw, 80px);
-  background: var(--black);
-  max-width: 1300px;
-  margin: 0 auto;
+  background: #000;
+  padding: clamp(60px, 10vw, 140px) clamp(20px, 5vw, 80px);
 }
-
 .que-hacemos__title {
   font-family: var(--font-display);
-  font-size: clamp(36px, 6vw, 80px);
-  letter-spacing: 0.05em;
-  color: var(--white);
-  margin-bottom: clamp(50px, 8vw, 100px);
-  line-height: 0.95;
+  font-size: clamp(48px, 9vw, 120px);
+  letter-spacing: 0.03em; color: var(--white);
+  line-height: 0.9; margin-bottom: clamp(48px, 8vw, 100px);
 }
 
-/* ─── SERVICIOS GRID ─────────────────────────── */
-.servicios__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
+.qh-row {
+  display: grid; gap: clamp(16px, 3vw, 48px);
+  align-items: start; margin-bottom: clamp(40px, 8vw, 100px);
 }
 
-/* Each service card */
-.servicio {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  border: 1px solid rgba(255,255,255,0.07);
-  overflow: hidden;
-  transition: border-color 0.3s;
+/* Fila 1 */
+.qh-row--1 { grid-template-columns: 1fr 1fr; }
+.qh-row--1 .qh-item--img-center { order: 2; }
+.qh-row--1 .qh-item--text { order: 1; padding-top: clamp(16px,5vw,60px); padding-left: clamp(16px,3vw,40px); }
+
+/* Filas 2 y 4 */
+.qh-row--2, .qh-row--4 { grid-template-columns: 1fr 1fr 1fr 1fr; align-items: center; }
+
+/* Fila 3 */
+.qh-row--3 { grid-template-columns: 3fr 2fr; }
+.qh-item--img-large img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+
+/* Items */
+.qh-item--img img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+.qh-item--img-center img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.qh-item--text { padding: clamp(8px,1.5vw,24px) clamp(6px,1vw,16px); }
+.qh-star { display: block; font-size: 26px; color: var(--white); margin-bottom: 12px; }
+.qh-title {
+  font-family: var(--font-body); font-weight: 700;
+  font-size: clamp(12px, 1.2vw, 16px); letter-spacing: 0.06em;
+  line-height: 1.35; color: var(--white); margin-bottom: 14px; text-transform: uppercase;
+}
+.qh-desc {
+  font-family: var(--font-body); font-size: clamp(13px, 1vw, 15px);
+  color: rgba(245,240,232,0.58); line-height: 1.75;
 }
 
-.servicio:hover {
-  border-color: rgba(201, 168, 76, 0.3);
-}
-
-.servicio__img-wrap {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-}
-
-.servicio__img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.servicio:hover .servicio__img {
-  transform: scale(1.05);
-}
-
-.servicio__body {
-  padding: 28px 28px 36px;
-  background: var(--black);
-  text-align: center;
-}
-
-.servicio__star {
-  display: block;
-  font-size: 22px;
-  color: var(--gold);
-  margin-bottom: 12px;
-  line-height: 1;
-}
-
-.servicio__title {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: clamp(13px, 1.2vw, 15px);
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  color: var(--white);
-  margin-bottom: 14px;
-  text-transform: uppercase;
-}
-
-.servicio__desc {
-  font-size: clamp(14px, 1.1vw, 15px);
-  color: rgba(245, 240, 232, 0.6);
-  line-height: 1.7;
-}
-
-/* ─── FILOSOFIA EMPRESAS ─────────────────────── */
+/* ── FILOSOFIA ── */
 .emp-filosofia {
   position: relative;
-  padding: clamp(100px, 14vw, 180px) clamp(20px, 10vw, 160px);
-  overflow: hidden;
-  text-align: center;
+  padding: clamp(80px,14vw,180px) clamp(24px,10vw,160px);
+  overflow: hidden; text-align: center; background: #000;
 }
-
-.emp-filosofia__bg {
-  position: absolute;
-  inset: 0;
-}
-
-.emp-filosofia__bg-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: brightness(0.25);
-}
-
-.emp-filosofia__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.70);
-}
-
-.emp-filosofia__content {
-  position: relative;
-  z-index: 2;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
+.emp-filosofia__bg { position: absolute; inset: 0; }
+.emp-filosofia__bg-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.22); }
+.emp-filosofia__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); }
+.emp-filosofia__content { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; }
 .emp-filosofia__text {
-  font-family: var(--font-body);
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(18px, 2.2vw, 28px);
-  line-height: 1.7;
-  color: var(--white-dim);
+  font-family: var(--font-body); font-style: italic; font-weight: 300;
+  font-size: clamp(17px, 2.2vw, 28px); line-height: 1.7; color: var(--white-dim);
 }
 
-/* ─── RESPONSIVE EMPRESAS ────────────────────── */
-@media (max-width: 1000px) {
-  .servicios__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* ════ TABLET ≤900px ════ */
+@media (max-width: 900px) {
+  .emp-hero { grid-template-columns: 1fr; min-height: auto; }
+  .emp-hero__text { padding: calc(var(--nav-height) + 40px) clamp(24px,5vw,48px) 40px; }
+  .emp-hero__image { height: 55vw; min-height: 260px; max-height: 480px; }
+
+  .qh-row--1 { grid-template-columns: 1fr; }
+  .qh-row--1 .qh-item--img-center { order: 0; }
+  .qh-row--1 .qh-item--text { order: 1; padding: 0; }
+
+  .qh-row--2, .qh-row--4 { grid-template-columns: 1fr 1fr; }
+  .qh-row--2 .qh-item--img,
+  .qh-row--4 .qh-item--img { grid-column: span 2; }
+  .qh-row--2 .qh-item--img img,
+  .qh-row--4 .qh-item--img img { aspect-ratio: 16/7; }
+
+  .qh-row--3 { grid-template-columns: 1fr; }
+  .emp-filosofia { padding: 80px 32px; }
 }
 
-@media (max-width: 620px) {
-  .servicios__grid {
-    grid-template-columns: 1fr;
-  }
+/* ════ MOBILE ≤600px ════ */
+@media (max-width: 600px) {
+  .emp-hero__text { padding: calc(var(--nav-height) + 28px) 20px 32px; }
+  .emp-hero__title { font-size: clamp(22px, 7vw, 34px); }
+  .emp-hero__image { height: 70vw; min-height: 220px; }
 
-  .emp-hero {
-    min-height: 60vh;
-  }
+  .que-hacemos { padding: 48px 16px; }
+  .que-hacemos__title { font-size: clamp(44px, 14vw, 72px); margin-bottom: 40px; }
+
+  .qh-row--2, .qh-row--4 { grid-template-columns: 1fr; }
+  .qh-row--2 .qh-item--img,
+  .qh-row--4 .qh-item--img { grid-column: span 1; }
+  .qh-row--2 .qh-item--img img,
+  .qh-row--4 .qh-item--img img,
+  .qh-item--img img,
+  .qh-item--img-center img { aspect-ratio: 3/2; }
+
+  .qh-item--text { padding: 4px 0 16px; }
+  .qh-title { font-size: 13px; }
+  .qh-desc { font-size: 13px; }
+  .qh-row { margin-bottom: 32px; }
+  .emp-filosofia { padding: 60px 20px; }
 }

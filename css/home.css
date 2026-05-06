@@ -1,386 +1,190 @@
-/* =============================================
-   HOME.CSS — Más que Magos
-   Styles for index.html
-   ============================================= */
+/* HOME.CSS — Más que Magos */
 
-/* ─── HERO ───────────────────────────────────── */
+/* ── HERO ── */
 .hero {
-  position: relative;
-  width: 100%;
-  height: 100svh;
-  min-height: 600px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  position: relative; width: 100%; height: 100svh;
+  min-height: 500px; display: flex;
+  align-items: center; justify-content: center;
+  overflow: hidden; background: #000;
 }
-
-.hero__bg {
-  position: absolute;
-  inset: 0;
-}
-
+.hero__bg { position: absolute; inset: 0; }
 .hero__bg-video {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: cover; object-position: center;
 }
-
-.hero__bg-img {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center top;
-}
-
 .hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.35) 0%,
-    rgba(0,0,0,0.55) 60%,
-    rgba(0,0,0,1) 100%
-  );
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.45) 60%, #000 100%);
 }
-
 .hero__content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+  position: relative; z-index: 2;
+  text-align: center; display: flex;
+  flex-direction: column; align-items: center;
 }
-
 .hero__logo-img {
-  width: clamp(200px, 40vw, 380px);
-  filter: drop-shadow(0 0 40px rgba(201, 168, 76, 0.3));
-  animation: logoReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  width: clamp(160px, 45vw, 380px);
+  filter: drop-shadow(0 0 40px rgba(201,168,76,0.3));
+  animation: logoReveal 1.4s cubic-bezier(0.16,1,0.3,1) both;
 }
-
-.hero__tagline {
-  display: none;
-}
-
 @keyframes logoReveal {
   from { opacity: 0; transform: translateY(30px) scale(0.95); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── TAGLINE ── */
+.tagline-bar { background: #000; text-align: center; padding: 28px 24px 40px; }
+.tagline-bar__text {
+  font-family: var(--font-body); font-style: italic; font-weight: 300;
+  font-size: clamp(14px, 2vw, 22px); letter-spacing: 0.1em; color: var(--white-dim);
 }
 
-/* ─── MAGOS SECTION ──────────────────────────── */
-.magos {
-  padding: var(--section-pad) 0;
-  background: var(--black);
-}
-
+/* ── MAGOS ── */
+.magos { background: #000; padding-bottom: var(--section-pad); }
 .magos__container {
-  max-width: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  align-items: center;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
 }
-
 .magos__text {
-  padding: 0 clamp(40px, 6vw, 100px);
-  text-align: center;
+  order: 1;
+  padding: var(--section-pad) clamp(28px, 5vw, 80px); text-align: center;
 }
-
-.magos__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(28px, 4vw, 52px);
-  line-height: 1.15;
-  color: var(--white);
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.magos__title strong {
-  font-weight: 700;
-}
-
-.magos__desc {
-  font-size: clamp(15px, 1.4vw, 17px);
-  color: rgba(245, 240, 232, 0.7);
-  margin-bottom: 36px;
-  line-height: 1.75;
-  text-align: center;
-}
-
-/* Image mosaic - todas redondas */
 .magos__images {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
-  padding: 40px clamp(24px, 4vw, 60px);
-  background: #000000;
+  order: 2;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0;
 }
-
 .magos__img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 50%;
+  width: 100%; aspect-ratio: 1/1;
+  object-fit: cover; border-radius: 50%; display: block;
+}
+.magos__title {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(24px, 3.5vw, 52px); line-height: 1.15;
+  color: var(--white); margin-bottom: 20px;
+}
+.magos__title strong { font-weight: 700; }
+.magos__desc {
+  font-size: clamp(15px, 1.4vw, 17px); color: rgba(245,240,232,0.7);
+  margin-bottom: 32px; line-height: 1.75;
 }
 
-.magos__img--1 {
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-}
-
-.magos__img--2 {
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.magos__img--3 {
-  grid-column: 1;
-  grid-row: 2;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.magos__img--4 {
-  grid-column: 2;
-  grid-row: 2;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* ─── ESPECTÁCULOS SECTION ───────────────────── */
-.espectaculos {
-  padding: var(--section-pad) 0;
-  background: var(--black);
-  overflow: hidden;
-}
-
+/* ── ESPECTÁCULOS ── */
+.espectaculos { background: #000; overflow: hidden; }
 .espectaculos__container {
-  max-width: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  align-items: center;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
 }
-
 .espectaculos__image img {
-  width: 100%;
-  height: 600px;
-  object-fit: contain;
-  object-position: center center;
-  background: #000000;
-  display: block;
+  width: 100%; height: 100%; min-height: 480px; object-fit: cover; display: block;
 }
-
 .espectaculos__text {
-  padding: 0 clamp(40px, 6vw, 100px);
-  text-align: center;
+  padding: var(--section-pad) clamp(28px, 5vw, 80px); text-align: center;
 }
-
 .espectaculos__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(26px, 3.5vw, 48px);
-  line-height: 1.15;
-  margin-bottom: 28px;
-  text-align: center;
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(24px, 3.5vw, 52px); line-height: 1.1; margin-bottom: 24px;
 }
-
-.espectaculos__title strong {
-  font-weight: 700;
-  font-style: italic;
-}
-
+.espectaculos__title strong { font-weight: 700; font-style: italic; }
 .espectaculos__desc {
-  font-size: clamp(15px, 1.4vw, 17px);
-  color: rgba(245, 240, 232, 0.7);
-  margin-bottom: 36px;
-  line-height: 1.75;
-  text-align: center;
+  font-size: clamp(15px, 1.4vw, 17px); color: rgba(245,240,232,0.7);
+  margin-bottom: 32px; line-height: 1.75;
 }
 
-/* ─── FESTIVALES SECTION ─────────────────────── */
-.festivales {
-  padding: var(--section-pad) 0;
-  background: var(--black);
-}
-
+/* ── FESTIVALES ── */
+.festivales { background: #000; overflow: hidden; }
 .festivales__container {
-  max-width: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  align-items: center;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
 }
-
 .festivales__text {
-  padding: 0 clamp(40px, 6vw, 100px);
-  text-align: left;
+  padding: var(--section-pad) clamp(28px, 5vw, 80px); text-align: center;
 }
-
 .festivales__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(26px, 3.5vw, 48px);
-  line-height: 1.15;
-  margin-bottom: 28px;
-  text-align: left;
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(24px, 3.5vw, 48px); line-height: 1.15; margin-bottom: 24px;
 }
-
-.festivales__title strong {
-  font-weight: 700;
-}
-
+.festivales__title strong { font-weight: 700; }
 .festivales__desc {
-  font-size: clamp(15px, 1.4vw, 17px);
-  color: rgba(245, 240, 232, 0.7);
-  margin-bottom: 16px;
-  line-height: 1.75;
-  text-align: center;
+  font-size: clamp(15px, 1.4vw, 17px); color: rgba(245,240,232,0.7);
+  margin-bottom: 14px; line-height: 1.75;
 }
-
-.festivales__desc:last-of-type {
-  margin-bottom: 36px;
-}
-
-.festivales__image {
-  padding: clamp(20px, 4vw, 60px) clamp(20px, 4vw, 60px) clamp(20px, 4vw, 60px) 0;
-}
-
+.festivales__desc:last-of-type { margin-bottom: 32px; }
 .festivales__image img {
-  width: 100%;
-  height: 600px;
-  object-fit: contain;
-  object-position: center center;
-  border-radius: 40px;
-  background: #000000;
-  display: block;
+  width: 100%; height: 100%; min-height: 480px; object-fit: cover; display: block;
 }
 
-/* ─── EMPRESAS PREVIEW ───────────────────────── */
-.empresas-preview {
-  padding: var(--section-pad) 0;
-  background: var(--black);
-}
-
+/* ── EMPRESAS PREVIEW ── */
+.empresas-preview { background: #000; overflow: hidden; }
 .empresas-preview__container {
-  max-width: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  align-items: center;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
 }
-
 .empresas-preview__image img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  max-height: 600px;
+  width: 100%; height: 100%; min-height: 480px; object-fit: cover; display: block;
 }
-
 .empresas-preview__text {
-  padding: 0 clamp(40px, 6vw, 100px);
-  text-align: left;
+  padding: var(--section-pad) clamp(28px, 5vw, 80px); text-align: center;
 }
-
 .empresas-preview__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(20px, 2.5vw, 34px);
-  line-height: 1.4;
-  margin-bottom: 40px;
-  text-align: left;
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(20px, 2.5vw, 34px); line-height: 1.4; margin-bottom: 36px;
 }
+.empresas-preview__title strong { font-weight: 700; font-style: italic; }
 
-.empresas-preview__title strong {
-  font-weight: 700;
-  font-style: italic;
-}
-
-/* ─── FILOSOFIA SECTION ──────────────────────── */
+/* ── FILOSOFIA ── */
 .filosofia {
   position: relative;
-  padding: clamp(100px, 14vw, 180px) clamp(20px, 10vw, 160px);
-  overflow: hidden;
-  text-align: center;
+  padding: clamp(80px, 14vw, 180px) clamp(24px, 10vw, 160px);
+  overflow: hidden; text-align: center; background: #000;
 }
-
-.filosofia__bg {
-  position: absolute;
-  inset: 0;
-}
-
-.filosofia__bg-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: brightness(0.3);
-}
-
-.filosofia__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-}
-
-.filosofia__content {
-  position: relative;
-  z-index: 2;
-  max-width: 780px;
-  margin: 0 auto;
-}
-
+.filosofia__bg { position: absolute; inset: 0; }
+.filosofia__bg-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.28); }
+.filosofia__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.filosofia__content { position: relative; z-index: 2; max-width: 780px; margin: 0 auto; }
 .filosofia__text {
-  font-family: var(--font-body);
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(18px, 2.2vw, 28px);
-  line-height: 1.7;
-  color: var(--white-dim);
+  font-family: var(--font-body); font-style: italic; font-weight: 300;
+  font-size: clamp(17px, 2.2vw, 28px); line-height: 1.7; color: var(--white-dim);
 }
 
-/* ─── RESPONSIVE HOME ────────────────────────── */
+/* ════ TABLET ≤900px ════ */
 @media (max-width: 900px) {
   .magos__container,
   .espectaculos__container,
   .festivales__container,
-  .empresas-preview__container {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
+  .empresas-preview__container { grid-template-columns: 1fr; }
 
-  .magos__text,
-  .espectaculos__text,
-  .festivales__text,
-  .empresas-preview__text {
-    padding: clamp(40px, 8vw, 80px) clamp(20px, 6vw, 60px);
-  }
+  .magos__text      { order: 1; }
+  .magos__images    { order: 2; padding: 20px clamp(20px,5vw,48px); }
+  .espectaculos__image { order: 1; }
+  .espectaculos__text  { order: 2; }
+  .festivales__image   { order: 1; }
+  .festivales__text    { order: 2; }
+  .empresas-preview__image { order: 1; }
+  .empresas-preview__text  { order: 2; }
 
-  .festivales__image {
-    order: -1;
-  }
+  .espectaculos__image img,
+  .festivales__image img,
+  .empresas-preview__image img { min-height: 300px; max-height: 480px; }
 
-  .magos__images {
-    max-width: 100%;
-    margin: 0;
-    padding: 8px;
+  .magos__text, .espectaculos__text,
+  .festivales__text, .empresas-preview__text {
+    padding: 48px clamp(24px, 6vw, 60px);
   }
+}
+
+/* ════ MOBILE ≤600px ════ */
+@media (max-width: 600px) {
+  .hero__logo-img { width: clamp(180px, 65vw, 280px); }
+  .tagline-bar { padding: 20px 16px 28px; }
+
+  .magos__text, .espectaculos__text,
+  .festivales__text, .empresas-preview__text { padding: 36px 20px; }
+
+  .magos__images { padding: 12px 16px; gap: 8px; }
+
+  .espectaculos__image img,
+  .festivales__image img,
+  .empresas-preview__image img { min-height: 240px; max-height: 360px; }
+
+  .magos__title, .espectaculos__title,
+  .festivales__title { font-size: clamp(26px, 7.5vw, 36px); }
+
+  .empresas-preview__title { font-size: clamp(20px, 6vw, 28px); }
+  .filosofia { padding: 60px 20px; }
 }
