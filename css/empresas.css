@@ -65,7 +65,7 @@
 /* Imagen altura fija pequeña */
 .qh-card__img {
   width: 100%;
-  height: 160px;
+  height: 280px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -97,7 +97,7 @@
 .qh-card__title {
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   line-height: 1.4;
@@ -106,7 +106,7 @@
 }
 .qh-card__desc {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(245,240,232,0.5);
   line-height: 1.65;
   transition: color 0.3s;
