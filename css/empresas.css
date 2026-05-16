@@ -1,142 +1,140 @@
 /* EMPRESAS.CSS — Más que Magos */
 
-/* ── HERO ── */
+/* ══════════════════════════════
+   HERO — texto izq / foto der
+   ══════════════════════════════ */
 .emp-hero {
-  position: relative; width: 100%; min-height: 70vh;
-  display: flex; align-items: flex-end; overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100svh;
+  background: #000;
+  overflow: hidden;
 }
-.emp-hero__bg { position: absolute; inset: 0; }
-.emp-hero__bg-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.emp-hero__overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.5) 50%, #000 100%);
-}
-.emp-hero__content {
-  position: relative; z-index: 2;
-  padding: clamp(60px,10vw,120px) clamp(20px,6vw,80px);
-  max-width: 800px;
-}
-.emp-hero__title {
-  font-family: var(--font-serif); font-weight: 400;
-  font-size: clamp(24px,3.5vw,50px); line-height: 1.2; color: var(--white);
-}
-.emp-hero__title strong { font-weight: 700; font-style: italic; }
 
-/* ══════════════════════════════════════
-   QUE HACEMOS
-══════════════════════════════════════ */
+.emp-hero__text {
+  display: flex;
+  align-items: center;
+  padding: calc(var(--nav-height) + 60px) clamp(28px,5vw,80px) 60px;
+  background: #000;
+}
+
+.emp-hero__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(22px, 2.8vw, 44px);
+  line-height: 1.2;
+  color: var(--white);
+}
+.emp-hero__title strong {
+  font-weight: 700;
+  font-style: italic;
+}
+
+.emp-hero__image {
+  overflow: hidden;
+  position: relative;
+}
+.emp-hero__image img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* ══════════════════════════════
+   QUE HACEMOS — mini tarjetas
+   ══════════════════════════════ */
 .que-hacemos {
   background: #000;
-  padding-top: clamp(60px, 10vw, 120px);
+  padding: clamp(60px,8vw,100px) clamp(20px,5vw,72px);
 }
 
-/* Cabecera */
 .qh__header {
-  padding: 0 clamp(24px,6vw,80px) 60px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 40px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  padding-bottom: 48px;
-  margin-bottom: 0;
+  margin-bottom: clamp(36px,5vw,60px);
 }
 .qh__title {
   font-family: var(--font-display);
-  font-size: clamp(70px,12vw,150px);
-  line-height: 0.85;
+  font-size: clamp(32px,5vw,64px);
+  letter-spacing: 0.04em;
   color: var(--white);
-  letter-spacing: 0.02em;
-}
-.qh__intro {
-  max-width: 320px;
-  font-family: var(--font-body);
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(15px,1.4vw,19px);
-  color: rgba(245,240,232,0.45);
-  line-height: 1.65;
-  padding-bottom: 8px;
+  line-height: 1;
 }
 
-/* Lista de servicios */
-.servicios {
+/* Grid de 3 columnas */
+.qh__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Tarjeta */
+.qh-card {
+  background: #000;
   display: flex;
   flex-direction: column;
-}
-
-.srv {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 380px;
-  border-top: 1px solid rgba(255,255,255,0.07);
   overflow: hidden;
-  transition: background 0.4s;
-  position: relative;
+  transition: background 0.35s;
+  cursor: default;
 }
-.srv:last-child { border-bottom: 1px solid rgba(255,255,255,0.07); }
-.srv:hover { background: #080808; }
+.qh-card:hover { background: #0c0c0c; }
 
-/* Imagen */
-.srv__img { overflow: hidden; }
-.srv__img img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  transition: transform 0.8s cubic-bezier(0.16,1,0.3,1), filter 0.5s;
-  filter: grayscale(20%) brightness(0.85);
+/* Imagen cuadrada pequeña */
+.qh-card__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
 }
-.srv:hover .srv__img img {
-  transform: scale(1.04);
-  filter: grayscale(0%) brightness(0.95);
+.qh-card__img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), filter 0.4s;
+  filter: brightness(0.8) grayscale(15%);
 }
-
-/* Texto */
-.srv__body {
-  display: flex; flex-direction: column; justify-content: center;
-  padding: clamp(40px,6vw,80px) clamp(32px,5vw,72px);
-  position: relative;
+.qh-card:hover .qh-card__img img {
+  transform: scale(1.06);
+  filter: brightness(0.95) grayscale(0%);
 }
 
-.srv__num {
-  font-family: var(--font-display);
-  font-size: clamp(80px,12vw,140px);
+/* Contenido */
+.qh-card__body {
+  padding: clamp(16px,2vw,24px) clamp(16px,2vw,24px) clamp(20px,2.5vw,32px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.qh-card__star {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: #c9a84c;
+  display: block;
+  margin-bottom: 10px;
   line-height: 1;
-  color: rgba(255,255,255,0.04);
-  position: absolute; top: 20px; right: 32px;
-  pointer-events: none;
-  transition: color 0.4s;
-  user-select: none;
 }
-.srv:hover .srv__num { color: rgba(201,168,76,0.07); }
 
-.srv__star {
+.qh-card__title {
   font-family: var(--font-body);
-  font-size: 18px; color: #c9a84c;
-  margin-bottom: 18px; display: block;
+  font-weight: 700;
+  font-size: clamp(12px,1.1vw,14px);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  line-height: 1.35;
+  color: var(--white);
+  margin-bottom: 12px;
 }
-.srv__title {
-  font-family: var(--font-serif); font-weight: 700;
-  font-size: clamp(20px,2.2vw,30px); line-height: 1.2;
-  color: var(--white); margin-bottom: 20px;
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.srv__divider {
-  width: 40px; height: 1px; background: #c9a84c;
-  margin-bottom: 20px;
-  transition: width 0.5s cubic-bezier(0.16,1,0.3,1);
-}
-.srv:hover .srv__divider { width: 80px; }
 
-.srv__desc {
+.qh-card__desc {
   font-family: var(--font-body);
-  font-size: clamp(14px,1.2vw,17px);
-  color: rgba(245,240,232,0.5); line-height: 1.75;
-  max-width: 400px; transition: color 0.3s;
+  font-size: clamp(12px,0.95vw,13px);
+  color: rgba(245,240,232,0.5);
+  line-height: 1.7;
+  transition: color 0.3s;
 }
-.srv:hover .srv__desc { color: rgba(245,240,232,0.72); }
-
-/* Alternado */
-.srv--reverse .srv__img { order: 2; }
-.srv--reverse .srv__body { order: 1; }
+.qh-card:hover .qh-card__desc { color: rgba(245,240,232,0.7); }
 
 /* ── FILOSOFIA ── */
 .emp-filosofia {
@@ -145,31 +143,53 @@
   overflow: hidden; text-align: center; background: #000;
 }
 .emp-filosofia__bg { position: absolute; inset: 0; }
-.emp-filosofia__bg-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.22); }
-.emp-filosofia__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); }
-.emp-filosofia__content { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; }
+.emp-filosofia__bg-img {
+  width: 100%; height: 100%;
+  object-fit: cover; filter: brightness(0.22);
+}
+.emp-filosofia__overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.65);
+}
+.emp-filosofia__content {
+  position: relative; z-index: 2;
+  max-width: 720px; margin: 0 auto;
+}
 .emp-filosofia__text {
   font-family: var(--font-body); font-style: italic; font-weight: 300;
   font-size: clamp(17px,2.2vw,28px); line-height: 1.7; color: var(--white-dim);
 }
 
-/* ════ TABLET ≤800px ════ */
-@media (max-width: 800px) {
-  .srv { grid-template-columns: 1fr; min-height: auto; }
-  .srv__img { height: 300px; }
-  .srv--reverse .srv__img { order: 0; }
-  .srv--reverse .srv__body { order: 1; }
-  .srv__body { padding: 40px 28px; }
-  .srv__num { font-size: 80px; top: 12px; right: 20px; }
-  .qh__header { flex-direction: column; align-items: flex-start; }
-  .qh__intro { max-width: 100%; }
+/* ════ TABLET ≤900px ════ */
+@media (max-width: 900px) {
+  /* Hero en columna */
+  .emp-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .emp-hero__text {
+    padding: calc(var(--nav-height) + 40px) clamp(24px,5vw,48px) 40px;
+  }
+  .emp-hero__image {
+    height: 56vw;
+    min-height: 260px;
+  }
+
+  /* Grid 2 columnas */
+  .qh__grid { grid-template-columns: repeat(2, 1fr); }
+
   .emp-filosofia { padding: 80px 32px; }
 }
 
-/* ════ MOBILE ≤500px ════ */
-@media (max-width: 500px) {
-  .qh__title { font-size: clamp(60px,18vw,90px); }
-  .srv__img { height: 240px; }
-  .srv__body { padding: 32px 20px; }
+/* ════ MOBILE ≤560px ════ */
+@media (max-width: 560px) {
+  .emp-hero__title { font-size: clamp(22px,6.5vw,32px); }
+  .emp-hero__image { height: 72vw; }
+
+  /* Grid 1 columna */
+  .qh__grid { grid-template-columns: 1fr; }
+  .qh-card__img { aspect-ratio: 16/9; }
+
+  .que-hacemos { padding: 48px 16px; }
   .emp-filosofia { padding: 60px 20px; }
 }
