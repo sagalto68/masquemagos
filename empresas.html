@@ -52,6 +52,7 @@
 
   <!-- NAV -->
   <nav class="nav">
+    <a href="index.html" class="nav__logo-link"><img src="images/home/logo.png" alt="Más que Magos" class="nav__logo" /></a>
     <ul class="nav__links">
       <li><a href="index.html#magos" class="nav__link">Contratación de magos</a></li>
       <li><a href="index.html#espectaculos" class="nav__link">Espectáculos de magia</a></li>
@@ -172,10 +173,30 @@
   <section class="cta" id="contacto">
     <div class="cta__content">
       <h2 class="cta__title">Sueña en grande y nosotros<br>lo haremos realidad...</h2>
-      <a href="mailto:masqmagos@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
-      <div class="cta__info">
-        <p class="cta__info-item">Email: <a href="mailto:masqmagos@gmail.com">masqmagos@gmail.com</a></p>
-        <p class="cta__info-item">Teléfono: <a href="tel:+34616094587">616 094 587</a></p>
+      <div class="cta__columns">
+        <div class="cta__contact">
+          <a href="mailto:masqmagos@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
+          <div class="cta__info">
+            <p class="cta__info-item">Email: <a href="mailto:masqmagos@gmail.com">masqmagos@gmail.com</a></p>
+            <p class="cta__info-item">Teléfono: <a href="tel:+34616094587">616 094 587</a></p>
+          </div>
+        </div>
+                        <form class="cta__form" action="mailto:masqmagos@gmail.com" method="POST" enctype="text/plain">
+          <div class="cta__form-row">
+            <input type="text" name="nombre" placeholder="Nombre *" required class="cta__input" />
+            <input type="email" name="email" placeholder="Email *" required class="cta__input" />
+          </div>
+          <div class="cta__form-row">
+            <input type="tel" name="movil" placeholder="Móvil *" required class="cta__input" />
+            <input type="text" name="localidad" placeholder="Localidad" class="cta__input" />
+          </div>
+          <div class="cta__form-row">
+            <input type="text" name="tipo_evento" placeholder="Tipo de evento" class="cta__input" />
+            <input type="text" name="fecha" placeholder="Fecha" class="cta__input" />
+          </div>
+          <textarea name="mensaje" placeholder="Mensaje *" required rows="4" class="cta__input cta__textarea"></textarea>
+          <button type="submit" class="btn btn--outline cta__submit">Enviar consulta</button>
+        </form>
       </div>
     </div>
   </section>
