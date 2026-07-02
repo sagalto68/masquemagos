@@ -336,3 +336,24 @@
     margin: 0 auto;
   }
 }
+
+/* ─── MOBILE FIXES ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Fix text overflow */
+  .festivales__container,
+  .espectaculos__container,
+  .magos__container,
+  .empresas-preview__container {
+    overflow: hidden;
+  }
+  .festivales__title,
+  .espectaculos__title,
+  .magos__title,
+  .empresas-preview__title,
+  .festivales__desc,
+  .espectaculos__desc,
+  .magos__desc {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+}

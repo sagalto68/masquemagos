@@ -200,17 +200,65 @@ ul  { list-style: none; }
   .nav__links > li:not(:last-child) { display: none; }
   .nav__hamburger { display: flex; }
 }
-/* ─── MOBILE HERO BUTTON ─────────────────────── */
+
+/* ─── NAV LOGO ───────────────────────────────── */
+.nav__logo {
+  display: none;
+  height: 40px;
+  width: auto;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.nav.scrolled .nav__logo {
+  opacity: 1;
+}
 @media (max-width: 768px) {
-  .hero__mobile-cel {
-    margin-top: 20px;
-    border-color: var(--gold);
-    color: var(--gold);
-    font-size: 13px;
-    padding: 12px 28px;
-    animation: fadeUp 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  .nav__logo-link {
+    display: block !important;
   }
-  .hero__mobile-cel:hover {
-    background: rgba(201,168,76,0.12);
+  .nav__logo {
+    display: block;
+    height: 48px;
   }
+}
+
+/* ─── FLOATING BUTTONS — MOBILE ONLY ─────────── */
+@media (max-width: 768px) {
+  .float-contact {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: 16px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .float-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    text-decoration: none;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+  }
+  .float-btn:active { transform: scale(0.92); }
+  .float-btn svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+    flex-shrink: 0;
+  }
+  .float-btn--wa    { background: #25D366; color: #fff; }
+  .float-btn--email { background: var(--gold); color: #fff; }
+  .float-btn--phone { background: #1c1c1c; color: var(--white); border: 1px solid rgba(255,255,255,0.2); }
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .float-contact { display: none !important; }
 }
