@@ -200,3 +200,17 @@ ul  { list-style: none; }
   .nav__links > li:not(:last-child) { display: none; }
   .nav__hamburger { display: flex; }
 }
+/* ─── MOBILE HERO BUTTON ─────────────────────── */
+@media (max-width: 768px) {
+  .hero__mobile-cel {
+    margin-top: 20px;
+    border-color: var(--gold);
+    color: var(--gold);
+    font-size: 13px;
+    padding: 12px 28px;
+    animation: fadeUp 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  }
+  .hero__mobile-cel:hover {
+    background: rgba(201,168,76,0.12);
+  }
+}

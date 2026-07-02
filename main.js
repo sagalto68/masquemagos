@@ -28,13 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileMenu = document.createElement('div');
     mobileMenu.className = 'nav__mobile';
 
-    // Clone desktop nav links for mobile
-    const desktopLinks = document.querySelectorAll('.nav__links .nav__link');
-    desktopLinks.forEach(link => {
+    // Fixed list of all mobile links (including extras not in desktop nav)
+    const mobileLinks = [
+      { href: '#magos',                      text: 'Contratación de magos' },
+      { href: '#espectaculos',               text: 'Espectáculos de magia' },
+      { href: '#festivales',                 text: 'Festivales de magia' },
+      { href: 'empresas.html',               text: 'Empresas' },
+      { href: 'celebraciones/index.html',    text: 'Eventos familiares' },
+      { href: '#contacto',                   text: 'Contacto' },
+    ];
+
+    mobileLinks.forEach(({ href, text }) => {
       const a = document.createElement('a');
-      a.href = link.href;
+      a.href = href;
       a.className = 'nav__link';
-      a.textContent = link.textContent;
+      a.textContent = text;
       mobileMenu.appendChild(a);
     });
 
@@ -59,6 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileMenu.querySelectorAll('.nav__link').forEach(link => {
       link.addEventListener('click', () => mobileMenu.classList.remove('open'));
     });
+  }
+
+  // ─── MOBILE HERO BUTTON (solo móvil) ──────────
+  if (window.innerWidth <= 768) {
+    const heroContent = document.querySelector('.hero__content');
+    if (heroContent) {
+      const btn = document.createElement('a');
+      btn.href = 'celebraciones/index.html';
+      btn.className = 'btn btn--outline hero__mobile-cel';
+      btn.textContent = '¿Tienes un evento familiar?';
+      heroContent.appendChild(btn);
+    }
   }
 
 
