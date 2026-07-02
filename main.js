@@ -7,21 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── NAV: add .scrolled class on scroll ─────
   const nav = document.querySelector('.nav');
-  const navLogo = document.getElementById('navLogo');
-  const heroHeight = window.innerHeight * 0.7;
 
   const onScroll = () => {
     if (window.scrollY > 60) {
       nav.classList.add('scrolled');
     } else {
       nav.classList.remove('scrolled');
-    }
-    if (navLogo) {
-      if (window.scrollY > heroHeight) {
-        navLogo.classList.add('visible');
-      } else {
-        navLogo.classList.remove('visible');
-      }
     }
   };
 
