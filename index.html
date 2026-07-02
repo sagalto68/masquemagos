@@ -67,6 +67,41 @@
   <link rel="stylesheet" href="css/home.css" />
 
   <style>
+    /* ─── BOTONES CONTACTO RÁPIDO PC ── */
+    .cta__quick-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .cta__quick-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 100px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      transition: all 0.3s;
+      color: white;
+    }
+    .cta__quick-btn--wa    { background: #25D366; }
+    .cta__quick-btn--wa:hover { background: #1fbb5a; transform: translateY(-2px); }
+    .cta__quick-btn--email { background: #c9a84c; }
+    .cta__quick-btn--email:hover { background: #b8943d; transform: translateY(-2px); }
+    .cta__quick-btn--phone { background: #2a2a2a; border: 1px solid rgba(255,255,255,0.15); }
+    .cta__quick-btn--phone:hover { background: #333; transform: translateY(-2px); }
+    /* Logo nav más grande */
+    .nav__logo { height: 52px !important; width: auto; }
+    @media (max-width: 768px) {
+      .cta__quick-btns { display: none; }
+      .nav__logo { height: 44px !important; }
+    }
+  </style>
+
+  <style>
     .cta__title { max-width: 100% !important; }
     .cta__icon-btns { display: flex; gap: 14px; margin-top: 24px; }
     .cta__icon-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.35); transition: transform 0.3s; }
@@ -82,8 +117,7 @@
     }
     @media (min-width: 769px) { .mqm-float { display: none; } }
   </style>
-
-  <style>
+<style>
     /* Título full width centrado */
     .cta__content { text-align: center; }
     .cta__title { max-width: 100% !important; text-align: center; }
@@ -251,9 +285,7 @@
   <!-- CONTACTO CTA -->
   <section class="cta" id="contacto">
     <div class="cta__content">
-      <h2 class="cta__title">
-        Así que cuéntanos que sueñas<br>para poderlo hacer realidad<br>con más que magos
-      </h2>
+      <h2 class="cta__title">Así que cuéntanos que sueñas<br>para poderlo hacer realidad<br>con más que magos</h2>
       <div class="cta__columns">
                 <div class="cta__contact">
           <a href="mailto:masqmagos@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
