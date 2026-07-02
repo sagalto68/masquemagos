@@ -3,7 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Más que Magos — Tú lo sueñas, Nosotros lo hacemos realidad</title>
+
+  <!-- ─── SEO PRIMARIO ─────────────────────── -->
+  <title>Contratar Mago en España | Espectáculos y Festivales de Magia — Más que Magos</title>
+  <meta name="description" content="Contrata los mejores magos de España e internacionales. Espectáculos de magia para eventos, bodas, empresas y festivales. Ilusionistas, mentalistas y magos de cerca. Llámanos: 616 094 587." />
+  <meta name="keywords" content="contratar mago España, mago para eventos, espectáculos de magia, mago para bodas, mago para empresas, festival de magia, ilusionista, mentalista, mago de cerca, magia Barcelona, magia Madrid" />
+  <meta name="author" content="Más que Magos" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.masquemagos.com/" />
+
+  <!-- ─── OPEN GRAPH (redes sociales) ─────── -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.masquemagos.com/" />
+  <meta property="og:title" content="Contratar Mago en España | Más que Magos" />
+  <meta property="og:description" content="Los mejores magos de España e internacionales. Espectáculos, festivales y magia para empresas. Tú lo sueñas, nosotros lo hacemos realidad." />
+  <meta property="og:image" content="https://www.masquemagos.com/images/home/logo.png" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:site_name" content="Más que Magos" />
+
+  <!-- ─── TWITTER CARD ─────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Contratar Mago en España | Más que Magos" />
+  <meta name="twitter:description" content="Los mejores magos de España e internacionales. Espectáculos, festivales y magia para empresas." />
+  <meta name="twitter:image" content="https://www.masquemagos.com/images/home/logo.png" />
+
+  <!-- ─── SCHEMA MARKUP (Google) ───────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EntertainmentBusiness",
+    "name": "Más que Magos",
+    "url": "https://www.masquemagos.com",
+    "logo": "https://www.masquemagos.com/images/home/logo.png",
+    "description": "Empresa especializada en contratación de magos, espectáculos de magia, festivales y experiencias mágicas para empresas en España.",
+    "telephone": "+34616094587",
+    "email": "masqmagos@gmail.com",
+    "areaServed": "ES",
+    "priceRange": "€€",
+    "sameAs": [],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servicios de Magia",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Contratación de magos" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Espectáculos de magia en teatros y al aire libre" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Festivales de magia" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Magia para empresas y eventos corporativos" } }
+      ]
+    }
+  }
+  </script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18179083545"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-18179083545');
+  </script>
+
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/home.css" />
 </head>
@@ -12,11 +71,12 @@
   <!-- NAV -->
   <nav class="nav">
     <ul class="nav__links">
-      <li><a href="index.html" class="nav__link">Contratación de magos</a></li>
+      <li><a href="#magos" class="nav__link">Contratación de magos</a></li>
       <li><a href="#espectaculos" class="nav__link">Espectáculos de magia</a></li>
       <li><a href="#festivales" class="nav__link">Festivales de magia</a></li>
       <li><a href="empresas.html" class="nav__link">Empresas</a></li>
-      <li><a href="celebraciones/index.html" class="nav__link">Celebraciones</a></li>
+      <li><a href="celebraciones/index.html" class="nav__link">Eventos familiares</a></li>
+      <li><a href="#contacto" class="nav__link">Contacto</a></li>
       <li><button class="nav__hamburger" id="menuToggle" aria-label="Menú">
         <span></span><span></span><span></span>
       </button></li>
@@ -26,14 +86,16 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero__bg">
-      <img src="images/home/hero-bg.jpg" alt="Hero background" class="hero__bg-img" />
+      <video class="hero__bg-video" autoplay muted loop playsinline>
+        <source src="images/home/hero-bg.mp4" type="video/mp4" />
+      </video>
       <div class="hero__overlay"></div>
     </div>
     <div class="hero__content">
       <div class="hero__logo">
-        <img src="images/home/logo.png" alt="Más que Magos" class="hero__logo-img" />
+        <img src="images/home/logo.png" alt="Más que Magos — Contratar Magos en España" class="hero__logo-img" />
       </div>
-      <p class="hero__tagline">Tú lo sueñas. Nosotros lo hacemos realidad</p>
+      <h1 class="seo-h1">Contratar Magos en España — Espectáculos, Festivales y Magia para Empresas</h1>
     </div>
   </section>
 
@@ -52,10 +114,10 @@
         <a href="#contacto" class="btn btn--outline">Quiero contratar un mago</a>
       </div>
       <div class="magos__images">
-        <img src="images/home/mago-1.jpg" alt="Mago ilusionista" class="magos__img magos__img--1" />
-        <img src="images/home/mago-2.jpg" alt="Mago espectáculo" class="magos__img magos__img--2" />
-        <img src="images/home/mago-3.jpg" alt="Mago de cerca" class="magos__img magos__img--3" />
-        <img src="images/home/mago-4.jpg" alt="Mago internacional" class="magos__img magos__img--4" />
+        <img src="images/home/mago-1.jpg" alt="Mago ilusionista en España realizando trucos de magia" class="magos__img magos__img--1" />
+        <img src="images/home/mago-2.jpg" alt="Espectáculo de magia en gran formato" class="magos__img magos__img--2" />
+        <img src="images/home/mago-3.jpg" alt="Mago de cerca para eventos y bodas" class="magos__img magos__img--3" />
+        <img src="images/home/mago-4.jpg" alt="Mago internacional contratado en España" class="magos__img magos__img--4" />
       </div>
     </div>
   </section>
@@ -64,7 +126,7 @@
   <section class="espectaculos" id="espectaculos">
     <div class="espectaculos__container">
       <div class="espectaculos__image">
-        <img src="images/home/espectaculo.jpg" alt="Espectáculo de magia" />
+        <img src="images/home/espectaculo.jpg" alt="Espectáculo de magia en teatro y al aire libre en España" />
       </div>
       <div class="espectaculos__text">
         <h2 class="espectaculos__title">
@@ -105,7 +167,7 @@
         <a href="#contacto" class="btn btn--outline">Quiero organizar mi festival de magia</a>
       </div>
       <div class="festivales__image">
-        <img src="images/home/festival.jpg" alt="Festival de magia" />
+        <img src="images/home/festival.jpg" alt="Festival de magia organizado en España por Más que Magos" />
       </div>
     </div>
   </section>
@@ -114,7 +176,7 @@
   <section class="empresas-preview" id="empresas-preview">
     <div class="empresas-preview__container">
       <div class="empresas-preview__image">
-        <img src="images/home/empresas.jpg" alt="Magia para empresas" />
+        <img src="images/home/empresas.jpg" alt="Magia para empresas y eventos corporativos en España" />
       </div>
       <div class="empresas-preview__text">
         <h2 class="empresas-preview__title">
@@ -122,26 +184,6 @@
           diseñadas a medida para<br>cada evento.
         </h2>
         <a href="empresas.html" class="btn btn--outline">Descubre más la magia que ofrecemos para tu empresa</a>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- CELEBRACIONES SECTION -->
-  <section class="celebraciones-preview" id="celebraciones-preview">
-    <div class="empresas-preview__container">
-      <div class="empresas-preview__text">
-        <h2 class="empresas-preview__title">
-          y también organizamos<br>experiencias mágicas para<br><strong>eventos privados<br>y familiares</strong>
-        </h2>
-        <p class="festivales__desc" style="margin-bottom:2rem">
-          Comuniones, bautizos, cumpleaños, bodas y despedidas.<br>
-          La sorpresa que hará especial tu celebración.
-        </p>
-        <a href="celebraciones/index.html" class="btn btn--outline">Descubre la magia para tu celebración</a>
-      </div>
-      <div class="empresas-preview__image">
-        <img src="images/home/empresas.jpg" alt="Magia para celebraciones y eventos familiares" />
       </div>
     </div>
   </section>
@@ -170,7 +212,11 @@
       <h2 class="cta__title">
         Así que cuéntanos que sueñas<br>para poderlo hacer realidad<br>con más que magos
       </h2>
-      <a href="mailto:info@masquemagos.com" class="btn btn--outline">Contacta con nosotros</a>
+      <a href="mailto:masqmagos@gmail.com" class="btn btn--outline">Contacta con nosotros</a>
+      <div class="cta__info">
+        <p class="cta__info-item">Email: <a href="mailto:masqmagos@gmail.com">masqmagos@gmail.com</a></p>
+        <p class="cta__info-item">Teléfono: <a href="tel:+34616094587">616 094 587</a></p>
+      </div>
     </div>
   </section>
 
