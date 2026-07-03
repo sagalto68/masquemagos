@@ -1,133 +1,90 @@
-/* =============================================
-   MAIN.JS — Más que Magos
-   Navigation, mobile menu, scroll animations
-   ============================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ─── NAV: add .scrolled class on scroll ─────
+  // NAV scrolled
   const nav = document.querySelector('.nav');
-
-  const onScroll = () => {
-    if (window.scrollY > 60) {
-      nav.classList.add('scrolled');
-    } else {
-      nav.classList.remove('scrolled');
-    }
-  };
-
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 60);
   window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll(); // run once on load
+  onScroll();
 
-
-  // ─── MOBILE MENU ─────────────────────────────
+  // MOBILE MENU
   const menuToggle = document.getElementById('menuToggle');
-
   if (menuToggle) {
-    // Build the mobile menu dynamically
     const mobileMenu = document.createElement('div');
     mobileMenu.className = 'nav__mobile';
 
-    // Fixed list of all mobile links (including extras not in desktop nav)
-    const mobileLinks = [
-      { href: '#magos',                      text: 'Contratación de magos' },
-      { href: '#espectaculos',               text: 'Espectáculos de magia' },
-      { href: '#festivales',                 text: 'Festivales de magia' },
-      { href: 'empresas.html',               text: 'Empresas' },
-      { href: 'celebraciones/index.html',    text: 'Eventos familiares' },
-      { href: '#contacto',                   text: 'Contacto' },
+    const isHome = ['/', '/index.html', ''].some(p => window.location.pathname.endsWith(p));
+    const links = [
+      { text: 'Contratación de magos', href: isHome ? '#magos'         : 'index.html#magos' },
+      { text: 'Espectáculos de magia', href: isHome ? '#espectaculos'  : 'index.html#espectaculos' },
+      { text: 'Festivales de magia',   href: isHome ? '#festivales'    : 'index.html#festivales' },
+      { text: 'Empresas',              href: 'empresas.html' },
+      { text: 'Eventos familiares',    href: 'celebraciones/index.html' },
+      { text: 'Contacto',              href: isHome ? '#contacto'      : 'index.html#contacto' },
     ];
 
-    mobileLinks.forEach(({ href, text }) => {
+    links.forEach(({ text, href }) => {
       const a = document.createElement('a');
-      a.href = href;
-      a.className = 'nav__link';
-      a.textContent = text;
+      a.href = href; a.className = 'nav__link'; a.textContent = text;
       mobileMenu.appendChild(a);
     });
 
-    // Close button
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
-    closeBtn.style.cssText = `
-      position: absolute; top: 24px; right: 28px;
-      background: none; border: none; color: #f5f0e8;
-      font-size: 24px; cursor: pointer; opacity: 0.7;
-    `;
-    closeBtn.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    closeBtn.innerHTML = '&#x2715;';
+    closeBtn.style.cssText = 'position:absolute;top:20px;right:24px;background:none;border:none;color:rgba(245,240,232,0.7);font-size:22px;cursor:pointer;padding:8px;';
+    closeBtn.addEventListener('click', closeMenu);
     mobileMenu.appendChild(closeBtn);
-
     document.body.appendChild(mobileMenu);
 
-    menuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('open');
-    });
+    function openMenu()  { mobileMenu.classList.add('open');    document.body.style.overflow = 'hidden'; }
+    function closeMenu() { mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
 
-    // Close menu when any link is clicked
-    mobileMenu.querySelectorAll('.nav__link').forEach(link => {
-      link.addEventListener('click', () => mobileMenu.classList.remove('open'));
-    });
+    menuToggle.addEventListener('click', () => mobileMenu.classList.contains('open') ? closeMenu() : openMenu());
+    mobileMenu.querySelectorAll('.nav__link').forEach(l => l.addEventListener('click', closeMenu));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
   }
 
-  // ─── MOBILE HERO BUTTON (solo móvil) ──────────
+  // BOTÓN HERO MÓVIL — solo en index, solo en móvil
   if (window.innerWidth <= 768) {
     const heroContent = document.querySelector('.hero__content');
-    if (heroContent) {
+    const isHome = ['/', '/index.html', ''].some(p => window.location.pathname.endsWith(p));
+    if (heroContent && isHome) {
       const btn = document.createElement('a');
       btn.href = 'celebraciones/index.html';
-      btn.className = 'btn btn--outline hero__mobile-cel';
+      btn.style.cssText = 'display:inline-block;margin-top:8px;padding:12px 28px;border:1px solid rgba(201,168,76,0.6);border-radius:100px;font-family:var(--font-body);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#c9a84c;text-decoration:none;';
       btn.textContent = '¿Tienes un evento familiar?';
       heroContent.appendChild(btn);
     }
   }
 
+  // SCROLL REVEAL
+  const targets = document.querySelectorAll([
+    '.magos__text','.magos__images',
+    '.espectaculos__image','.espectaculos__text',
+    '.festivales__text','.festivales__image',
+    '.empresas-preview__image','.empresas-preview__text',
+    '.emp-hero__title','.que-hacemos__title','.qh-row',
+    '.tagline-bar__text',
+  ].join(','));
 
-  // ─── SCROLL REVEAL ───────────────────────────
-  // Elements to animate in on scroll
-  const revealTargets = document.querySelectorAll([
-    '.magos__text',
-    '.magos__images',
-    '.espectaculos__image',
-    '.espectaculos__text',
-    '.festivales__text',
-    '.festivales__image',
-    '.empresas-preview__image',
-    '.empresas-preview__text',
-    '.servicio',
-    '.que-hacemos__title',
-    '.emp-hero__title',
-  ].join(', '));
-
-  // Set initial state
-  revealTargets.forEach((el, i) => {
+  targets.forEach((el, i) => {
     el.style.opacity = '0';
-    el.style.transform = 'translateY(40px)';
-    el.style.transition = `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${(i % 4) * 0.08}s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${(i % 4) * 0.08}s`;
+    el.style.transform = 'translateY(32px)';
+    el.style.transition = `opacity 0.75s ease ${(i%5)*0.07}s, transform 0.75s ease ${(i%5)*0.07}s`;
   });
 
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-          revealObserver.unobserve(entry.target);
-        }
+  targets.forEach(el => {
+    new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
       });
-    },
-    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-  );
+    }, { threshold: 0.1 }).observe(el);
+  });
 
-  revealTargets.forEach(el => revealObserver.observe(el));
-
-
-  // ─── PARALLAX HERO (subtle) ───────────────────
-  const heroBgVideo = document.querySelector('.hero__bg-video');
-  if (heroBgVideo) {
+  // HERO PARALLAX (solo desktop)
+  const video = document.querySelector('.hero__bg-video');
+  if (video && window.innerWidth > 900) {
     window.addEventListener('scroll', () => {
-      const y = window.scrollY;
-      heroBgVideo.style.transform = `translateY(${y * 0.3}px)`;
+      video.style.transform = `translateY(${window.scrollY * 0.25}px)`;
     }, { passive: true });
   }
-
 });
