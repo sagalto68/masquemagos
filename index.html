@@ -104,6 +104,77 @@
     .nav__logo { height: 70px !important; width: auto; }
     @media (max-width: 768px) { .nav__logo { height: 48px !important; } }
   </style>
+
+  <style>
+    /* ── GLOBAL OVERFLOW FIX ── */
+    html, body { overflow-x: hidden; max-width: 100%; }
+    * { box-sizing: border-box; }
+
+    /* ── ALL SECTIONS FIX ── */
+    @media (max-width: 768px) {
+      .magos, .espectaculos, .festivales, .empresas-preview,
+      .filosofia, .cta, .footer {
+        overflow: hidden;
+        max-width: 100vw;
+      }
+      .magos__container,
+      .espectaculos__container,
+      .festivales__container,
+      .empresas-preview__container {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+        padding: 0 20px !important;
+        overflow: hidden;
+        max-width: 100%;
+      }
+      .espectaculos__container { padding: 0 20px !important; }
+
+      /* Fix text overflow */
+      .magos__title, .magos__desc,
+      .espectaculos__title, .espectaculos__desc,
+      .festivales__title, .festivales__desc,
+      .empresas-preview__title,
+      .filosofia__text {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        padding-right: 0;
+      }
+
+      /* Float buttons — move left so they don't cover text */
+      .mqm-float {
+        right: 12px !important;
+        bottom: 80px !important;
+      }
+      .mqm-btn {
+        width: 44px !important;
+        height: 44px !important;
+      }
+
+      /* Hero button — more space, gold color */
+      .hero__mobile-cel {
+        margin-top: 32px !important;
+        border-color: #c9a84c !important;
+        color: #c9a84c !important;
+        background: rgba(0,0,0,0.3) !important;
+        font-size: 12px !important;
+        padding: 12px 24px !important;
+      }
+
+      /* CTA columns — stack */
+      .cta__columns {
+        flex-direction: column !important;
+        gap: 32px !important;
+      }
+      .cta__form, .cta__contact {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .cta__form-row {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
