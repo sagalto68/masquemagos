@@ -1,1 +1,55 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gracias por contactarnos — Más que Magos</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <style>
+    .gracias-sec {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      background: var(--black);
+    }
+    .gracias-sec .nav__logo {
+      height: 70px;
+      margin-bottom: 48px;
+    }
+    .gracias-star {
+      font-size: 40px;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .gracias-title {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 4vw, 44px);
+      font-style: italic;
+      color: var(--white);
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    .gracias-desc {
+      font-size: 17px;
+      color: rgba(245,240,232,0.7);
+      max-width: 480px;
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <section class="gracias-sec">
+    <a href="/"><img src="../images/home/logo.png" alt="Más que Magos" class="nav__logo" /></a>
+    <div class="gracias-star">✦</div>
+    <h1 class="gracias-title">¡Gracias por contactarnos!</h1>
+    <p class="gracias-desc">Hemos recibido tu mensaje correctamente.<br>Te responderemos en menos de 24 horas.</p>
+    <a href="/" class="btn btn--outline">Volver al inicio</a>
+  </section>
+</body>
+</html>
