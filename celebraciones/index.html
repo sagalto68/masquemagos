@@ -386,12 +386,26 @@ footer{background:#1A1005;padding:36px 20px;padding-bottom:max(36px,calc(20px + 
     const date   = document.getElementById('f-date').value;
     const guests = document.getElementById('f-guests').value;
     const msg    = document.getElementById('f-msg').value;
-    const text = encodeURIComponent(
-      `Hola! Solicito presupuesto:\n\nNombre: ${name}\nTeléfono: ${phone}\nEmail: ${email}\nCelebración: ${type}\nFecha: ${date||'Por determinar'}\nInvitados: ${guests||'Por determinar'}\nMensaje: ${msg||'-'}`
-    );
+
+    // Enviar por email vía Formspree
+    const formData = new FormData();
+    formData.append('nombre', name);
+    formData.append('telefono', phone);
+    formData.append('email', email);
+    formData.append('celebracion', type);
+    formData.append('fecha', date || 'Por determinar');
+    formData.append('invitados', guests || 'Por determinar');
+    formData.append('mensaje', msg || '-');
+
+    fetch('https://formspree.io/f/mvzjlbnb', {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    }).catch(() => {});
+
+    // Mostrar mensaje de éxito con opción de WhatsApp
     document.getElementById('form-wrap').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
-    setTimeout(() => window.open('https://wa.me/34616094587?text=' + text, '_blank'), 500);
   }
 </script>
 </body>
