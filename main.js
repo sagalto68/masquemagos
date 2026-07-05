@@ -43,19 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
   }
 
-  // BOTÓN HERO MÓVIL — solo en index, solo en móvil
-  if (window.innerWidth <= 768) {
-    const heroContent = document.querySelector('.hero__content');
-    const isHome = ['/', '/index.html', ''].some(p => window.location.pathname.endsWith(p));
-    if (heroContent && isHome) {
-      const btn = document.createElement('a');
-      btn.href = 'celebraciones/index.html';
-      btn.style.cssText = 'display:inline-block;margin-top:8px;padding:12px 28px;border:1px solid rgba(201,168,76,0.6);border-radius:100px;font-family:var(--font-body);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#c9a84c;text-decoration:none;';
-      btn.textContent = '¿Tienes un evento familiar?';
-      heroContent.appendChild(btn);
-    }
-  }
-
   // SCROLL REVEAL
   const targets = document.querySelectorAll([
     '.magos__text','.magos__images',
