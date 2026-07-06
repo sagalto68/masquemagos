@@ -132,6 +132,39 @@
       .magos__title, .empresas-preview__title { margin-top: 0 !important; }
     }
   </style>
+
+  <style>
+    /* ── FIX TEXTO CORTADO MÓVIL — TODAS LAS SECCIONES ── */
+    @media (max-width: 768px) {
+      html, body { overflow-x: hidden; max-width: 100vw; }
+      section, .empresas-preview, .empresas-preview__container,
+      .magos, .magos__container,
+      .espectaculos, .espectaculos__container,
+      .festivales, .festivales__container {
+        max-width: 100vw;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+      .empresas-preview__title, .empresas-preview__text,
+      .magos__title, .magos__desc,
+      .espectaculos__title, .espectaculos__desc,
+      .festivales__title, .festivales__desc,
+      .btn, .btn--outline {
+        max-width: 100%;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        white-space: normal !important;
+        box-sizing: border-box;
+      }
+      .empresas-preview__container,
+      .magos__container,
+      .espectaculos__container,
+      .festivales__container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
