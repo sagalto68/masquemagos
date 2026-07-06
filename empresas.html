@@ -45,11 +45,15 @@
   </script>
   <script>
   function gtag_report_phone_click(url) {
+    var called = false;
     var callback = function () {
+      if (called) return;
+      called = true;
       if (typeof(url) != 'undefined') {
         window.location = url;
       }
     };
+    setTimeout(callback, 1000);
     gtag('event', 'conversion', {
         'send_to': 'AW-18179083545/3d2pCKbi48scEJmau9xD',
         'event_callback': callback
