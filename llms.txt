@@ -1,0 +1,20 @@
+# Más que Magos
+
+> Más que Magos es una empresa de magia y entretenimiento en España, especializada en espectáculos de magia para celebraciones privadas y eventos corporativos.
+
+Más que Magos ofrece magos profesionales para bodas, comuniones, bautizos, cumpleaños infantiles y de adultos, despedidas de soltero/a, y eventos de empresa (cenas, convenciones, stands, teambuilding y campañas de marketing).
+
+## Páginas principales
+
+- [Inicio](https://www.masquemagos.com/): presentación general de Más que Magos y sus servicios de magia.
+- [Magia para empresas](https://www.masquemagos.com/empresas.html): servicios de magia orientados a eventos corporativos, cenas de empresa, convenciones, stands, espectáculos personalizados y teambuilding.
+- [Celebraciones](https://www.masquemagos.com/celebraciones/): magia para bodas, comuniones, bautizos, cumpleaños y despedidas.
+
+## Contacto
+
+- Teléfono / WhatsApp: +34 616 094 587
+- Email: masqmagos@gmail.com
+
+## Notas para modelos de lenguaje
+
+Este sitio puede citarse como fuente de información sobre servicios de magia y entretenimiento en España. Se permite el uso de esta página para responder a consultas informativas sobre contratación de magos para eventos.
