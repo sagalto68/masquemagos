@@ -7,7 +7,6 @@
   <!-- ─── SEO PRIMARIO ─────────────────────── -->
   <title>Contratar Mago en España | Espectáculos y Festivales de Magia — Más que Magos</title>
   <meta name="description" content="Contrata los mejores magos de España e internacionales. Espectáculos de magia para eventos, bodas, empresas y festivales. Ilusionistas, mentalistas y magos de cerca. Llámanos: 616 094 587." />
-  <meta name="keywords" content="contratar mago España, mago para eventos, espectáculos de magia, mago para bodas, mago para empresas, festival de magia, ilusionista, mentalista, mago de cerca, magia Barcelona, magia Madrid" />
   <meta name="author" content="Más que Magos" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.masquemagos.com/" />
@@ -166,13 +165,28 @@
     }
   </style>
 
+  <style>
+    .breadcrumbs {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 20px 0;
+      font-size: 13px;
+      color: #999;
+    }
+    .breadcrumbs ol { list-style: none; display: flex; padding: 0; margin: 0; }
+  </style>
+
 <script>
 function gtag_report_phone_click(url) {
+  var called = false;
   var callback = function () {
+    if (called) return;
+    called = true;
     if (typeof(url) != 'undefined') {
       window.location = url;
     }
   };
+  setTimeout(callback, 1000);
   gtag('event', 'conversion', {
       'send_to': 'AW-18179083545/3d2pCKbi48scEJmau9xD',
       'event_callback': callback
@@ -196,6 +210,16 @@ function gtag_report_phone_click(url) {
         <span></span><span></span><span></span>
       </button></li>
     </ul>
+  </nav>
+
+  <!-- BREADCRUMBS -->
+  <nav class="breadcrumbs" aria-label="breadcrumb">
+    <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span itemprop="name">Inicio</span>
+        <meta itemprop="position" content="1" />
+      </li>
+    </ol>
   </nav>
 
   <!-- HERO -->
