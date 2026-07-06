@@ -137,6 +137,20 @@
     </ul>
   </nav>
 
+  <!-- BREADCRUMBS (oculto visualmente, visible para SEO) -->
+  <nav class="breadcrumbs" aria-label="breadcrumb" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+    <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="https://www.masquemagos.com"><span itemprop="name">Inicio</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span itemprop="name">Empresas</span>
+        <meta itemprop="position" content="2" />
+      </li>
+    </ol>
+  </nav>
+
   <!-- HERO: texto izq / foto der a sangre -->
   <section class="emp-hero">
     <div class="emp-hero__text">
@@ -159,7 +173,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/cenas-empresa.jpg" alt="Cenas de empresa" width="6240" height="4160" />
+          <img src="images/empresas/cenas-empresa.jpg" loading="lazy" alt="Cenas de empresa" width="6240" height="4160" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -170,7 +184,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/convenciones.jpg" alt="Convenciones" width="2560" height="3200" />
+          <img src="images/empresas/convenciones.jpg" loading="lazy" alt="Convenciones" width="2560" height="3200" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -181,7 +195,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/stands.jpg" alt="Stands y ferias" width="6000" height="4000" />
+          <img src="images/empresas/stands.jpg" loading="lazy" alt="Stands y ferias" width="6000" height="4000" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -192,7 +206,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/espectaculos.jpg" alt="Espectáculos personalizados" width="4480" height="6720" />
+          <img src="images/empresas/espectaculos.jpg" loading="lazy" alt="Espectáculos personalizados" width="4480" height="6720" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -203,7 +217,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/marketing.jpg" alt="Campañas de marketing" width="3220" height="4025" />
+          <img src="images/empresas/marketing.jpg" loading="lazy" alt="Campañas de marketing" width="3220" height="4025" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -214,7 +228,7 @@
 
       <article class="qh-card">
         <div class="qh-card__img">
-          <img src="images/empresas/talleres.jpg" alt="Talleres y teambuilding" width="3000" height="2000" />
+          <img src="images/empresas/talleres.jpg" loading="lazy" alt="Talleres y teambuilding" width="3000" height="2000" />
         </div>
         <div class="qh-card__body">
           <span class="qh-card__star">*</span>
@@ -229,7 +243,7 @@
   <!-- FILOSOFIA -->
   <section class="emp-filosofia">
     <div class="emp-filosofia__bg">
-      <img src="images/empresas/filosofia-empresas.jpg" alt="" class="emp-filosofia__bg-img" width="6000" height="4000" />
+      <img src="images/empresas/filosofia-empresas.jpg" loading="lazy" alt="" class="emp-filosofia__bg-img" width="6000" height="4000" />
       <div class="emp-filosofia__overlay"></div>
     </div>
     <div class="emp-filosofia__content">

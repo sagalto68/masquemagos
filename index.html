@@ -167,13 +167,16 @@
 
   <style>
     .breadcrumbs {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 10px 20px 0;
-      font-size: 13px;
-      color: #999;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
     }
-    .breadcrumbs ol { list-style: none; display: flex; padding: 0; margin: 0; }
   </style>
 
 <script>
@@ -279,10 +282,10 @@ function gtag_report_phone_click(url) {
         <a href="#contacto" class="btn btn--outline">Quiero contratar un mago</a>
       </div>
       <div class="magos__images">
-        <img src="images/home/mago-1.jpg" alt="Mago ilusionista en España realizando trucos de magia" class="magos__img magos__img--1" />
-        <img src="images/home/mago-2.jpg" alt="Espectáculo de magia en gran formato" class="magos__img magos__img--2" />
-        <img src="images/home/mago-3.jpg" alt="Mago de cerca para eventos y bodas" class="magos__img magos__img--3" />
-        <img src="images/home/mago-4.jpg" alt="Mago internacional contratado en España" class="magos__img magos__img--4" />
+        <img src="images/home/mago-1.jpg" loading="lazy" alt="Mago ilusionista en España realizando trucos de magia" class="magos__img magos__img--1" />
+        <img src="images/home/mago-2.jpg" loading="lazy" alt="Espectáculo de magia en gran formato" class="magos__img magos__img--2" />
+        <img src="images/home/mago-3.jpg" loading="lazy" alt="Mago de cerca para eventos y bodas" class="magos__img magos__img--3" />
+        <img src="images/home/mago-4.jpg" loading="lazy" alt="Mago internacional contratado en España" class="magos__img magos__img--4" />
       </div>
     </div>
   </section>
@@ -291,7 +294,7 @@ function gtag_report_phone_click(url) {
   <section class="espectaculos" id="espectaculos">
     <div class="espectaculos__container">
       <div class="espectaculos__image">
-        <img src="images/home/espectaculo.jpg" alt="Espectáculo de magia en teatro y al aire libre en España" />
+        <img src="images/home/espectaculo.jpg" loading="lazy" alt="Espectáculo de magia en teatro y al aire libre en España" />
       </div>
       <div class="espectaculos__text">
         <h2 class="espectaculos__title">
@@ -332,7 +335,7 @@ function gtag_report_phone_click(url) {
         <a href="#contacto" class="btn btn--outline">Quiero organizar mi festival de magia</a>
       </div>
       <div class="festivales__image">
-        <img src="images/home/festival.jpg" alt="Festival de magia organizado en España por Más que Magos" />
+        <img src="images/home/festival.jpg" loading="lazy" alt="Festival de magia organizado en España por Más que Magos" />
       </div>
     </div>
   </section>
@@ -341,7 +344,7 @@ function gtag_report_phone_click(url) {
   <section class="empresas-preview" id="empresas-preview">
     <div class="empresas-preview__container">
       <div class="empresas-preview__image">
-        <img src="images/home/empresas.jpg" alt="Magia para empresas y eventos corporativos en España" />
+        <img src="images/home/empresas.jpg" loading="lazy" alt="Magia para empresas y eventos corporativos en España" />
       </div>
       <div class="empresas-preview__text">
         <h2 class="empresas-preview__title">
@@ -356,7 +359,7 @@ function gtag_report_phone_click(url) {
   <!-- FILOSOFIA SECTION -->
   <section class="filosofia">
     <div class="filosofia__bg">
-      <img src="images/home/filosofia-bg.jpg" alt="" class="filosofia__bg-img" />
+      <img src="images/home/filosofia-bg.jpg" loading="lazy" alt="" class="filosofia__bg-img" />
       <div class="filosofia__overlay"></div>
     </div>
     <div class="filosofia__content">
