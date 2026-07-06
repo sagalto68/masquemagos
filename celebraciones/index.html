@@ -298,7 +298,7 @@ function gtag_report_conversion(url) {
 </nav>
 
 <!-- BREADCRUMBS -->
-<nav class="breadcrumbs" aria-label="breadcrumb" style="max-width:1200px;margin:0 auto;padding:8px 20px;font-size:13px;color:#999;margin-top:calc(64px + env(safe-area-inset-top));">
+<nav class="breadcrumbs" aria-label="breadcrumb" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
   <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="list-style:none;display:flex;padding:0;margin:0;gap:6px;">
     <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
       <a itemprop="item" href="https://www.masquemagos.com"><span itemprop="name">Inicio</span></a>
@@ -529,14 +529,6 @@ function gtag_report_conversion(url) {
       body: formData,
       headers: { 'Accept': 'application/json' }
     }).catch(() => {});
-
-    if (typeof gtag === 'function') {
-      gtag('event', 'conversion', {
-        'send_to': 'AW-18179083545/R0soCJDKtsscEJmau9xD',
-        'value': 1.0,
-        'currency': 'EUR'
-      });
-    }
 
     // Mostrar mensaje de éxito con opción de WhatsApp
     document.getElementById('form-wrap').style.display = 'none';
