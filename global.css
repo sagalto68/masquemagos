@@ -3,12 +3,13 @@
    Shared styles: reset, variables, nav, buttons, footer
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&display=swap');
+/* Google Fonts se cargan ahora vía <link> en el <head> del HTML, no con @import,
+   para no bloquear el renderizado (ver <link rel="preconnect"> y <link rel="stylesheet">) */
 
 /* ─── CSS VARIABLES ─────────────────────────── */
 :root {
-  --black:      #0a0a0a;
-  --black-soft: #111111;
+  --black:      #000000;
+  --black-soft: #000000;
   --gold:       #c9a84c;
   --gold-light: #e8c97a;
   --white:      #f5f0e8;
@@ -21,6 +22,19 @@
 
   --nav-height: 64px;
   --section-pad: clamp(80px, 10vw, 140px);
+}
+
+/* ─── SEO: H1 visible para Google, oculto visualmente ── */
+.seo-h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ─── RESET ─────────────────────────────────── */
@@ -56,7 +70,7 @@ ul  { list-style: none; }
 }
 
 .nav.scrolled {
-  background: rgba(10, 10, 10, 0.96);
+  background: rgba(0, 0, 0, 0.98);
   backdrop-filter: blur(10px);
 }
 
@@ -121,7 +135,7 @@ ul  { list-style: none; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10,10,10,0.97);
+  background: rgba(0,0,0,0.99);
   z-index: 99;
   flex-direction: column;
   align-items: center;
@@ -145,7 +159,7 @@ ul  { list-style: none; }
   font-weight: 300;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 14px 36px;
+  padding: 18px 48px;
   border-radius: 100px;
   transition: all 0.3s;
   cursor: pointer;
@@ -153,7 +167,7 @@ ul  { list-style: none; }
 }
 
 .btn--outline {
-  border: 1px solid rgba(245, 240, 232, 0.55);
+  border: 1px solid rgba(245, 240, 232, 0.35);
   color: var(--white);
   background: transparent;
 }
@@ -161,7 +175,6 @@ ul  { list-style: none; }
 .btn--outline:hover {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(201, 168, 76, 0.07);
 }
 
 /* ─── SHARED CTA SECTION ─────────────────────── */
@@ -179,6 +192,30 @@ ul  { list-style: none; }
   color: var(--white);
   margin-bottom: 48px;
   font-style: italic;
+}
+
+.cta__info {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.cta__info-item {
+  font-family: var(--font-body);
+  font-size: clamp(14px, 1.4vw, 17px);
+  color: rgba(245, 240, 232, 0.65);
+  letter-spacing: 0.06em;
+}
+
+.cta__info-item a {
+  color: var(--gold-light);
+  transition: color 0.25s;
+}
+
+.cta__info-item a:hover {
+  color: var(--gold);
 }
 
 /* ─── FOOTER ─────────────────────────────────── */
@@ -201,64 +238,61 @@ ul  { list-style: none; }
   .nav__hamburger { display: flex; }
 }
 
-/* ─── NAV LOGO ───────────────────────────────── */
+/* ── NAV LOGO ── */
+.nav__logo-link {
+  display: block;
+  margin-right: auto;
+  flex-shrink: 0;
+}
 .nav__logo {
-  display: none;
-  height: 40px;
+  height: 36px;
   width: auto;
-  opacity: 0;
-  transition: opacity 0.4s;
+  filter: drop-shadow(0 0 8px rgba(201,168,76,0.25));
+  transition: filter 0.3s;
 }
-.nav.scrolled .nav__logo {
-  opacity: 1;
-}
-@media (max-width: 768px) {
-  .nav__logo-link {
-    display: block !important;
-  }
-  .nav__logo {
-    display: block;
-    height: 48px;
-  }
-}
+.nav__logo:hover { filter: drop-shadow(0 0 14px rgba(201,168,76,0.5)); }
 
-/* ─── FLOATING BUTTONS — MOBILE ONLY ─────────── */
-@media (max-width: 768px) {
-  .float-contact {
-    position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    right: 16px;
-    z-index: 500;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .float-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    text-decoration: none;
-    transition: transform 0.3s;
-    flex-shrink: 0;
-  }
-  .float-btn:active { transform: scale(0.92); }
-  .float-btn svg {
-    width: 22px;
-    height: 22px;
-    display: block;
-    flex-shrink: 0;
-  }
-  .float-btn--wa    { background: #25D366; color: #fff; }
-  .float-btn--email { background: var(--gold); color: #fff; }
-  .float-btn--phone { background: #1c1c1c; color: var(--white); border: 1px solid rgba(255,255,255,0.2); }
-}
+/* ── NAV MOBILE LOGO ── */
+.nav__mobile-logo { position: absolute; top: 20px; left: 24px; }
+.nav__mobile-logo img { height: 36px; width: auto; }
 
-/* Hide on desktop */
-@media (min-width: 769px) {
-  .float-contact { display: none !important; }
+/* ── CTA DOS COLUMNAS ── */
+.cta__columns {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: left;
+}
+.cta__contact { display: flex; flex-direction: column; gap: 24px; padding-top: 8px; }
+
+/* ── FORMULARIO ── */
+.cta__form { display: flex; flex-direction: column; gap: 12px; }
+.cta__form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cta__input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(245,240,232,0.18);
+  color: #f5f0e8;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  padding: 14px 18px;
+  border-radius: 4px;
+  width: 100%;
+  transition: border-color 0.25s;
+  outline: none;
+  -webkit-appearance: none;
+}
+.cta__input::placeholder { color: rgba(245,240,232,0.35); }
+.cta__input:focus { border-color: rgba(201,168,76,0.6); }
+.cta__textarea { resize: vertical; min-height: 110px; }
+.cta__submit { width: 100%; margin-top: 4px; }
+
+@media (max-width: 800px) {
+  .cta__columns { grid-template-columns: 1fr; }
+  .cta__contact { align-items: center; text-align: center; }
+}
+@media (max-width: 500px) {
+  .cta__form-row { grid-template-columns: 1fr; }
 }
