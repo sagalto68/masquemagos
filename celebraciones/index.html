@@ -36,7 +36,7 @@
       "name": "¿Cuánto cuesta un mago para una comunión?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Nos adaptamos a cualquier presupuesto. Cuéntanos tu celebración y te enviamos una propuesta personalizada sin compromiso en menos de 24 horas."
+        "text": "Tenemos opciones para diferentes presupuestos. Cuéntanos tu celebración y te recomendaremos la mejor propuesta sin compromiso."
       }
     },
     {
@@ -61,6 +61,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Recomendamos reservar con al menos 1 semana de antelación, aunque intentamos adaptarnos también a peticiones de última hora según disponibilidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué necesita el mago para actuar en mi celebración?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El mago trae todo el material necesario para su espectáculo. Si tu celebración requiere algo especial (espacio concreto, sonido, etc.) lo hablamos contigo, y cualquier extra adicional correría de tu parte."
       }
     }
   ]
@@ -118,9 +126,10 @@ nav.scrolled{box-shadow:0 4px 20px rgba(44,31,14,.1)}
 .hero-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,248,238,0) 35%,var(--warm) 100%),linear-gradient(90deg,rgba(26,16,5,.4) 0%,transparent 65%)}
 .hero-text{padding:20px 20px 36px}
 .hero-tag{display:inline-flex;align-items:center;gap:7px;background:rgba(196,151,61,.12);color:var(--gold-btn);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:7px 14px;border-radius:100px;margin-bottom:16px}
-.hero-h1{font-family:'Fraunces',serif;font-size:clamp(32px,8.5vw,50px);font-weight:700;line-height:1.06;margin-bottom:14px;letter-spacing:-.01em;color:var(--text)}
+.hero-h1{font-family:'Fraunces',serif;font-size:clamp(32px,8.5vw,50px);font-weight:700;line-height:1.06;margin-bottom:24px;letter-spacing:-.01em;color:var(--text)}
 .hero-h1 em{font-style:italic;color:var(--gold-btn)}
-.hero-sub{font-size:15px;color:var(--muted);line-height:1.78;margin-bottom:28px;font-weight:400}
+.hero-sub{font-size:17px;color:var(--muted);line-height:1.7;margin-bottom:28px;font-weight:400}
+.hero-sub strong{color:var(--text);font-weight:600}
 .cta-stack{display:flex;flex-direction:column;gap:12px}
 .btn-wa-big{display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;background:var(--wa-btn);color:#fff;border-radius:16px;font-size:16px;font-weight:600;text-decoration:none;box-shadow:0 6px 24px rgba(37,211,102,.28)}
 .btn-wa-big svg{width:20px;height:20px;flex-shrink:0}
@@ -331,12 +340,13 @@ function gtag_report_conversion(url) {
   </div>
   <div class="hero-text">
     <span class="hero-tag reveal">✨ Magia para celebraciones</span>
-    <h1 class="hero-h1 reveal d1">La sorpresa que hará especial <em>tu celebración</em></h1>
-    <p class="hero-sub reveal d2">Comuniones, bautizos, cumpleaños, bodas y despedidas. Magos profesionales en toda España.</p>
-    <div class="cta-stack reveal d3">
+    <h1 class="hero-h1 reveal d1">Haz que todos recuerden <em>este día</em> para siempre</h1>
+    <p class="hero-sub reveal d2">Magos profesionales para <strong>comuniones, cumpleaños y celebraciones</strong> en toda España.<br><br>Más de <strong>40 años de trayectoria</strong> en el mundo de la magia y <strong>una escuela de magia propia</strong>, en Más que Magos no improvisamos: <strong>sabemos lo que hacemos</strong>.</p>
+    <div class="cta-stack reveal d3" style="margin-top:24px">
       <div style="background:#8a6425;border-radius:16px;padding:28px 32px;max-width:480px;text-align:center;">
-        <p style="font-family:'Fraunces',serif;font-size:clamp(15px,2vw,19px);color:#fff;font-style:italic;margin:0 0 18px;line-height:1.55;font-weight:300;">Nos adaptamos a cualquier presupuesto.<br>Cuéntanos qué necesitas.</p>
+        <p style="font-family:'Fraunces',serif;font-size:clamp(15px,2vw,19px);color:#fff;font-style:italic;margin:0 0 14px;line-height:1.55;font-weight:300;">Nos adaptamos a cualquier presupuesto.<br>Cuéntanos qué necesitas.</p>
         <a href="#contacto" style="display:inline-block;padding:11px 28px;background:#fff;color:#8a6425;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;">Contactar</a>
+        <p style="font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.75);margin-top:12px;margin-bottom:0;">Recibe tu presupuesto en 24 horas</p>
       </div>
     </div>
   </div>
@@ -344,7 +354,7 @@ function gtag_report_conversion(url) {
 
 <!-- TRUST -->
 <div class="trust reveal">
-  <div class="trust-item"><span class="trust-num">+500</span><p class="trust-lbl">Celebraciones</p></div>
+  <div class="trust-item"><span class="trust-num">+2000</span><p class="trust-lbl">Celebraciones</p></div>
   <div class="trust-item"><span class="trust-num">24h</span><p class="trust-lbl">Respuesta</p></div>
   <div class="trust-item"><span class="trust-num">100%</span><p class="trust-lbl">A medida</p></div>
   <div class="trust-item"><span class="trust-num">🇪🇸</span><p class="trust-lbl">Toda España</p></div>
@@ -415,6 +425,7 @@ function gtag_report_conversion(url) {
       <div class="step-bubble">3</div>
       <div><h3>¡A disfrutar!</h3><p>Nosotros nos encargamos de todo. Vosotros solo tenéis que disfrutar del asombro de vuestros invitados.</p></div>
     </div>
+    <p style="text-align:center;max-width:480px;margin:24px auto 0;font-size:14px;color:var(--gold-btn);background:rgba(196,151,61,.1);padding:12px 20px;border-radius:12px;">📅 Las fechas de comuniones y cumpleaños se reservan con semanas de antelación. Solicita disponibilidad cuanto antes.</p>
   </div>
 </section>
 
@@ -426,7 +437,7 @@ function gtag_report_conversion(url) {
   <h2 class="sec-h2 reveal d1" style="text-align:center;margin-bottom:32px">Todo lo que <em>necesitas saber</em></h2>
   <div class="faq-item reveal d1">
     <p class="faq-q">¿Cuánto cuesta un mago para una comunión?</p>
-    <p class="faq-a">Nos adaptamos a cualquier presupuesto. Cuéntanos tu celebración y te enviamos una propuesta personalizada sin compromiso en menos de 24 horas.</p>
+    <p class="faq-a">Tenemos opciones para diferentes presupuestos. Cuéntanos tu celebración y te recomendaremos la mejor propuesta sin compromiso.</p>
   </div>
   <div class="faq-item reveal d2">
     <p class="faq-q">¿Cuánto dura una actuación de magia para una celebración?</p>
@@ -439,6 +450,10 @@ function gtag_report_conversion(url) {
   <div class="faq-item reveal d4">
     <p class="faq-q">¿Con cuánta antelación hay que reservar el mago?</p>
     <p class="faq-a">Recomendamos reservar con al menos 1 semana de antelación, aunque intentamos adaptarnos también a peticiones de última hora según disponibilidad.</p>
+  </div>
+  <div class="faq-item reveal d5">
+    <p class="faq-q">¿Qué necesita el mago para actuar en mi celebración?</p>
+    <p class="faq-a">El mago trae todo el material necesario para su espectáculo. Si tu celebración requiere algo especial (espacio concreto, sonido, etc.) lo hablamos contigo, y cualquier extra adicional correría de tu parte.</p>
   </div>
 </section>
 
@@ -472,11 +487,7 @@ function gtag_report_conversion(url) {
             <option>Boda</option><option>Despedida de soltero/a</option><option>Otra</option>
           </select>
         </div>
-        <div class="frow">
-          <div class="fg"><label for="f-date">Fecha</label><input type="date" id="f-date"/></div>
-          <div class="fg"><label for="f-guests">Invitados</label><input type="number" id="f-guests" placeholder="Ej: 50" inputmode="numeric"/></div>
-        </div>
-        <div class="fg"><label for="f-msg">Cuéntanos más</label><textarea id="f-msg" placeholder="Localidad, tipo de actuación, horario..."></textarea></div>
+        <div class="fg"><label for="f-msg">Cuéntanos más (opcional)</label><textarea id="f-msg" placeholder="Localidad, tipo de actuación, horario..."></textarea></div>
         <button class="sub-btn" onclick="submitForm()">✉ Enviar solicitud</button>
         <p class="form-note">Sin compromiso · Respuesta garantizada en menos de 24h</p>
       </div>
@@ -501,6 +512,7 @@ function gtag_report_conversion(url) {
     <li><a href="https://www.masquemagos.com">Inicio</a></li>
     <li><a href="https://www.masquemagos.com/#espectaculos">Espectáculos</a></li>
     <li><a href="https://www.masquemagos.com/empresas.html">Empresas</a></li>
+    <li><a href="https://www.masquemagos.com/blog/">Blog</a></li>
     <li><a href="#contacto">Contacto</a></li>
   </ul>
 </footer>
@@ -518,13 +530,11 @@ function gtag_report_conversion(url) {
     const phone = document.getElementById('f-phone').value.trim();
     const email = document.getElementById('f-email').value.trim();
     const type  = document.getElementById('f-type').value;
+    const msg    = document.getElementById('f-msg').value.trim();
     if (!name || !phone || !email || !type) {
       alert('Por favor rellena los campos obligatorios: nombre, teléfono, email y tipo de celebración.');
       return;
     }
-    const date   = document.getElementById('f-date').value;
-    const guests = document.getElementById('f-guests').value;
-    const msg    = document.getElementById('f-msg').value;
 
     // Enviar por email vía Formspree
     const formData = new FormData();
@@ -532,8 +542,6 @@ function gtag_report_conversion(url) {
     formData.append('telefono', phone);
     formData.append('email', email);
     formData.append('celebracion', type);
-    formData.append('fecha', date || 'Por determinar');
-    formData.append('invitados', guests || 'Por determinar');
     formData.append('mensaje', msg || '-');
 
     fetch('https://formspree.io/f/mvzjlbnb', {
