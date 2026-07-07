@@ -51,7 +51,7 @@ img{max-width:100%;display:block}
 .wrap{max-width:720px;margin:0 auto;padding:0 24px}
 
 nav.nav{position:sticky;top:0;z-index:100;background:var(--warm);border-bottom:1px solid rgba(196,151,61,.2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.nav__logo{height:64px;width:auto;filter:drop-shadow(0 0 8px rgba(196,151,61,.25))}
+.nav__logo{height:40px;width:auto;border-radius:0}
 .nav__back{font-size:14px;font-weight:500;text-decoration:none;color:var(--text)}
 
 .article-hero{padding:56px 0 24px}
@@ -85,7 +85,9 @@ footer a{color:var(--muted)}
 <body>
 
 <nav class="nav">
-  <a href="https://www.masquemagos.com"><img src="/images/home/logo.png" alt="Más que Magos" class="nav__logo" width="300" height="143" /></a>
+  <a href="https://www.masquemagos.com" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+    <img src="/images/logo-nuevo.png" alt="Más que Magos" class="nav__logo" width="403" height="191" />
+  </a>
   <a href="/blog/" class="nav__back">← Blog</a>
 </nav>
 
