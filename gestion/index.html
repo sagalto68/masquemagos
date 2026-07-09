@@ -337,13 +337,23 @@ async function openClientDetail(id){
         <select id="cd-status" onchange="updateStatus('${c.id}', this.value)" style="margin-bottom:18px">
           ${Object.keys(STATUS_STYLES).map(s=>`<option value="${s}" ${s===c.status?'selected':''}>${STATUS_STYLES[s].label}</option>`).join('')}
         </select>
-        <div style="font-size:13.5px;display:grid;gap:8px;margin-bottom:22px">
-          <div><strong>Evento:</strong> ${c.event_type||'—'}</div>
-          <div><strong>Teléfono:</strong> ${c.phone||'—'}</div>
-          <div><strong>Email:</strong> ${c.email||'—'}</div>
-          <div><strong>Población:</strong> ${c.locality||'—'} ${c.province?'('+c.province+')':''}</div>
-          <div><strong>Origen:</strong> ${c.source||'—'}</div>
+        <div style="display:grid;gap:10px;margin-bottom:10px">
+          <div><label class="f">Nombre</label><input type="text" id="cd-name" value="${c.name||''}" /></div>
+          <div><label class="f">Tipo</label><select id="cd-type">
+            <option value="particular" ${c.type==='particular'?'selected':''}>Particular</option>
+            <option value="empresa" ${c.type==='empresa'?'selected':''}>Empresa</option>
+            <option value="ayuntamiento" ${c.type==='ayuntamiento'?'selected':''}>Ayuntamiento</option>
+          </select></div>
+          <div><label class="f">Tipo de evento</label><input type="text" id="cd-event" value="${c.event_type||''}" /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="cd-phone" value="${c.phone||''}" /></div>
+          <div><label class="f">Email</label><input type="email" id="cd-email" value="${c.email||''}" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label class="f">Población</label><input type="text" id="cd-locality" value="${c.locality||''}" /></div>
+            <div><label class="f">Provincia</label><input type="text" id="cd-province" value="${c.province||''}" /></div>
+          </div>
+          <div><label class="f">Origen</label><input type="text" id="cd-source" value="${c.source||''}" /></div>
         </div>
+        <button class="btn" style="width:100%;margin-bottom:22px" onclick="saveClientEdits('${c.id}')">Guardar cambios del cliente</button>
 
         <h3 style="font-size:15px;margin-bottom:10px">Historial de bolos</h3>
         <div style="display:grid;gap:8px;margin-bottom:14px">
@@ -397,6 +407,21 @@ function closeDrawer(e){
 async function updateStatus(id, status){
   await sb.from('clients').update({status}).eq('id', id);
   await loadAll(); render(); toast('Estado actualizado');
+}
+async function saveClientEdits(id){
+  const payload = {
+    name: document.getElementById('cd-name').value,
+    type: document.getElementById('cd-type').value,
+    event_type: document.getElementById('cd-event').value,
+    phone: document.getElementById('cd-phone').value,
+    email: document.getElementById('cd-email').value,
+    locality: document.getElementById('cd-locality').value,
+    province: document.getElementById('cd-province').value,
+    source: document.getElementById('cd-source').value,
+  };
+  if(!payload.name){ toast('El nombre no puede quedar vacío'); return; }
+  await sb.from('clients').update(payload).eq('id', id);
+  closeDrawer(); await loadAll(); render(); toast('Cliente actualizado');
 }
 async function deleteClient(id){
   if(!confirm('¿Seguro que quieres borrar este cliente? Se borrarán también sus notas, bolos y llamadas asociadas. Esto no se puede deshacer.')) return;
