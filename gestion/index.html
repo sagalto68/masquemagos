@@ -1013,6 +1013,8 @@ function openMailClient(){
 
 // ---------------- BOLOS (archivo agrupado) ----------------
 let bolosGroupBy = 'mes';
+let bolosShowAll = false;
+let bolosSelected = null; // set on first render per group type
 
 function isoWeek(d){
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1020,7 +1022,7 @@ function isoWeek(d){
   date.setUTCDate(date.getUTCDate() + 4 - day);
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
   const week = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
-  return `${date.getUTCFullYear()}-S${String(week).padStart(2,'0')}`;
+  return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
 }
 function groupKey(dateStr){
   const d = new Date(dateStr);
@@ -1030,15 +1032,27 @@ function groupKey(dateStr){
 }
 function groupLabel(key){
   if(bolosGroupBy==='semana'){
-    const [y,w] = key.split('-S');
+    const [y,w] = key.split('-W');
     return `Semana ${w} · ${y}`;
   }
   if(bolosGroupBy==='año') return key;
   const [y,m] = key.split('-');
   return new Date(Number(y), Number(m)-1, 1).toLocaleDateString('es-ES', {month:'long', year:'numeric'});
 }
+function defaultPeriod(){
+  const now = new Date();
+  if(bolosGroupBy==='semana') return isoWeek(now);
+  if(bolosGroupBy==='año') return String(now.getFullYear());
+  return now.toISOString().slice(0,7);
+}
+function setBolosGroup(g){
+  bolosGroupBy = g;
+  bolosSelected = defaultPeriod();
+  render();
+}
 
 function viewBolos(){
+  if(bolosSelected===null) bolosSelected = defaultPeriod();
   const withDate = STATE.gigs.filter(g=>g.event_date).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
   const groups = {};
   withDate.forEach(g=>{
@@ -1047,18 +1061,30 @@ function viewBolos(){
     groups[key].push(g);
   });
   const keys = Object.keys(groups).sort().reverse();
+  const visibleKeys = bolosShowAll ? keys : keys.filter(k=>k===bolosSelected);
+
+  const years = [...new Set(withDate.map(g=>String(new Date(g.event_date).getFullYear())))].sort().reverse();
+  if(years.length===0) years.push(String(new Date().getFullYear()));
+
+  const selectorHtml = bolosGroupBy==='mes'
+    ? `<input type="month" value="${bolosSelected}" onchange="bolosSelected=this.value; bolosShowAll=false; render()" style="width:auto" />`
+    : bolosGroupBy==='semana'
+    ? `<input type="week" value="${bolosSelected}" onchange="bolosSelected=this.value; bolosShowAll=false; render()" style="width:auto" />`
+    : `<select onchange="bolosSelected=this.value; bolosShowAll=false; render()" style="width:auto">${years.map(y=>`<option value="${y}" ${y===bolosSelected?'selected':''}>${y}</option>`).join('')}</select>`;
 
   return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <h1 style="font-size:24px">Bolos</h1>
-      <div style="display:flex;gap:8px">
-        ${['semana','mes','año'].map(g=>`<button class="chip ${bolosGroupBy===g?'active':''}" onclick="bolosGroupBy='${g}'; render()" style="text-transform:capitalize">${g}</button>`).join('')}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${['semana','mes','año'].map(g=>`<button class="chip ${bolosGroupBy===g?'active':''}" onclick="setBolosGroup('${g}')" style="text-transform:capitalize">${g}</button>`).join('')}
+        ${selectorHtml}
+        <button class="chip ${bolosShowAll?'active':''}" onclick="bolosShowAll=!bolosShowAll; render()">Ver todos</button>
       </div>
     </div>
     <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px">${withDate.length} bolo${withDate.length!==1?'s':''} registrado${withDate.length!==1?'s':''} en total.</p>
 
-    ${keys.length===0?'<p style="color:var(--muted);font-size:13.5px">Todavía no hay bolos con fecha registrados.</p>':''}
-    ${keys.map(key=>{
+    ${visibleKeys.length===0?'<p style="color:var(--muted);font-size:13.5px">Sin bolos en este periodo.</p>':''}
+    ${visibleKeys.map(key=>{
       const items = groups[key];
       const total = items.reduce((s,g)=>s+(Number(g.price)||0),0);
       return `
