@@ -196,7 +196,7 @@ function render(){
   if(STATE.route==='calendario') main.innerHTML = viewCalendario();
   if(STATE.route==='llamadas') main.innerHTML = viewLlamadas();
   if(STATE.route==='presupuestos') main.innerHTML = viewPresupuestos();
-  if(STATE.route==='calculadora') main.innerHTML = viewCalculadora();
+  if(STATE.route==='calculadora'){ main.innerHTML = viewCalculadora(); renderCalc(); }
 }
 
 // ---------------- DASHBOARD ----------------
@@ -511,7 +511,6 @@ function viewCalculadora(){
       <input type="number" id="calc-pct" value="20" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:22px" />
       <div id="calc-result"></div>
     </div>
-    <script>renderCalc()</script>
   `;
 }
 function renderCalc(){
