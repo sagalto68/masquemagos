@@ -700,7 +700,7 @@ function printDoc(d){
       </div>
       <p style="margin-top:24px;font-size:11.5px;color:#6B5640">${ISSUER.name} — ${ISSUER.email} — NIF: ${ISSUER.nif}</p>
     </div>
-    <script>window.onload = () => { window.print(); };</script>
+    <script>window.onload = () => { window.print(); };<\/script>
     </body></html>`;
   const win = window.open('', '_blank');
   win.document.write(docHtml);
