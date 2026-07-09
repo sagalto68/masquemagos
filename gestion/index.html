@@ -55,6 +55,8 @@ main{flex:1;padding:32px 36px;overflow-y:auto;max-height:100vh}
 .chip-sm{padding:6px 12px;border-radius:100px;border:1px solid rgba(107,86,64,.2);background:transparent;color:var(--muted);font-size:12px}
 .chip-sm.active{background:#F1EBDD;font-weight:700}
 input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],select,textarea{padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13.5px;width:100%}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
 label.f{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
 
 .row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F1EBDD;cursor:pointer}
@@ -72,7 +74,7 @@ label.f{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-b
   #print-area, #print-area *{visibility:visible}
   #print-area{position:absolute;top:0;left:0;width:100%;padding:40px}
 }
-#print-area{display:none}
+#print-area{position:fixed;left:-9999px;top:0;width:680px}
 </style>
 </head>
 <body>
@@ -335,7 +337,7 @@ async function openClientDetail(id){
               <button onclick="deleteGig('${g.id}','${c.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">Borrar</button>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'}</div>
+            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
             ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
           </div>`).join('')}
         </div>
@@ -347,6 +349,7 @@ async function openClientDetail(id){
             <input type="text" id="ng-time" placeholder="Hora (ej: 18:00)" />
           </div>
           <input type="text" id="ng-magician" placeholder="Mago asignado" />
+          <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
           <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
         </div>
 
@@ -402,8 +405,9 @@ async function addGig(clientId){
   const date = document.getElementById('ng-date').value;
   const time = document.getElementById('ng-time').value;
   const magician = document.getElementById('ng-magician').value;
+  const price = document.getElementById('ng-price').value;
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
-  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician});
+  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician, price: price?Number(price):null});
   closeDrawer(); await loadAll(); render(); toast('Bolo guardado');
   openClientDetail(clientId);
 }
@@ -440,7 +444,7 @@ function viewCalendario(){
           </div>
           <div style="flex:1">
             <div style="font-size:15px;font-weight:600">${g.clients?.name||'—'}</div>
-            <div style="font-size:13px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.event_time?'· '+g.event_time:''} ${g.magician?'· Mago: '+g.magician:''}</div>
+            <div style="font-size:13px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.event_time?'· '+g.event_time:''} ${g.magician?'· Mago: '+g.magician:''} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
           </div>
           ${badge(t)}
         </div>`;
@@ -463,6 +467,11 @@ function openGigDetail(gigId){
           <div><strong>Lugar:</strong> ${g.place||'—'}</div>
           <div><strong>Mago:</strong> ${g.magician||'—'}</div>
         </div>
+        <label class="f">Precio cobrado (€)</label>
+        <div style="display:flex;gap:8px;margin-bottom:18px">
+          <input type="number" id="gig-price" value="${g.price||''}" />
+          <button class="btn secondary" style="flex-shrink:0" onclick="saveGigPrice('${g.id}')">Guardar</button>
+        </div>
         <label class="f">Feedback</label>
         <textarea id="gig-feedback" style="min-height:80px;margin-bottom:8px">${g.feedback||''}</textarea>
         <button class="btn" onclick="saveGigFeedback('${g.id}')" style="margin-bottom:16px">Guardar feedback</button>
@@ -470,6 +479,12 @@ function openGigDetail(gigId){
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveGigPrice(gigId){
+  const price = document.getElementById('gig-price').value;
+  await sb.from('gigs').update({price: price?Number(price):null}).eq('id', gigId);
+  await loadAll(); render(); toast('Precio guardado');
+  openGigDetail(gigId);
 }
 async function saveGigFeedback(gigId){
   const feedback = document.getElementById('gig-feedback').value;
@@ -520,6 +535,19 @@ const ISSUER = {
 };
 let docItems = [{desc:'', price:0}];
 let docType = 'presupuesto';
+let docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'' };
+
+function updateTotalsDisplay(){
+  const subtotal = docItems.reduce((s,it)=>s+(Number(it.price)||0),0);
+  const iva = subtotal * 0.21;
+  const total = subtotal + iva;
+  const el = document.getElementById('doc-totals');
+  if(el) el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold-btn)"><span>Total</span><span>${total.toFixed(2)}€</span></div>`;
+  return {subtotal, iva, total};
+}
 
 async function nextDocSeq(type){
   const {count} = await sb.from('documents').select('*', {count:'exact', head:true}).eq('doc_type', type);
@@ -527,9 +555,11 @@ async function nextDocSeq(type){
 }
 
 function viewPresupuestos(){
-  const subtotal = docItems.reduce((s,it)=>s+it.price,0);
-  const iva = subtotal * 0.21;
-  const total = subtotal + iva;
+  const {subtotal, iva, total} = (()=>{
+    const subtotal = docItems.reduce((s,it)=>s+(Number(it.price)||0),0);
+    return {subtotal, iva: subtotal*0.21, total: subtotal*1.21};
+  })();
+  if(!docMeta.clientId && STATE.clients[0]) docMeta.clientId = STATE.clients[0].id;
   return `
     <h1 style="font-size:24px;margin-bottom:20px">Presupuestos y facturas</h1>
     <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:flex-start">
@@ -538,31 +568,32 @@ function viewPresupuestos(){
           ${['presupuesto','factura'].map(t=>`<button class="chip ${docType===t?'active':''}" onclick="docType='${t}'; render()">${t==='presupuesto'?'Presupuesto':'Factura'}</button>`).join('')}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><label class="f">Cliente (de tu lista)</label><select id="doc-client" onchange="fillClientFiscal()">${STATE.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div>
-          <div><label class="f">Fecha</label><input type="date" id="doc-date" value="${new Date().toISOString().slice(0,10)}" /></div>
+          <div><label class="f">Cliente (de tu lista)</label><select id="doc-client" onchange="docMeta.clientId=this.value; fillClientFiscal()">${STATE.clients.map(c=>`<option value="${c.id}" ${c.id===docMeta.clientId?'selected':''}>${c.name}</option>`).join('')}</select></div>
+          <div><label class="f">Fecha</label><input type="date" id="doc-date" value="${docMeta.date}" oninput="docMeta.date=this.value" /></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><label class="f">Nombre fiscal</label><input type="text" id="doc-fiscal-name" placeholder="Nombre o razón social" /></div>
-          <div><label class="f">NIF / CIF</label><input type="text" id="doc-nif" placeholder="NIF del cliente" /></div>
+          <div><label class="f">Nombre fiscal</label><input type="text" id="doc-fiscal-name" placeholder="Nombre o razón social" value="${docMeta.fiscalName}" oninput="docMeta.fiscalName=this.value" /></div>
+          <div><label class="f">NIF / CIF</label><input type="text" id="doc-nif" placeholder="NIF del cliente" value="${docMeta.nif}" oninput="docMeta.nif=this.value" /></div>
         </div>
-        <div style="margin-bottom:12px"><label class="f">Dirección fiscal</label><input type="text" id="doc-address" placeholder="Dirección completa" /></div>
+        <div style="margin-bottom:12px"><label class="f">Dirección fiscal</label><input type="text" id="doc-address" placeholder="Dirección completa" value="${docMeta.address}" oninput="docMeta.address=this.value" /></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-          <div><label class="f">Lugar del evento</label><input type="text" id="doc-location" placeholder="Dirección del bolo" /></div>
-          <div><label class="f">Hora</label><input type="text" id="doc-time" placeholder="Ej: 18:00" /></div>
+          <div><label class="f">Lugar del evento</label><input type="text" id="doc-location" placeholder="Dirección del bolo" value="${docMeta.location}" oninput="docMeta.location=this.value" /></div>
+          <div><label class="f">Hora</label><input type="text" id="doc-time" placeholder="Ej: 18:00" value="${docMeta.time}" oninput="docMeta.time=this.value" /></div>
         </div>
         <label class="f">Conceptos</label>
         <div id="doc-items">${docItems.map((it,i)=>`
-          <div style="display:grid;grid-template-columns:1fr 100px;gap:8px;margin-bottom:8px">
+          <div style="display:grid;grid-template-columns:1fr 100px 32px;gap:8px;margin-bottom:8px;align-items:center">
             <input type="text" placeholder="Ej: Espectáculo de magia 1h" value="${it.desc}" oninput="docItems[${i}].desc=this.value" />
-            <input type="number" placeholder="€" value="${it.price}" oninput="docItems[${i}].price=Number(this.value); render()" />
+            <input type="number" placeholder="€" value="${it.price}" oninput="docItems[${i}].price=Number(this.value); updateTotalsDisplay()" />
+            ${docItems.length>1?`<button onclick="docItems.splice(${i},1); render()" style="background:none;border:none;color:#991B1B;font-size:16px;cursor:pointer">✕</button>`:'<span></span>'}
           </div>`).join('')}</div>
         <button class="btn secondary" style="font-size:12.5px;padding:6px 12px;margin-bottom:18px" onclick="docItems.push({desc:'',price:0}); render()">+ Añadir línea</button>
-        <div style="border-top:1px solid #F1EBDD;padding-top:12px;display:grid;gap:6px">
+        <div id="doc-totals" style="border-top:1px solid #F1EBDD;padding-top:12px;display:grid;gap:6px">
           <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div>
           <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div>
           <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold-btn)"><span>Total</span><span>${total.toFixed(2)}€</span></div>
         </div>
-        <button class="btn" style="margin-top:16px" onclick="generateDoc(${subtotal},${iva},${total})">⬇ Generar y descargar PDF</button>
+        <button class="btn" style="margin-top:16px" onclick="generateDoc()">⬇ Generar y descargar PDF</button>
       </div>
       <div>
         <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Últimos documentos</h3>
@@ -573,7 +604,10 @@ function viewPresupuestos(){
             <div style="font-size:13px;font-weight:600">${d.clients?.name||d.client_fiscal_name||'—'}</div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
               <span style="font-size:14px;font-weight:700">${Number(d.total).toFixed(2)}€</span>
-              <button class="btn secondary" style="padding:5px 10px;font-size:11.5px" onclick="reprintDoc('${d.id}')">Ver PDF</button>
+              <div style="display:flex;gap:6px">
+                <button class="btn secondary" style="padding:5px 10px;font-size:11.5px" onclick="reprintDoc('${d.id}')">Ver PDF</button>
+                <button onclick="deleteDoc('${d.id}')" style="background:none;border:none;color:#991B1B;font-size:11.5px;cursor:pointer">Borrar</button>
+              </div>
             </div>
           </div>`).join('')}
         </div>
@@ -585,30 +619,32 @@ function fillClientFiscal(){
   const clientId = document.getElementById('doc-client').value;
   const c = STATE.clients.find(x=>x.id===clientId);
   if(!c) return;
-  document.getElementById('doc-fiscal-name').value = c.name || '';
+  docMeta.fiscalName = c.name || '';
+  render();
 }
-async function generateDoc(subtotal, iva, total){
-  const clientId = document.getElementById('doc-client').value;
-  const date = document.getElementById('doc-date').value;
-  const fiscalName = document.getElementById('doc-fiscal-name').value;
-  const nif = document.getElementById('doc-nif').value;
-  const address = document.getElementById('doc-address').value;
-  const location = document.getElementById('doc-location').value;
-  const time = document.getElementById('doc-time').value;
+async function generateDoc(){
+  const {subtotal, iva, total} = updateTotalsDisplay();
+  const clientId = docMeta.clientId;
   const client = STATE.clients.find(c=>c.id===clientId);
-  if(!fiscalName || docItems.every(it=>!it.desc)){ toast('Rellena el nombre fiscal y al menos un concepto'); return; }
+  if(!docMeta.fiscalName || docItems.every(it=>!it.desc)){ toast('Rellena el nombre fiscal y al menos un concepto'); return; }
   const seq = await nextDocSeq(docType);
   const payload = {
     client_id: clientId, doc_number: String(seq), doc_seq: seq, doc_type: docType,
-    items: docItems, subtotal, iva, total, doc_date: date,
-    client_fiscal_name: fiscalName, client_nif: nif, client_address: address,
-    location, event_time: time,
+    items: docItems, subtotal, iva, total, doc_date: docMeta.date,
+    client_fiscal_name: docMeta.fiscalName, client_nif: docMeta.nif, client_address: docMeta.address,
+    location: docMeta.location, event_time: docMeta.time,
   };
   const {data, error} = await sb.from('documents').insert(payload).select().single();
   if(error){ toast('Error al guardar'); console.error(error); return; }
   printDoc({...data, clients:{name:client?.name}});
   docItems = [{desc:'',price:0}];
+  docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'' };
   await loadAll(); render(); toast('Documento generado');
+}
+async function deleteDoc(id){
+  if(!confirm('¿Borrar este documento? No se puede deshacer.')) return;
+  await sb.from('documents').delete().eq('id', id);
+  await loadAll(); render(); toast('Documento borrado');
 }
 function reprintDoc(id){
   const d = STATE.docs.find(x=>x.id===id);
@@ -656,10 +692,10 @@ function printDoc(d){
 function viewCalculadora(){
   return `
     <h1 style="font-size:24px;margin-bottom:6px">Calculadora de comisión</h1>
-    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px;max-width:480px">Introduce lo que pide el mago y vuestro % de comisión — calcula lo que hay que facturar al cliente.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px;max-width:480px">Introduce lo que le cobras al cliente y vuestro % de comisión — calcula cuánto os quedáis y cuánto recibe el mago.</p>
     <div class="card" style="max-width:440px;padding:28px">
-      <label class="f">Lo que cobra el mago (€)</label>
-      <input type="number" id="calc-fee" value="300" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:18px" />
+      <label class="f">Lo que le cobras al cliente (€)</label>
+      <input type="number" id="calc-total" value="300" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:18px" />
       <label class="f">Vuestra comisión (%)</label>
       <input type="number" id="calc-pct" value="20" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:22px" />
       <div id="calc-result"></div>
@@ -667,16 +703,16 @@ function viewCalculadora(){
   `;
 }
 function renderCalc(){
-  const fee = Number(document.getElementById('calc-fee')?.value || 0);
+  const total = Number(document.getElementById('calc-total')?.value || 0);
   const pct = Number(document.getElementById('calc-pct')?.value || 0);
-  const comision = fee * (pct/100);
-  const total = fee + comision;
+  const comision = total * (pct/100);
+  const mago = total - comision;
   const el = document.getElementById('calc-result');
   if(el) el.innerHTML = `
     <div style="background:var(--warm);border-radius:12px;padding:16px 18px;display:grid;gap:10px">
-      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">El mago recibe</span><strong>${fee.toFixed(2)}€</strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">Vuestra comisión</span><strong style="color:var(--gold-btn)">${comision.toFixed(2)}€</strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;border-top:1px solid rgba(196,151,61,.25);padding-top:10px"><span>Total a cobrar al cliente</span><span style="color:var(--gold-btn)">${total.toFixed(2)}€</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">Total cobrado al cliente</span><strong>${total.toFixed(2)}€</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">Vuestra comisión (${pct}%)</span><strong style="color:var(--gold-btn)">${comision.toFixed(2)}€</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;border-top:1px solid rgba(196,151,61,.25);padding-top:10px"><span>El mago recibe</span><span style="color:var(--gold-btn)">${mago.toFixed(2)}€</span></div>
     </div>`;
 }
 
