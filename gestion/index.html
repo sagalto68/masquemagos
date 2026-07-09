@@ -169,6 +169,7 @@ const NAV_ITEMS = [
   {id:'documentos', label:'Documentos', icon:'🗂️'},
   {id:'calculadora', label:'Comisión', icon:'🧮'},
   {id:'finanzas', label:'Finanzas', icon:'💰'},
+  {id:'emails', label:'Emails', icon:'✉️'},
 ];
 
 function renderNav(){
@@ -209,6 +210,7 @@ function render(){
   if(STATE.route==='documentos') main.innerHTML = viewDocumentos();
   if(STATE.route==='calculadora'){ main.innerHTML = viewCalculadora(); renderCalc(); }
   if(STATE.route==='finanzas') main.innerHTML = viewFinanzas();
+  if(STATE.route==='emails') main.innerHTML = viewEmails();
 }
 
 // ---------------- DASHBOARD ----------------
@@ -289,6 +291,10 @@ function openClientForm(){
           <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" /></div>
           <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label class="f">Población</label><input type="text" id="nc-locality" placeholder="Ej: Sitges" /></div>
+            <div><label class="f">Provincia</label><input type="text" id="nc-province" placeholder="Ej: Barcelona" /></div>
+          </div>
           <div><label class="f">Origen</label><input type="text" id="nc-source" placeholder="Web, Instagram, Google Ads..." /></div>
           <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="nc-date" /></div>
           <button class="btn" style="margin-top:8px" onclick="saveClient()">Guardar cliente</button>
@@ -304,6 +310,8 @@ async function saveClient(){
     event_type: document.getElementById('nc-event').value,
     phone: document.getElementById('nc-phone').value,
     email: document.getElementById('nc-email').value,
+    locality: document.getElementById('nc-locality').value,
+    province: document.getElementById('nc-province').value,
     source: document.getElementById('nc-source').value,
     event_date: document.getElementById('nc-date').value || null,
   };
@@ -333,6 +341,7 @@ async function openClientDetail(id){
           <div><strong>Evento:</strong> ${c.event_type||'—'}</div>
           <div><strong>Teléfono:</strong> ${c.phone||'—'}</div>
           <div><strong>Email:</strong> ${c.email||'—'}</div>
+          <div><strong>Población:</strong> ${c.locality||'—'} ${c.province?'('+c.province+')':''}</div>
           <div><strong>Origen:</strong> ${c.source||'—'}</div>
         </div>
 
@@ -416,7 +425,15 @@ async function addGig(clientId){
   const price = document.getElementById('ng-price').value;
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
   await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician, price: price?Number(price):null});
-  closeDrawer(); await loadAll(); render(); toast('Bolo guardado');
+  const feedbackDate = new Date(date);
+  feedbackDate.setDate(feedbackDate.getDate() + 1);
+  await sb.from('calls').insert({
+    client_id: clientId,
+    reason: `Pedir feedback del bolo${place?' en '+place:''}`,
+    due_date: feedbackDate.toISOString().slice(0,10),
+    kind: 'feedback',
+  });
+  closeDrawer(); await loadAll(); render(); toast('Bolo guardado y feedback programado para el día siguiente');
   openClientDetail(clientId);
 }
 async function deleteGig(gigId, clientId){
@@ -469,24 +486,32 @@ function openGigDetail(gigId){
           <h2 style="font-size:21px">${g.clients?.name||'Bolo'}</h2>
           <button class="btn secondary" onclick="closeDrawer()" style="height:32px">✕</button>
         </div>
-        <div style="font-size:13.5px;display:grid;gap:10px;margin-bottom:22px">
-          <div><strong>Fecha:</strong> ${g.event_date?fmtDate(g.event_date):'—'}</div>
-          <div><strong>Hora:</strong> ${g.event_time||'—'}</div>
-          <div><strong>Lugar:</strong> ${g.place||'—'}</div>
-          <div><strong>Mago:</strong> ${g.magician||'—'}</div>
+        <div style="display:grid;gap:10px;margin-bottom:14px">
+          <div><label class="f">Lugar</label><input type="text" id="gig-place" value="${g.place||''}" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><label class="f">Fecha</label><input type="date" id="gig-date" value="${g.event_date||''}" /></div>
+            <div><label class="f">Hora</label><input type="text" id="gig-time" value="${g.event_time||''}" /></div>
+          </div>
+          <div><label class="f">Mago</label><input type="text" id="gig-magician" value="${g.magician||''}" /></div>
+          <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
         </div>
-        <label class="f">Precio cobrado (€)</label>
-        <div style="display:flex;gap:8px;margin-bottom:18px">
-          <input type="number" id="gig-price" value="${g.price||''}" />
-          <button class="btn secondary" style="flex-shrink:0" onclick="saveGigPrice('${g.id}')">Guardar</button>
-        </div>
+        <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}')">Guardar cambios</button>
         <label class="f">Feedback</label>
         <textarea id="gig-feedback" style="min-height:80px;margin-bottom:8px">${g.feedback||''}</textarea>
-        <button class="btn" onclick="saveGigFeedback('${g.id}')" style="margin-bottom:16px">Guardar feedback</button>
+        <button class="btn secondary" onclick="saveGigFeedback('${g.id}')" style="margin-bottom:16px;width:100%">Guardar feedback</button>
         <button onclick="deleteGig('${g.id}', '${g.client_id}')" style="width:100%;background:none;border:1px solid #FEE2E2;color:#991B1B;padding:10px;border-radius:10px;font-size:13px;font-weight:600">Borrar bolo</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveGigDetails(gigId){
+  const place = document.getElementById('gig-place').value;
+  const event_date = document.getElementById('gig-date').value || null;
+  const event_time = document.getElementById('gig-time').value;
+  const magician = document.getElementById('gig-magician').value;
+  const price = document.getElementById('gig-price').value;
+  await sb.from('gigs').update({place, event_date, event_time, magician, price: price?Number(price):null}).eq('id', gigId);
+  closeDrawer(); await loadAll(); render(); toast('Bolo actualizado');
 }
 async function saveGigPrice(gigId){
   const price = document.getElementById('gig-price').value;
@@ -512,7 +537,7 @@ function viewLlamadas(){
       ${llamadas.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
         <span>📞</span>
         <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <span style="font-size:12.5px;font-weight:600;color:var(--gold-btn)">${fmtDate(c.due_date)}</span>
+        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px" />
         <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
       </div>`).join('')}
     </div>
@@ -522,11 +547,15 @@ function viewLlamadas(){
       ${feedback.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
         <span>⏰</span>
         <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <span style="font-size:12.5px;font-weight:600;color:#1D4ED8">${fmtDate(c.due_date)}</span>
+        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px" />
         <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
       </div>`).join('')}
     </div>
   `;
+}
+async function rescheduleCall(id, newDate){
+  await sb.from('calls').update({due_date:newDate}).eq('id', id);
+  await loadAll(); render(); toast('Fecha actualizada');
 }
 async function markDone(id){
   await sb.from('calls').update({done:true}).eq('id', id);
@@ -857,6 +886,89 @@ function viewDocumentos(){
       </div>`).join('')}
     </div>
   `;
+}
+
+// ---------------- EMAILS ----------------
+let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true };
+let emailLocalityFilter = 'todas';
+
+function viewEmails(){
+  const localities = [...new Set(STATE.clients.map(c=>c.locality).filter(Boolean))].sort();
+  const matched = STATE.clients.filter(c =>
+    emailTypeFilter[c.type] &&
+    (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) &&
+    c.email
+  );
+  const emailList = matched.map(c=>c.email).join(', ');
+
+  return `
+    <h1 style="font-size:24px;margin-bottom:6px">Emails y promociones</h1>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px;max-width:560px">Segmenta tus contactos, escribe el mensaje y copia los emails para pegarlos en el CCO de tu cliente de correo (Gmail, Outlook...).</p>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:flex-start">
+      <div class="card">
+        <label class="f">Segmentar por tipo</label>
+        <div style="display:flex;gap:16px;margin-bottom:16px">
+          ${['particular','empresa','ayuntamiento'].map(t=>`
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer">
+              <input type="checkbox" ${emailTypeFilter[t]?'checked':''} onchange="emailTypeFilter['${t}']=this.checked; render()" />
+              ${TYPE_STYLES[t].label}
+            </label>`).join('')}
+        </div>
+
+        <label class="f">Segmentar por población</label>
+        <select onchange="emailLocalityFilter=this.value; render()" style="margin-bottom:20px">
+          <option value="todas" ${emailLocalityFilter==='todas'?'selected':''}>Todas las poblaciones</option>
+          ${localities.map(l=>`<option value="${l}" ${emailLocalityFilter===l?'selected':''}>${l}</option>`).join('')}
+        </select>
+
+        <div style="background:var(--warm);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13.5px">
+          <strong>${matched.length}</strong> contacto${matched.length!==1?'s':''} con email coinciden con este filtro
+        </div>
+
+        <label class="f">Asunto</label>
+        <input type="text" id="email-subject" placeholder="Ej: 🎩 Magia para tu próxima celebración" style="margin-bottom:16px" />
+
+        <label class="f">Mensaje</label>
+        <textarea id="email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:18px"></textarea>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn" onclick="copyEmails()">📋 Copiar emails (${matched.length})</button>
+          <button class="btn secondary" onclick="openMailClient()">Abrir en mi correo</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:10px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
+      </div>
+
+      <div>
+        <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Contactos seleccionados</h3>
+        <div class="card" style="padding:0;overflow:hidden;max-height:420px;overflow-y:auto">
+          ${matched.length===0?'<div style="padding:16px;font-size:13px;color:var(--muted)">Ningún contacto coincide.</div>':''}
+          ${matched.map(c=>`<div class="row" style="cursor:default;padding:10px 14px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600">${c.name}</div>
+              <div style="font-size:11.5px;color:var(--muted)">${c.email} ${c.locality?'· '+c.locality:''}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function copyEmails(){
+  const localities = [...new Set(STATE.clients.map(c=>c.locality).filter(Boolean))];
+  const matched = STATE.clients.filter(c => emailTypeFilter[c.type] && (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) && c.email);
+  const list = matched.map(c=>c.email).join(', ');
+  if(!list){ toast('No hay emails que coincidan con el filtro'); return; }
+  navigator.clipboard.writeText(list);
+  toast(`${matched.length} emails copiados al portapapeles`);
+}
+function openMailClient(){
+  const matched = STATE.clients.filter(c => emailTypeFilter[c.type] && (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) && c.email);
+  const subject = document.getElementById('email-subject').value;
+  const body = document.getElementById('email-body').value;
+  if(matched.length===0){ toast('No hay emails que coincidan con el filtro'); return; }
+  const bcc = matched.map(c=>c.email).join(',');
+  window.location.href = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 function fmtDate(d){
