@@ -1,33 +1,143 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url>
-<loc>https://www.masquemagos.com/</loc>
-<lastmod>2026-05-04</lastmod>
-<changefreq>monthly</changefreq>
-<priority>1.0</priority>
-</url>
-<url>
-<loc>https://www.masquemagos.com/empresas.html</loc>
-<lastmod>2026-05-04</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
-<url>
-<loc>https://www.masquemagos.com/celebraciones/</loc>
-<lastmod>2026-07-07</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
-<url>
-<loc>https://www.masquemagos.com/blog/</loc>
-<lastmod>2026-07-07</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.6</priority>
-</url>
-<url>
-<loc>https://www.masquemagos.com/blog/cuanto-cuesta-mago-comunion.html</loc>
-<lastmod>2026-07-07</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.6</priority>
-</url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://www.masquemagos.com/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/empresas.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/celebraciones/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/celebraciones/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/blog/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/blog/cuanto-cuesta-mago-comunion.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/cuanto-cuesta-mago-comunion.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/quant-costa-mag-comunio.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/how-much-magician-communion.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/empresas.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/celebraciones/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/celebraciones/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/blog/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/blog/quant-costa-mag-comunio.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/cuanto-cuesta-mago-comunion.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/quant-costa-mag-comunio.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/how-much-magician-communion.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/empresas.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/celebraciones/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/celebraciones/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/celebraciones/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/blog/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/blog/how-much-magician-communion.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/cuanto-cuesta-mago-comunion.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/quant-costa-mag-comunio.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/how-much-magician-communion.html" />
+  </url>
+
 </urlset>
