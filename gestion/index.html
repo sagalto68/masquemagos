@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -109,7 +109,11 @@ const APP_PASSWORD = "MasQueMagos2026";
 const SUPABASE_URL = "https://hugeeqoyarnvpnkjnvvl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Z2VlcW95YXJudnBua2pudnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjU1NTMsImV4cCI6MjA5OTIwMTU1M30.FD2urxcWXHXjZnu-guc_7wmzV8TYcMlnvkGQFqru_NU";
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if(typeof supabase === 'undefined'){
+  document.getElementById('gate-err').textContent = 'Error cargando la librería de conexión. Recarga la página.';
+  document.getElementById('gate-err').style.display = 'block';
+}
+const sb = typeof supabase !== 'undefined' ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 function checkPass(){
   const val = document.getElementById('gate-pass').value;
