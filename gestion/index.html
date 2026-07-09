@@ -1,1 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestión | Más que Magos</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
 
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C4973D; --gold-btn:#8a6425; --warm:#FFFBF3; --white:#fff;
+  --text:#1A1005; --muted:#6B5640; --border:rgba(196,151,61,.2);
+  --dark:#1C140A; --dark-accent:#E8C37A;
+}
+body{background:var(--warm);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Fraunces',serif}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* ---- login gate ---- */
+#gate{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:999}
+#gate .box{background:#fff;border-radius:20px;padding:40px 36px;width:320px;text-align:center}
+#gate h1{font-size:22px;margin-bottom:4px;color:var(--gold-btn)}
+#gate p{font-size:13px;color:var(--muted);margin-bottom:20px}
+#gate input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);font-size:15px;margin-bottom:12px}
+#gate button{width:100%;padding:12px;border-radius:10px;border:none;background:var(--gold-btn);color:#fff;font-weight:600;font-size:14px}
+#gate .err{color:#B91C1C;font-size:12.5px;margin-top:8px;display:none}
+
+/* ---- app shell ---- */
+#app{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--dark);color:#F5EFE4;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar .brand{padding:24px 20px;border-bottom:1px solid rgba(245,239,228,.1)}
+.sidebar .brand b{font-family:'Fraunces',serif;font-size:19px;color:var(--dark-accent);display:block}
+.sidebar .brand span{font-size:11px;color:rgba(245,239,228,.5);letter-spacing:.05em}
+.sidebar nav{padding:16px 12px;flex:1}
+.sidebar nav button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;margin-bottom:4px;border-radius:10px;border:none;background:transparent;color:rgba(245,239,228,.75);font-size:14px;font-weight:500;text-align:left}
+.sidebar nav button.active{background:rgba(232,195,122,.15);color:var(--dark-accent)}
+.sidebar .foot{padding:16px;font-size:11px;color:rgba(245,239,228,.35);border-top:1px solid rgba(245,239,228,.1)}
+main{flex:1;padding:32px 36px;overflow-y:auto;max-height:100vh}
+
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--gold-btn);color:#fff;border:none;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600}
+.btn.secondary{background:#fff;color:var(--muted);border:1px solid var(--border)}
+.chip{padding:8px 14px;border-radius:100px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:12.5px;font-weight:600}
+.chip.active{background:var(--gold-btn);border-color:var(--gold-btn);color:#fff}
+.chip-sm{padding:6px 12px;border-radius:100px;border:1px solid rgba(107,86,64,.2);background:transparent;color:var(--muted);font-size:12px}
+.chip-sm.active{background:#F1EBDD;font-weight:700}
+input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],select,textarea{padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13.5px;width:100%}
+label.f{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
+
+.row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F1EBDD;cursor:pointer}
+.row:last-child{border-bottom:none}
+.row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+
+#toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;opacity:0;transform:translateY(10px);transition:all .25s ease;z-index:200}
+#toast.show{opacity:1;transform:translateY(0)}
+
+.drawer-bg{position:fixed;inset:0;background:rgba(26,16,5,.4);display:flex;justify-content:flex-end;z-index:100}
+.drawer{width:420px;max-width:90vw;background:#fff;height:100%;padding:28px;overflow-y:auto}
+
+@media print{
+  body *{visibility:hidden}
+  #print-area, #print-area *{visibility:visible}
+  #print-area{position:absolute;top:0;left:0;width:100%;padding:40px}
+}
+#print-area{display:none}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <h1>Más que Magos</h1>
+    <p>Panel de gestión — acceso privado</p>
+    <input type="password" id="gate-pass" placeholder="Contraseña" />
+    <button onclick="checkPass()">Entrar</button>
+    <p class="err" id="gate-err">Contraseña incorrecta</p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="brand"><b>Más que Magos</b><span>GESTIÓN</span></div>
+      <nav id="nav"></nav>
+      <div class="foot">Laura &amp; Esther</div>
+    </div>
+    <main id="main"></main>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="print-area"></div>
+
+<script>
+// ============================================================
+// CONFIG — cambia la contraseña antes de subir esto a producción
+// ============================================================
+const APP_PASSWORD = "MasQueMagos2026";
+const SUPABASE_URL = "https://hugeeqoyarnvpnkjnvvl.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1Z2VlcW95YXJudnBua2pudnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjU1NTMsImV4cCI6MjA5OTIwMTU1M30.FD2urxcWXHXjZnu-guc_7wmzV8TYcMlnvkGQFqru_NU";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function checkPass(){
+  const val = document.getElementById('gate-pass').value;
+  if(val === APP_PASSWORD){
+    sessionStorage.setItem('mqm_auth','1');
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    boot();
+  } else {
+    document.getElementById('gate-err').style.display='block';
+  }
+}
+document.getElementById('gate-pass').addEventListener('keydown', e => { if(e.key==='Enter') checkPass(); });
+if(sessionStorage.getItem('mqm_auth')==='1'){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').style.display='block';
+  window.addEventListener('DOMContentLoaded', boot);
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+const TYPE_STYLES = {
+  particular: { label:'Particular', bg:'#EEF2FF', text:'#4338CA', icon:'👤' },
+  empresa: { label:'Empresa', bg:'#F0FDF4', text:'#15803D', icon:'🏢' },
+  ayuntamiento: { label:'Ayuntamiento', bg:'#FEF3C7', text:'#92400E', icon:'🏛️' },
+};
+const STATUS_STYLES = {
+  nuevo: { label:'Nuevo', bg:'#F1F5F9', text:'#475569' },
+  contactado: { label:'Contactado', bg:'#DBEAFE', text:'#1D4ED8' },
+  presupuestado: { label:'Presupuestado', bg:'#FEF3C7', text:'#92400E' },
+  confirmado: { label:'Confirmado', bg:'#DCFCE7', text:'#166534' },
+  perdido: { label:'Perdido', bg:'#FEE2E2', text:'#991B1B' },
+};
+function badge(style){ return `<span class="badge" style="background:${style.bg};color:${style.text}">${style.label}</span>`; }
+
+let STATE = { clients:[], calls:[], docs:[], typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
+
+const NAV_ITEMS = [
+  {id:'dashboard', label:'Resumen', icon:'🏠'},
+  {id:'clientes', label:'Clientes', icon:'👥'},
+  {id:'calendario', label:'Calendario', icon:'📅'},
+  {id:'llamadas', label:'Llamadas', icon:'📞'},
+  {id:'presupuestos', label:'Presupuestos', icon:'📄'},
+  {id:'calculadora', label:'Comisión', icon:'🧮'},
+];
+
+function renderNav(){
+  document.getElementById('nav').innerHTML = NAV_ITEMS.map(it => `
+    <button class="${STATE.route===it.id?'active':''}" onclick="goTo('${it.id}')">${it.icon} &nbsp;${it.label}</button>
+  `).join('');
+}
+function goTo(route){ STATE.route = route; renderNav(); render(); }
+
+async function loadAll(){
+  const [{data:clients}, {data:calls}, {data:docs}] = await Promise.all([
+    sb.from('clients').select('*, notes(*)').order('created_at', {ascending:false}),
+    sb.from('calls').select('*, clients(name)').eq('done', false).order('due_date'),
+    sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}).limit(10),
+  ]);
+  STATE.clients = clients || [];
+  STATE.calls = calls || [];
+  STATE.docs = docs || [];
+}
+
+async function boot(){
+  renderNav();
+  await loadAll();
+  render();
+}
+
+function render(){
+  const main = document.getElementById('main');
+  if(STATE.route==='dashboard') main.innerHTML = viewDashboard();
+  if(STATE.route==='clientes') main.innerHTML = viewClientes();
+  if(STATE.route==='calendario') main.innerHTML = viewCalendario();
+  if(STATE.route==='llamadas') main.innerHTML = viewLlamadas();
+  if(STATE.route==='presupuestos') main.innerHTML = viewPresupuestos();
+  if(STATE.route==='calculadora') main.innerHTML = viewCalculadora();
+}
+
+// ---------------- DASHBOARD ----------------
+function viewDashboard(){
+  const activos = STATE.clients.filter(c => !['perdido','confirmado'].includes(c.status)).length;
+  const confirmados = STATE.clients.filter(c => c.status==='confirmado' && c.event_date).length;
+  const pendientes = STATE.calls.length;
+  const proximosBolos = STATE.clients.filter(c=>c.event_date).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date)).slice(0,4);
+  return `
+    <h1 style="font-size:26px;margin-bottom:4px">Buenos días 👋</h1>
+    <p style="color:var(--muted);margin-bottom:28px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px">
+      <div class="card"><div style="font-size:28px;font-weight:700;color:var(--gold-btn)">${activos}</div><div style="font-size:13px;color:var(--muted)">Leads activos</div></div>
+      <div class="card"><div style="font-size:28px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:13px;color:var(--muted)">Bolos confirmados</div></div>
+      <div class="card"><div style="font-size:28px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:13px;color:var(--muted)">Llamadas pendientes</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:14px">Llamadas pendientes</h3>
+        ${STATE.calls.slice(0,4).map(c=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
+          <div><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+          <span style="font-size:12px;color:var(--gold-btn);font-weight:600">${fmtDate(c.due_date)}</span></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Ninguna pendiente 🎉</p>'}
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos</h3>
+        ${proximosBolos.map(c=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
+          <div><div style="font-size:14px;font-weight:600">${c.event_type||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.name}</div></div>
+          <span style="font-size:12px;color:var(--muted)">${fmtDate(c.event_date)}</span></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin fechas confirmadas todavía</p>'}
+      </div>
+    </div>
+  `;
+}
+
+// ---------------- CLIENTES ----------------
+function viewClientes(){
+  const filtered = STATE.clients.filter(c =>
+    (STATE.typeFilter==='todos' || c.type===STATE.typeFilter) &&
+    (STATE.statusFilter==='todos' || c.status===STATE.statusFilter) &&
+    c.name.toLowerCase().includes(STATE.search.toLowerCase())
+  );
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1 style="font-size:24px">Clientes y leads</h1>
+      <button class="btn" onclick="openClientForm()">+ Nuevo cliente</button>
+    </div>
+    <input type="text" placeholder="Buscar cliente..." style="max-width:280px;margin-bottom:14px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      ${['todos','particular','empresa','ayuntamiento'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>`<button class="chip-sm ${STATE.statusFilter===s?'active':''}" onclick="STATE.statusFilter='${s}'; render()">${s==='todos'?'Todos los estados':STATUS_STYLES[s].label}</button>`).join('')}
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      ${filtered.length===0?'<div style="padding:24px;text-align:center;color:var(--muted);font-size:13.5px">Ningún cliente coincide con este filtro.</div>':''}
+      ${filtered.map(c=>{
+        const t=TYPE_STYLES[c.type], s=STATUS_STYLES[c.status];
+        return `<div class="row" onclick="openClientDetail('${c.id}')">
+          <div class="row-icon" style="background:${t.bg}">${t.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:600">${c.name}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${c.event_type||'—'} - ${c.phone||'—'} - ${c.email||'—'}</div>
+          </div>
+          ${badge(s)}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openClientForm(){
+  const html = `
+    <div class="drawer-bg" onclick="closeDrawer(event)">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <h2 style="font-size:21px;margin-bottom:20px">Nuevo cliente</h2>
+        <div style="display:grid;gap:12px">
+          <div><label class="f">Nombre</label><input type="text" id="nc-name" /></div>
+          <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option></select></div>
+          <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" /></div>
+          <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
+          <div><label class="f">Origen</label><input type="text" id="nc-source" placeholder="Web, Instagram, Google Ads..." /></div>
+          <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="nc-date" /></div>
+          <button class="btn" style="margin-top:8px" onclick="saveClient()">Guardar cliente</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveClient(){
+  const payload = {
+    name: document.getElementById('nc-name').value,
+    type: document.getElementById('nc-type').value,
+    event_type: document.getElementById('nc-event').value,
+    phone: document.getElementById('nc-phone').value,
+    email: document.getElementById('nc-email').value,
+    source: document.getElementById('nc-source').value,
+    event_date: document.getElementById('nc-date').value || null,
+  };
+  if(!payload.name){ toast('Ponle un nombre al cliente'); return; }
+  const {error} = await sb.from('clients').insert(payload);
+  if(error){ toast('Error al guardar'); console.error(error); return; }
+  closeDrawer(); await loadAll(); render(); toast('Cliente guardado');
+}
+
+async function openClientDetail(id){
+  const c = STATE.clients.find(x=>x.id===id);
+  const t=TYPE_STYLES[c.type];
+  const notes = (c.notes||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const html = `
+    <div class="drawer-bg" onclick="closeDrawer(event)">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+          <div><h2 style="font-size:21px">${c.name}</h2><div style="margin-top:8px">${badge(t)} ${badge(STATUS_STYLES[c.status])}</div></div>
+          <button class="btn secondary" onclick="closeDrawer()" style="height:32px">✕</button>
+        </div>
+        <label class="f">Cambiar estado</label>
+        <select id="cd-status" onchange="updateStatus('${c.id}', this.value)" style="margin-bottom:18px">
+          ${Object.keys(STATUS_STYLES).map(s=>`<option value="${s}" ${s===c.status?'selected':''}>${STATUS_STYLES[s].label}</option>`).join('')}
+        </select>
+        <div style="font-size:13.5px;display:grid;gap:8px;margin-bottom:22px">
+          <div><strong>Evento:</strong> ${c.event_type||'—'}</div>
+          <div><strong>Teléfono:</strong> ${c.phone||'—'}</div>
+          <div><strong>Email:</strong> ${c.email||'—'}</div>
+          <div><strong>Origen:</strong> ${c.source||'—'}</div>
+          ${c.event_date?`<div><strong>Fecha del bolo:</strong> ${fmtDate(c.event_date)}</div>`:''}
+        </div>
+        <h3 style="font-size:15px;margin-bottom:10px">Notas y seguimiento</h3>
+        <div style="display:grid;gap:8px;margin-bottom:14px">
+          ${notes.length===0?'<p style="font-size:13px;color:var(--muted);font-style:italic">Sin notas todavía.</p>':''}
+          ${notes.map(n=>`<div style="background:var(--warm);border-radius:10px;padding:10px 12px;font-size:13px"><div style="font-weight:600;color:var(--gold-btn);font-size:11.5px;margin-bottom:2px">${fmtDate(n.created_at)}</div>${n.text}</div>`).join('')}
+        </div>
+        <textarea id="cd-note" placeholder="Añadir nota de esta llamada..." style="min-height:70px;margin-bottom:8px"></textarea>
+        <button class="btn" onclick="addNote('${c.id}')">Guardar nota</button>
+        <h3 style="font-size:15px;margin:22px 0 10px">Programar llamada</h3>
+        <div style="display:grid;gap:8px">
+          <input type="text" id="cd-call-reason" placeholder="Motivo (ej: seguimiento presupuesto)" />
+          <input type="date" id="cd-call-date" />
+          <button class="btn secondary" onclick="addCall('${c.id}')">Programar</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function closeDrawer(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.querySelectorAll('.drawer-bg').forEach(el=>el.remove());
+}
+async function updateStatus(id, status){
+  await sb.from('clients').update({status}).eq('id', id);
+  await loadAll(); render(); toast('Estado actualizado');
+}
+async function addNote(clientId){
+  const text = document.getElementById('cd-note').value;
+  if(!text) return;
+  await sb.from('notes').insert({client_id: clientId, text});
+  closeDrawer(); await loadAll(); render(); toast('Nota guardada');
+  openClientDetail(clientId);
+}
+async function addCall(clientId){
+  const reason = document.getElementById('cd-call-reason').value;
+  const due = document.getElementById('cd-call-date').value;
+  if(!reason || !due){ toast('Rellena motivo y fecha'); return; }
+  await sb.from('calls').insert({client_id: clientId, reason, due_date: due});
+  closeDrawer(); await loadAll(); render(); toast('Llamada programada');
+}
+
+// ---------------- CALENDARIO ----------------
+function viewCalendario(){
+  const gigs = STATE.clients.filter(c=>c.event_date).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  return `
+    <h1 style="font-size:24px;margin-bottom:20px">Calendario de bolos</h1>
+    <div style="display:grid;gap:12px">
+      ${gigs.length===0?'<p style="color:var(--muted);font-size:13.5px">Sin bolos con fecha confirmada todavía.</p>':''}
+      ${gigs.map(g=>{
+        const d = new Date(g.event_date);
+        const t = TYPE_STYLES[g.type];
+        return `<div class="card" style="display:flex;align-items:center;gap:16px;padding:16px 20px">
+          <div style="width:54px;height:54px;border-radius:12px;background:var(--warm);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="font-size:18px;font-weight:700;color:var(--gold-btn)">${d.getDate()}</div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase">${d.toLocaleDateString('es-ES',{month:'short'})}</div>
+          </div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:600">${g.event_type||'—'}</div><div style="font-size:13px;color:var(--muted)">${g.name}</div></div>
+          ${badge(t)}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ---------------- LLAMADAS ----------------
+function viewLlamadas(){
+  const llamadas = STATE.calls.filter(c=>c.kind==='llamada');
+  const feedback = STATE.calls.filter(c=>c.kind==='feedback');
+  return `
+    <h1 style="font-size:24px;margin-bottom:20px">Llamadas y seguimientos</h1>
+    <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pendientes</h3>
+    <div style="display:grid;gap:10px;margin-bottom:28px">
+      ${llamadas.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente 🎉</p>':''}
+      ${llamadas.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+        <span>📞</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+        <span style="font-size:12.5px;font-weight:600;color:var(--gold-btn)">${fmtDate(c.due_date)}</span>
+        <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
+      </div>`).join('')}
+    </div>
+    <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Feedback pendiente de pedir</h3>
+    <div style="display:grid;gap:10px">
+      ${feedback.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente.</p>':''}
+      ${feedback.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+        <span>⏰</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+        <span style="font-size:12.5px;font-weight:600;color:#1D4ED8">${fmtDate(c.due_date)}</span>
+        <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
+      </div>`).join('')}
+    </div>
+  `;
+}
+async function markDone(id){
+  await sb.from('calls').update({done:true}).eq('id', id);
+  await loadAll(); render(); toast('Marcada como hecha');
+}
+
+// ---------------- PRESUPUESTOS ----------------
+let docItems = [{desc:'', qty:1, price:0}];
+let docType = 'presupuesto';
+function viewPresupuestos(){
+  const total = docItems.reduce((s,it)=>s+(it.qty*it.price),0);
+  return `
+    <h1 style="font-size:24px;margin-bottom:20px">Presupuestos y facturas</h1>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:flex-start">
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:18px">
+          ${['presupuesto','factura'].map(t=>`<button class="chip ${docType===t?'active':''}" onclick="docType='${t}'; render()">${t==='presupuesto'?'Presupuesto':'Factura'}</button>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div><label class="f">Cliente</label><select id="doc-client">${STATE.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div>
+          <div><label class="f">Fecha</label><input type="date" id="doc-date" value="${new Date().toISOString().slice(0,10)}" /></div>
+        </div>
+        <label class="f">Conceptos</label>
+        <div id="doc-items">${docItems.map((it,i)=>`
+          <div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;margin-bottom:8px">
+            <input type="text" placeholder="Ej: Espectáculo de magia 1h" value="${it.desc}" oninput="docItems[${i}].desc=this.value" />
+            <input type="number" value="${it.qty}" oninput="docItems[${i}].qty=Number(this.value); render()" />
+            <input type="number" placeholder="€" value="${it.price}" oninput="docItems[${i}].price=Number(this.value); render()" />
+          </div>`).join('')}</div>
+        <button class="btn secondary" style="font-size:12.5px;padding:6px 12px;margin-bottom:18px" onclick="docItems.push({desc:'',qty:1,price:0}); render()">+ Añadir línea</button>
+        <div style="display:flex;justify-content:flex-end;font-size:18px;font-weight:700;color:var(--gold-btn);border-top:1px solid #F1EBDD;padding-top:12px">Total: ${total.toFixed(2)}€</div>
+        <button class="btn" style="margin-top:16px" onclick="generateDoc(${total})">⬇ Generar y descargar PDF</button>
+      </div>
+      <div>
+        <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Últimos documentos</h3>
+        <div style="display:grid;gap:8px">
+          ${STATE.docs.length===0?'<p style="font-size:13px;color:var(--muted)">Todavía no hay documentos.</p>':''}
+          ${STATE.docs.map(d=>`<div class="card" style="padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11.5px;font-weight:700;color:var(--gold-btn)">${d.doc_number}</span><span style="font-size:11.5px;color:var(--muted)">${fmtDate(d.doc_date)}</span></div>
+            <div style="font-size:13px;font-weight:600">${d.clients?.name||'—'}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <span style="font-size:14px;font-weight:700">${Number(d.total).toFixed(2)}€</span>
+              <button class="btn secondary" style="padding:5px 10px;font-size:11.5px" onclick="reprintDoc('${d.id}')">Ver PDF</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+async function generateDoc(total){
+  const clientId = document.getElementById('doc-client').value;
+  const date = document.getElementById('doc-date').value;
+  const client = STATE.clients.find(c=>c.id===clientId);
+  if(!client || docItems.every(it=>!it.desc)){ toast('Añade al menos un concepto'); return; }
+  const prefix = docType==='presupuesto' ? 'PRE' : 'FAC';
+  const num = `${prefix}-${new Date().getFullYear()}-${String(STATE.docs.length+1).padStart(3,'0')}`;
+  const payload = { client_id: clientId, doc_number: num, doc_type: docType, items: docItems, total, doc_date: date };
+  const {data, error} = await sb.from('documents').insert(payload).select().single();
+  if(error){ toast('Error al guardar'); console.error(error); return; }
+  printDoc({...data, clients:{name:client.name}});
+  docItems = [{desc:'',qty:1,price:0}];
+  await loadAll(); render(); toast('Documento generado');
+}
+function reprintDoc(id){
+  const d = STATE.docs.find(x=>x.id===id);
+  printDoc(d);
+}
+function printDoc(d){
+  const items = d.items || [];
+  const rows = items.map(it=>`<tr><td>${it.desc}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${Number(it.price).toFixed(2)}€</td><td style="text-align:right">${(it.qty*it.price).toFixed(2)}€</td></tr>`).join('');
+  document.getElementById('print-area').innerHTML = `
+    <div style="font-family:'DM Sans',sans-serif;max-width:680px;margin:0 auto">
+      <h1 style="font-family:'Fraunces',serif;color:#8a6425">${d.doc_type==='presupuesto'?'Presupuesto':'Factura'}</h1>
+      <p style="color:#6B5640;margin-bottom:20px">${d.doc_number} — ${fmtDate(d.doc_date)}</p>
+      <p style="margin-bottom:20px"><strong>Cliente:</strong> ${d.clients?.name||''}</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+        <tr style="border-bottom:2px solid #8a6425"><th style="text-align:left;padding:8px 0">Concepto</th><th style="padding:8px 0">Cant.</th><th style="text-align:right;padding:8px 0">Precio</th><th style="text-align:right;padding:8px 0">Subtotal</th></tr>
+        ${rows}
+      </table>
+      <div style="text-align:right;font-size:20px;font-weight:700;color:#8a6425">Total: ${Number(d.total).toFixed(2)}€</div>
+      <p style="margin-top:40px;font-size:12px;color:#6B5640">Más que Magos — masqmagos@gmail.com — 616 094 587</p>
+    </div>`;
+  setTimeout(()=>window.print(), 150);
+}
+
+// ---------------- CALCULADORA ----------------
+function viewCalculadora(){
+  return `
+    <h1 style="font-size:24px;margin-bottom:6px">Calculadora de comisión</h1>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px;max-width:480px">Introduce lo que pide el mago y vuestro % de comisión — calcula lo que hay que facturar al cliente.</p>
+    <div class="card" style="max-width:440px;padding:28px">
+      <label class="f">Lo que cobra el mago (€)</label>
+      <input type="number" id="calc-fee" value="300" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:18px" />
+      <label class="f">Vuestra comisión (%)</label>
+      <input type="number" id="calc-pct" value="20" oninput="renderCalc()" style="font-size:16px;font-weight:600;margin-bottom:22px" />
+      <div id="calc-result"></div>
+    </div>
+    <script>renderCalc()</script>
+  `;
+}
+function renderCalc(){
+  const fee = Number(document.getElementById('calc-fee')?.value || 0);
+  const pct = Number(document.getElementById('calc-pct')?.value || 0);
+  const comision = fee * (pct/100);
+  const total = fee + comision;
+  const el = document.getElementById('calc-result');
+  if(el) el.innerHTML = `
+    <div style="background:var(--warm);border-radius:12px;padding:16px 18px;display:grid;gap:10px">
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">El mago recibe</span><strong>${fee.toFixed(2)}€</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--muted)">Vuestra comisión</span><strong style="color:var(--gold-btn)">${comision.toFixed(2)}€</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;border-top:1px solid rgba(196,151,61,.25);padding-top:10px"><span>Total a cobrar al cliente</span><span style="color:var(--gold-btn)">${total.toFixed(2)}€</span></div>
+    </div>`;
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  return new Date(d).toLocaleDateString('es-ES', {day:'2-digit', month:'short', year: 'numeric'});
+}
+</script>
+</body>
+</html>
