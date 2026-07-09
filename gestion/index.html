@@ -164,6 +164,7 @@ const NAV_ITEMS = [
   {id:'dashboard', label:'Resumen', icon:'🏠'},
   {id:'clientes', label:'Clientes', icon:'👥'},
   {id:'calendario', label:'Calendario', icon:'📅'},
+  {id:'bolos', label:'Bolos', icon:'🎩'},
   {id:'llamadas', label:'Llamadas', icon:'📞'},
   {id:'presupuestos', label:'Presupuestos', icon:'📄'},
   {id:'documentos', label:'Documentos', icon:'🗂️'},
@@ -205,6 +206,7 @@ function render(){
   if(STATE.route==='dashboard') main.innerHTML = viewDashboard();
   if(STATE.route==='clientes') main.innerHTML = viewClientes();
   if(STATE.route==='calendario') main.innerHTML = viewCalendario();
+  if(STATE.route==='bolos') main.innerHTML = viewBolos();
   if(STATE.route==='llamadas') main.innerHTML = viewLlamadas();
   if(STATE.route==='presupuestos') main.innerHTML = viewPresupuestos();
   if(STATE.route==='documentos') main.innerHTML = viewDocumentos();
@@ -361,7 +363,10 @@ async function openClientDetail(id){
           ${gigs.map(g=>`<div style="background:var(--warm);border-radius:10px;padding:12px 14px;font-size:13px">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px">
               <strong>${g.event_date?fmtDate(g.event_date):'Sin fecha'} ${g.event_time?'· '+g.event_time:''}</strong>
-              <button onclick="deleteGig('${g.id}','${c.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">Borrar</button>
+              <span>
+                <button onclick="openGigDetail('${g.id}')" style="background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer;margin-right:10px">Editar</button>
+                <button onclick="deleteGig('${g.id}','${c.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">Borrar</button>
+              </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
             <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
@@ -402,6 +407,10 @@ async function openClientDetail(id){
 }
 function closeDrawer(e){
   if(e && e.target !== e.currentTarget) return;
+  const all = document.querySelectorAll('.drawer-bg');
+  if(all.length) all[all.length-1].remove();
+}
+function closeAllDrawers(){
   document.querySelectorAll('.drawer-bg').forEach(el=>el.remove());
 }
 async function updateStatus(id, status){
@@ -464,16 +473,16 @@ async function addGig(clientId){
 async function deleteGig(gigId, clientId){
   if(!confirm('¿Borrar este bolo?')) return;
   await sb.from('gigs').delete().eq('id', gigId);
-  await loadAll(); render();
-  openClientDetail(clientId);
+  closeAllDrawers(); await loadAll(); render();
+  if(clientId) openClientDetail(clientId);
   toast('Bolo borrado');
 }
 async function promptFeedback(gigId, clientId){
   const feedback = prompt('Feedback del cliente sobre este bolo:');
   if(!feedback) return;
   await sb.from('gigs').update({feedback}).eq('id', gigId);
-  await loadAll(); render();
-  openClientDetail(clientId);
+  closeAllDrawers(); await loadAll(); render();
+  if(clientId) openClientDetail(clientId);
   toast('Feedback guardado');
 }
 
@@ -520,23 +529,26 @@ function openGigDetail(gigId){
           <div><label class="f">Mago</label><input type="text" id="gig-magician" value="${g.magician||''}" /></div>
           <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
         </div>
-        <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}')">Guardar cambios</button>
+        <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}', '${g.client_id}')">Guardar cambios</button>
         <label class="f">Feedback</label>
         <textarea id="gig-feedback" style="min-height:80px;margin-bottom:8px">${g.feedback||''}</textarea>
-        <button class="btn secondary" onclick="saveGigFeedback('${g.id}')" style="margin-bottom:16px;width:100%">Guardar feedback</button>
+        <button class="btn secondary" onclick="saveGigFeedback('${g.id}', '${g.client_id}')" style="margin-bottom:16px;width:100%">Guardar feedback</button>
         <button onclick="deleteGig('${g.id}', '${g.client_id}')" style="width:100%;background:none;border:1px solid #FEE2E2;color:#991B1B;padding:10px;border-radius:10px;font-size:13px;font-weight:600">Borrar bolo</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
 }
-async function saveGigDetails(gigId){
+async function saveGigDetails(gigId, clientId){
   const place = document.getElementById('gig-place').value;
   const event_date = document.getElementById('gig-date').value || null;
   const event_time = document.getElementById('gig-time').value;
   const magician = document.getElementById('gig-magician').value;
   const price = document.getElementById('gig-price').value;
   await sb.from('gigs').update({place, event_date, event_time, magician, price: price?Number(price):null}).eq('id', gigId);
-  closeDrawer(); await loadAll(); render(); toast('Bolo actualizado');
+  const stacked = document.querySelectorAll('.drawer-bg').length > 1;
+  closeAllDrawers(); await loadAll(); render();
+  if(stacked && clientId) openClientDetail(clientId);
+  toast('Bolo actualizado');
 }
 async function saveGigPrice(gigId){
   const price = document.getElementById('gig-price').value;
@@ -544,10 +556,13 @@ async function saveGigPrice(gigId){
   await loadAll(); render(); toast('Precio guardado');
   openGigDetail(gigId);
 }
-async function saveGigFeedback(gigId){
+async function saveGigFeedback(gigId, clientId){
   const feedback = document.getElementById('gig-feedback').value;
   await sb.from('gigs').update({feedback}).eq('id', gigId);
-  closeDrawer(); await loadAll(); render(); toast('Feedback guardado');
+  const stacked = document.querySelectorAll('.drawer-bg').length > 1;
+  closeAllDrawers(); await loadAll(); render();
+  if(stacked && clientId) openClientDetail(clientId);
+  toast('Feedback guardado');
 }
 
 // ---------------- LLAMADAS ----------------
@@ -994,6 +1009,80 @@ function openMailClient(){
   if(matched.length===0){ toast('No hay emails que coincidan con el filtro'); return; }
   const bcc = matched.map(c=>c.email).join(',');
   window.location.href = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// ---------------- BOLOS (archivo agrupado) ----------------
+let bolosGroupBy = 'mes';
+
+function isoWeek(d){
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  const week = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+  return `${date.getUTCFullYear()}-S${String(week).padStart(2,'0')}`;
+}
+function groupKey(dateStr){
+  const d = new Date(dateStr);
+  if(bolosGroupBy==='semana') return isoWeek(d);
+  if(bolosGroupBy==='año') return String(d.getFullYear());
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function groupLabel(key){
+  if(bolosGroupBy==='semana'){
+    const [y,w] = key.split('-S');
+    return `Semana ${w} · ${y}`;
+  }
+  if(bolosGroupBy==='año') return key;
+  const [y,m] = key.split('-');
+  return new Date(Number(y), Number(m)-1, 1).toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+}
+
+function viewBolos(){
+  const withDate = STATE.gigs.filter(g=>g.event_date).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
+  const groups = {};
+  withDate.forEach(g=>{
+    const key = groupKey(g.event_date);
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(g);
+  });
+  const keys = Object.keys(groups).sort().reverse();
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1 style="font-size:24px">Bolos</h1>
+      <div style="display:flex;gap:8px">
+        ${['semana','mes','año'].map(g=>`<button class="chip ${bolosGroupBy===g?'active':''}" onclick="bolosGroupBy='${g}'; render()" style="text-transform:capitalize">${g}</button>`).join('')}
+      </div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px">${withDate.length} bolo${withDate.length!==1?'s':''} registrado${withDate.length!==1?'s':''} en total.</p>
+
+    ${keys.length===0?'<p style="color:var(--muted);font-size:13.5px">Todavía no hay bolos con fecha registrados.</p>':''}
+    ${keys.map(key=>{
+      const items = groups[key];
+      const total = items.reduce((s,g)=>s+(Number(g.price)||0),0);
+      return `
+        <div style="margin-bottom:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3 style="font-size:14px;font-weight:700;color:var(--gold-btn);text-transform:capitalize">${groupLabel(key)}</h3>
+            <span style="font-size:13px;color:var(--muted)">${items.length} bolo${items.length!==1?'s':''} · ${total.toFixed(2)}€</span>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            ${items.map(g=>`<div class="row" onclick="openGigDetail('${g.id}')">
+              <div style="width:44px;height:44px;border-radius:10px;background:var(--warm);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="font-size:14px;font-weight:700;color:var(--gold-btn)">${new Date(g.event_date).getDate()}</div>
+                <div style="font-size:9px;color:var(--muted);text-transform:uppercase">${new Date(g.event_date).toLocaleDateString('es-ES',{month:'short'})}</div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:600">${g.clients?.name||'—'}</div>
+                <div style="font-size:12px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.magician?'· '+g.magician:''}</div>
+              </div>
+              <strong style="font-size:13.5px">${g.price?Number(g.price).toFixed(2)+'€':'—'}</strong>
+            </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('')}
+  `;
 }
 
 function fmtDate(d){
