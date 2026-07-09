@@ -284,7 +284,7 @@ function viewClientes(){
 
 function openClientForm(){
   const html = `
-    <div class="drawer-bg" onclick="closeDrawer(event)">
+    <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()">
         <h2 style="font-size:21px;margin-bottom:20px">Nuevo cliente</h2>
         <div style="display:grid;gap:12px">
@@ -329,7 +329,7 @@ async function openClientDetail(id){
   const notes = (c.notes||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   const gigs = STATE.gigs.filter(g=>g.client_id===id).sort((a,b)=>new Date(b.event_date||0)-new Date(a.event_date||0));
   const html = `
-    <div class="drawer-bg" onclick="closeDrawer(event)">
+    <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()">
         <div style="display:flex;justify-content:space-between;margin-bottom:16px">
           <div><h2 style="font-size:21px">${c.name}</h2><div style="margin-top:8px">${badge(t)} ${badge(STATUS_STYLES[c.status])}</div></div>
@@ -514,7 +514,7 @@ function viewCalendario(){
 function openGigDetail(gigId){
   const g = STATE.gigs.find(x=>x.id===gigId);
   const html = `
-    <div class="drawer-bg" onclick="closeDrawer(event)">
+    <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()" style="max-width:420px">
         <div style="display:flex;justify-content:space-between;margin-bottom:20px">
           <h2 style="font-size:21px">${g.clients?.name||'Bolo'}</h2>
@@ -879,7 +879,10 @@ async function addExpense(){
   const amount = document.getElementById('exp-amount').value;
   const date = document.getElementById('exp-date').value;
   if(!description || !amount){ toast('Rellena descripción e importe'); return; }
-  await sb.from('expenses').insert({description, amount:Number(amount), expense_date: date});
+  const {error} = await sb.from('expenses').insert({description, amount:Number(amount), expense_date: date});
+  if(error){ toast('Error al guardar el gasto: ' + error.message); console.error(error); return; }
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-amount').value = '';
   await loadAll(); render(); toast('Gasto añadido');
 }
 async function deleteExpense(id){
