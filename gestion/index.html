@@ -197,7 +197,8 @@ const STATUS_STYLES = {
 };
 function badge(style){ return `<span class="badge" style="background:${style.bg};color:${style.text}">${style.label}</span>`; }
 
-let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
+let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], magicians:[], typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
+const CCAA = ['Andalucía','Aragón','Asturias','Islas Baleares','Canarias','Cantabria','Castilla-La Mancha','Castilla y León','Cataluña','Extremadura','Galicia','La Rioja','Madrid','Murcia','Navarra','País Vasco','Comunidad Valenciana','Ceuta','Melilla'];
 let financeMonth = new Date().toISOString().slice(0,7); // YYYY-MM
 let financePct = 20;
 
@@ -206,6 +207,7 @@ const NAV_ITEMS = [
   {id:'clientes', label:'Clientes', icon:'👥'},
   {id:'calendario', label:'Calendario', icon:'📅'},
   {id:'bolos', label:'Bolos', icon:'🎩'},
+  {id:'magos', label:'Magos', icon:'🪄'},
   {id:'llamadas', label:'Llamadas', icon:'📞'},
   {id:'presupuestos', label:'Presupuestos', icon:'📄'},
   {id:'documentos', label:'Documentos', icon:'🗂️'},
@@ -230,18 +232,20 @@ function closeSidebar(){
 }
 
 async function loadAll(){
-  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}] = await Promise.all([
+  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}] = await Promise.all([
     sb.from('clients').select('*, notes(*)').order('created_at', {ascending:false}),
     sb.from('calls').select('*, clients(name)').eq('done', false).order('due_date'),
     sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}),
-    sb.from('gigs').select('*, clients(name, type)').order('event_date', {ascending:true, nullsFirst:false}),
+    sb.from('gigs').select('*, clients(name, type), magicians(name)').order('event_date', {ascending:true, nullsFirst:false}),
     sb.from('expenses').select('*').order('expense_date', {ascending:false}),
+    sb.from('magicians').select('*').order('name'),
   ]);
   STATE.clients = clients || [];
   STATE.calls = calls || [];
   STATE.docs = docs || [];
   STATE.gigs = gigs || [];
   STATE.expenses = expenses || [];
+  STATE.magicians = magicians || [];
 }
 
 async function boot(){
@@ -256,6 +260,7 @@ function render(){
   if(STATE.route==='clientes') main.innerHTML = viewClientes();
   if(STATE.route==='calendario') main.innerHTML = viewCalendario();
   if(STATE.route==='bolos') main.innerHTML = viewBolos();
+  if(STATE.route==='magos') main.innerHTML = viewMagos();
   if(STATE.route==='llamadas') main.innerHTML = viewLlamadas();
   if(STATE.route==='presupuestos') main.innerHTML = viewPresupuestos();
   if(STATE.route==='documentos') main.innerHTML = viewDocumentos();
@@ -429,7 +434,10 @@ async function openClientDetail(id){
             <input type="date" id="ng-date" />
             <input type="text" id="ng-time" placeholder="Hora (ej: 18:00)" />
           </div>
-          <input type="text" id="ng-magician" placeholder="Mago asignado" />
+          <select id="ng-magician">
+            <option value="">Sin mago asignado</option>
+            ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+          </select>
           <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
           <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
         </div>
@@ -504,10 +512,11 @@ async function addGig(clientId){
   const place = document.getElementById('ng-place').value;
   const date = document.getElementById('ng-date').value;
   const time = document.getElementById('ng-time').value;
-  const magician = document.getElementById('ng-magician').value;
+  const magicianId = document.getElementById('ng-magician').value;
+  const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
   const price = document.getElementById('ng-price').value;
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
-  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician, price: price?Number(price):null});
+  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianId||null, magician: magicianObj?.name||null, price: price?Number(price):null});
   const feedbackDate = new Date(date);
   feedbackDate.setDate(feedbackDate.getDate() + 1);
   await sb.from('calls').insert({
@@ -575,7 +584,10 @@ function openGigDetail(gigId){
             <div><label class="f">Fecha</label><input type="date" id="gig-date" value="${g.event_date||''}" /></div>
             <div><label class="f">Hora</label><input type="text" id="gig-time" value="${g.event_time||''}" /></div>
           </div>
-          <div><label class="f">Mago</label><input type="text" id="gig-magician" value="${g.magician||''}" /></div>
+          <div><label class="f">Mago</label><select id="gig-magician">
+            <option value="">Sin mago asignado</option>
+            ${STATE.magicians.map(m=>`<option value="${m.id}" ${g.magician_id===m.id?'selected':''}>${m.name}</option>`).join('')}
+          </select></div>
           <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
         </div>
         <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}', '${g.client_id}')">Guardar cambios</button>
@@ -591,9 +603,10 @@ async function saveGigDetails(gigId, clientId){
   const place = document.getElementById('gig-place').value;
   const event_date = document.getElementById('gig-date').value || null;
   const event_time = document.getElementById('gig-time').value;
-  const magician = document.getElementById('gig-magician').value;
+  const magicianId = document.getElementById('gig-magician').value;
+  const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
   const price = document.getElementById('gig-price').value;
-  await sb.from('gigs').update({place, event_date, event_time, magician, price: price?Number(price):null}).eq('id', gigId);
+  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianId||null, magician: magicianObj?.name||null, price: price?Number(price):null}).eq('id', gigId);
   const stacked = document.querySelectorAll('.drawer-bg').length > 1;
   closeAllDrawers(); await loadAll(); render();
   if(stacked && clientId) openClientDetail(clientId);
@@ -1161,6 +1174,197 @@ function viewBolos(){
         </div>`;
     }).join('')}
   `;
+}
+
+// ---------------- MAGOS ----------------
+let magoComunidadFilter = 'todas';
+let magoSearch = '';
+
+function magoStats(magoId){
+  const gigs = STATE.gigs.filter(g=>g.magician_id===magoId);
+  const total = gigs.reduce((s,g)=>s+(Number(g.price)||0),0);
+  return { count: gigs.length, total };
+}
+
+function viewMagos(){
+  const filtered = STATE.magicians.filter(m =>
+    (magoComunidadFilter==='todas' || m.comunidad===magoComunidadFilter) &&
+    m.name.toLowerCase().includes(magoSearch.toLowerCase())
+  );
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1 style="font-size:24px">Magos</h1>
+      <button class="btn" onclick="openMagoForm()">+ Nuevo mago</button>
+    </div>
+    <input type="text" placeholder="Buscar mago..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:280px;margin-bottom:14px" />
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="chip ${magoComunidadFilter==='todas'?'active':''}" onclick="magoComunidadFilter='todas'; render()">Todas</button>
+      ${CCAA.map(c=>`<button class="chip ${magoComunidadFilter===c?'active':''}" onclick="magoComunidadFilter='${c}'; render()">${c}</button>`).join('')}
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      ${filtered.length===0?'<div style="padding:24px;text-align:center;color:var(--muted);font-size:13.5px">Ningún mago coincide con este filtro.</div>':''}
+      ${filtered.map(m=>{
+        const stats = magoStats(m.id);
+        return `<div class="row" onclick="openMagoDetail('${m.id}')">
+          <div class="row-icon" style="background:#EEF2FF;font-size:18px">🪄</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:600">${m.name}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${m.comunidad||'Sin comunidad'} ${m.phone?'· '+m.phone:''}</div>
+          </div>
+          <span style="font-size:12.5px;color:var(--muted);margin-right:8px">${stats.count} bolo${stats.count!==1?'s':''}</span>
+          <strong style="font-size:13.5px">${stats.total.toFixed(2)}€</strong>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openMagoForm(){
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <h2 style="font-size:21px;margin-bottom:20px">Nuevo mago</h2>
+        <div style="display:grid;gap:12px">
+          <div><label class="f">Nombre</label><input type="text" id="nm-name" /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="nm-phone" /></div>
+          <div><label class="f">Email</label><input type="email" id="nm-email" /></div>
+          <div><label class="f">Comunidad autónoma</label><select id="nm-comunidad">
+            <option value="">Selecciona...</option>
+            ${CCAA.map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </select></div>
+          <div><label class="f">Notas</label><textarea id="nm-notes" style="min-height:70px"></textarea></div>
+          <button class="btn" style="margin-top:8px" onclick="saveMago()">Guardar mago</button>
+        </div>
+        <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveMago(){
+  const payload = {
+    name: document.getElementById('nm-name').value,
+    phone: document.getElementById('nm-phone').value,
+    email: document.getElementById('nm-email').value,
+    comunidad: document.getElementById('nm-comunidad').value,
+    notes: document.getElementById('nm-notes').value,
+  };
+  if(!payload.name){ toast('Ponle un nombre al mago'); return; }
+  const {error} = await sb.from('magicians').insert(payload);
+  if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
+  closeDrawer(); await loadAll(); render(); toast('Mago guardado');
+}
+
+function openMagoDetail(id){
+  const m = STATE.magicians.find(x=>x.id===id);
+  const gigs = STATE.gigs.filter(g=>g.magician_id===id).sort((a,b)=>new Date(b.event_date||0)-new Date(a.event_date||0));
+  const stats = magoStats(id);
+  const photos = m.photos || [];
+  const videos = m.videos || [];
+  const cards = m.cards || [];
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+          <h2 style="font-size:21px">${m.name}</h2>
+          <button class="btn secondary" onclick="closeDrawer()" style="height:32px">✕</button>
+        </div>
+
+        <div style="display:grid;gap:10px;margin-bottom:10px">
+          <div><label class="f">Nombre</label><input type="text" id="mg-name" value="${m.name||''}" /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="mg-phone" value="${m.phone||''}" /></div>
+          <div><label class="f">Email</label><input type="email" id="mg-email" value="${m.email||''}" /></div>
+          <div><label class="f">Comunidad autónoma</label><select id="mg-comunidad">
+            <option value="">Sin especificar</option>
+            ${CCAA.map(c=>`<option value="${c}" ${m.comunidad===c?'selected':''}>${c}</option>`).join('')}
+          </select></div>
+          <div><label class="f">Notas</label><textarea id="mg-notes" style="min-height:60px">${m.notes||''}</textarea></div>
+        </div>
+        <button class="btn" style="width:100%;margin-bottom:20px" onclick="saveMagoEdits('${m.id}')">Guardar cambios</button>
+
+        <div style="background:var(--warm);border-radius:10px;padding:12px 14px;margin-bottom:22px;display:flex;justify-content:space-between;font-size:13.5px">
+          <span><strong>${stats.count}</strong> bolo${stats.count!==1?'s':''} hechos</span>
+          <span><strong>${stats.total.toFixed(2)}€</strong> facturados</span>
+        </div>
+
+        <h3 style="font-size:15px;margin-bottom:10px">📷 Fotos</h3>
+        <input type="file" id="mg-photo-input" accept="image/*" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','photos',this.files[0])" />
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+          ${photos.map((f,i)=>`<div style="position:relative">
+            <a href="${f.url}" target="_blank"><img src="${f.url}" style="width:100%;height:70px;object-fit:cover;border-radius:8px" /></a>
+            <button onclick="removeMagoFile('${m.id}','photos',${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer">✕</button>
+          </div>`).join('')}
+        </div>
+
+        <h3 style="font-size:15px;margin-bottom:10px">🎬 Vídeos</h3>
+        <input type="file" id="mg-video-input" accept="video/*" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','videos',this.files[0])" />
+        <div style="display:grid;gap:8px;margin-bottom:20px">
+          ${videos.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--warm);border-radius:8px;padding:8px 12px;font-size:12.5px">
+            <a href="${f.url}" target="_blank" download style="color:var(--gold-btn);font-weight:600">${f.name}</a>
+            <button onclick="removeMagoFile('${m.id}','videos',${i})" style="background:none;border:none;color:#991B1B;cursor:pointer">✕</button>
+          </div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin vídeos.</p>'}
+        </div>
+
+        <h3 style="font-size:15px;margin-bottom:10px">🪪 Tarjetas</h3>
+        <input type="file" id="mg-card-input" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','cards',this.files[0])" />
+        <div style="display:grid;gap:8px">
+          ${cards.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--warm);border-radius:8px;padding:8px 12px;font-size:12.5px">
+            <a href="${f.url}" target="_blank" download style="color:var(--gold-btn);font-weight:600">⬇ ${f.name}</a>
+            <button onclick="removeMagoFile('${m.id}','cards',${i})" style="background:none;border:none;color:#991B1B;cursor:pointer">✕</button>
+          </div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin tarjetas.</p>'}
+        </div>
+
+        <h3 style="font-size:15px;margin:22px 0 10px">Bolos hechos</h3>
+        <div style="display:grid;gap:8px;margin-bottom:22px">
+          ${gigs.length===0?'<p style="font-size:13px;color:var(--muted);font-style:italic">Sin bolos asignados todavía.</p>':''}
+          ${gigs.map(g=>`<div style="background:var(--warm);border-radius:10px;padding:10px 12px;font-size:12.5px">
+            <strong>${g.event_date?fmtDate(g.event_date):'Sin fecha'}</strong> — ${g.clients?.name||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}
+          </div>`).join('')}
+        </div>
+
+        <button onclick="deleteMago('${m.id}')" style="width:100%;background:none;border:1px solid #FEE2E2;color:#991B1B;padding:10px;border-radius:10px;font-size:13px;font-weight:600">Borrar mago</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveMagoEdits(id){
+  const payload = {
+    name: document.getElementById('mg-name').value,
+    phone: document.getElementById('mg-phone').value,
+    email: document.getElementById('mg-email').value,
+    comunidad: document.getElementById('mg-comunidad').value,
+    notes: document.getElementById('mg-notes').value,
+  };
+  if(!payload.name){ toast('El nombre no puede quedar vacío'); return; }
+  await sb.from('magicians').update(payload).eq('id', id);
+  closeDrawer(); await loadAll(); render(); toast('Mago actualizado');
+}
+async function deleteMago(id){
+  if(!confirm('¿Borrar este mago? Los bolos que tenía asignados no se borrarán, pero perderán la referencia. No se puede deshacer.')) return;
+  await sb.from('magicians').delete().eq('id', id);
+  closeDrawer(); await loadAll(); render(); toast('Mago borrado');
+}
+async function uploadMagoFile(magoId, field, file){
+  if(!file) return;
+  toast('Subiendo archivo...');
+  const path = `${magoId}/${field}/${Date.now()}-${file.name}`;
+  const {error: upErr} = await sb.storage.from('magos-media').upload(path, file);
+  if(upErr){ toast('Error al subir: '+upErr.message); console.error(upErr); return; }
+  const {data:{publicUrl}} = sb.storage.from('magos-media').getPublicUrl(path);
+  const m = STATE.magicians.find(x=>x.id===magoId);
+  const current = m[field] || [];
+  current.push({url: publicUrl, name: file.name, path});
+  await sb.from('magicians').update({[field]: current}).eq('id', magoId);
+  await loadAll(); toast('Archivo subido');
+  closeDrawer(); openMagoDetail(magoId);
+}
+async function removeMagoFile(magoId, field, index){
+  const m = STATE.magicians.find(x=>x.id===magoId);
+  const current = [...(m[field]||[])];
+  const [removed] = current.splice(index,1);
+  if(removed?.path) await sb.storage.from('magos-media').remove([removed.path]);
+  await sb.from('magicians').update({[field]: current}).eq('id', magoId);
+  await loadAll(); toast('Archivo borrado');
+  closeDrawer(); openMagoDetail(magoId);
 }
 
 function fmtDate(d){
