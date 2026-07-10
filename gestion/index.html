@@ -131,7 +131,7 @@ label.f{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-b
     <div class="sidebar" id="sidebar">
       <div class="brand"><b>Más que Magos</b><span>GESTIÓN</span></div>
       <nav id="nav"></nav>
-      <div class="foot">Laura &amp; Esther</div>
+      <div class="foot">Laura &amp; Esther<br/><a href="#" onclick="logout(); return false;" style="color:rgba(245,239,228,.5);text-decoration:underline">Cerrar sesión</a></div>
     </div>
     <main id="main"></main>
   </div>
@@ -154,10 +154,14 @@ if(typeof supabase === 'undefined'){
 }
 const sb = typeof supabase !== 'undefined' ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+function logout(){
+  localStorage.removeItem('mqm_auth');
+  location.reload();
+}
 function checkPass(){
   const val = document.getElementById('gate-pass').value;
   if(val === APP_PASSWORD){
-    sessionStorage.setItem('mqm_auth','1');
+    localStorage.setItem('mqm_auth','1');
     document.getElementById('gate').style.display='none';
     document.getElementById('app').style.display='block';
     boot();
@@ -166,7 +170,7 @@ function checkPass(){
   }
 }
 document.getElementById('gate-pass').addEventListener('keydown', e => { if(e.key==='Enter') checkPass(); });
-if(sessionStorage.getItem('mqm_auth')==='1'){
+if(localStorage.getItem('mqm_auth')==='1'){
   document.getElementById('gate').style.display='none';
   document.getElementById('app').style.display='block';
   window.addEventListener('DOMContentLoaded', boot);
