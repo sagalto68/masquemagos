@@ -1301,6 +1301,11 @@ function openMagoDetail(id){
         <input type="file" id="mg-video-input" accept="video/*" style="margin-bottom:8px" />
         <button class="btn secondary" style="margin-bottom:6px" onclick="triggerUpload('${m.id}','videos','mg-video-input')">⬆ Subir vídeo</button>
         <p id="mg-video-status" style="font-size:12px;color:var(--muted);margin-bottom:10px"></p>
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">— o si el vídeo pesa mucho —</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="mg-video-link" placeholder="Pega aquí el enlace de Google Drive/YouTube" style="flex:1" />
+          <button class="btn secondary" style="flex-shrink:0" onclick="addMagoVideoLink('${m.id}')">Guardar</button>
+        </div>
         <div style="display:grid;gap:8px;margin-bottom:20px">
           ${videos.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--warm);border-radius:8px;padding:8px 12px;font-size:12.5px">
             <a href="${f.url}" target="_blank" download style="color:var(--gold-btn);font-weight:600">${f.name}</a>
@@ -1348,6 +1353,23 @@ async function deleteMago(id){
   if(!confirm('¿Borrar este mago? Los bolos que tenía asignados no se borrarán, pero perderán la referencia. No se puede deshacer.')) return;
   await sb.from('magicians').delete().eq('id', id);
   closeDrawer(); await loadAll(); render(); toast('Mago borrado');
+}
+async function addMagoVideoLink(magoId){
+  const input = document.getElementById('mg-video-link');
+  const url = input.value.trim();
+  if(!url){ toast('Pega primero un enlace'); return; }
+  if(!url.startsWith('http')){ toast('El enlace no parece válido (debe empezar por https://)'); return; }
+  const m = STATE.magicians.find(x=>x.id===magoId);
+  const current = [...(m.videos || [])];
+  let label = 'Enlace de vídeo';
+  if(url.includes('drive.google.com')) label = 'Google Drive';
+  if(url.includes('youtube.com') || url.includes('youtu.be')) label = 'YouTube';
+  current.push({url, name: label, path: null});
+  const {error} = await sb.from('magicians').update({videos: current}).eq('id', magoId);
+  if(error){ alert('Error al guardar el enlace: ' + error.message); console.error(error); return; }
+  await loadAll();
+  closeDrawer(); openMagoDetail(magoId);
+  toast('Enlace guardado');
 }
 function triggerUpload(magoId, field, inputId){
   const input = document.getElementById(inputId);
