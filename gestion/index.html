@@ -1287,7 +1287,9 @@ function openMagoDetail(id){
         </div>
 
         <h3 style="font-size:15px;margin-bottom:10px">📷 Fotos</h3>
-        <input type="file" id="mg-photo-input" accept="image/*" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','photos',this.files[0])" />
+        <input type="file" id="mg-photo-input" accept="image/*" style="margin-bottom:8px" />
+        <button class="btn secondary" style="margin-bottom:6px" onclick="triggerUpload('${m.id}','photos','mg-photo-input')">⬆ Subir foto</button>
+        <p id="mg-photo-status" style="font-size:12px;color:var(--muted);margin-bottom:10px"></p>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
           ${photos.map((f,i)=>`<div style="position:relative">
             <a href="${f.url}" target="_blank"><img src="${f.url}" style="width:100%;height:70px;object-fit:cover;border-radius:8px" /></a>
@@ -1296,7 +1298,9 @@ function openMagoDetail(id){
         </div>
 
         <h3 style="font-size:15px;margin-bottom:10px">🎬 Vídeos</h3>
-        <input type="file" id="mg-video-input" accept="video/*" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','videos',this.files[0])" />
+        <input type="file" id="mg-video-input" accept="video/*" style="margin-bottom:8px" />
+        <button class="btn secondary" style="margin-bottom:6px" onclick="triggerUpload('${m.id}','videos','mg-video-input')">⬆ Subir vídeo</button>
+        <p id="mg-video-status" style="font-size:12px;color:var(--muted);margin-bottom:10px"></p>
         <div style="display:grid;gap:8px;margin-bottom:20px">
           ${videos.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--warm);border-radius:8px;padding:8px 12px;font-size:12.5px">
             <a href="${f.url}" target="_blank" download style="color:var(--gold-btn);font-weight:600">${f.name}</a>
@@ -1305,7 +1309,9 @@ function openMagoDetail(id){
         </div>
 
         <h3 style="font-size:15px;margin-bottom:10px">🪪 Tarjetas</h3>
-        <input type="file" id="mg-card-input" style="margin-bottom:10px" onchange="uploadMagoFile('${m.id}','cards',this.files[0])" />
+        <input type="file" id="mg-card-input" style="margin-bottom:8px" />
+        <button class="btn secondary" style="margin-bottom:6px" onclick="triggerUpload('${m.id}','cards','mg-card-input')">⬆ Subir tarjeta</button>
+        <p id="mg-card-status" style="font-size:12px;color:var(--muted);margin-bottom:10px"></p>
         <div style="display:grid;gap:8px">
           ${cards.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--warm);border-radius:8px;padding:8px 12px;font-size:12.5px">
             <a href="${f.url}" target="_blank" download style="color:var(--gold-btn);font-weight:600">⬇ ${f.name}</a>
@@ -1343,14 +1349,23 @@ async function deleteMago(id){
   await sb.from('magicians').delete().eq('id', id);
   closeDrawer(); await loadAll(); render(); toast('Mago borrado');
 }
+function triggerUpload(magoId, field, inputId){
+  const input = document.getElementById(inputId);
+  const file = input.files[0];
+  if(!file){ alert('Primero elige un archivo con "Seleccionar archivo", y luego dale a este botón.'); return; }
+  uploadMagoFile(magoId, field, file);
+}
 async function uploadMagoFile(magoId, field, file){
-  if(!file) return;
-  toast('Subiendo archivo, espera...');
+  const statusId = field==='photos' ? 'mg-photo-status' : field==='videos' ? 'mg-video-status' : 'mg-card-status';
+  const status = document.getElementById(statusId);
+  const setStatus = (txt) => { if(status) status.textContent = txt; };
+  setStatus('Subiendo "' + file.name + '"... espera, puede tardar según el tamaño.');
   try {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${magoId}/${field}/${Date.now()}-${safeName}`;
     const {error: upErr} = await sb.storage.from('magos-media').upload(path, file);
     if(upErr){
+      setStatus('❌ Error al subir: ' + upErr.message);
       alert('Error al subir el archivo: ' + upErr.message);
       console.error(upErr);
       return;
@@ -1361,14 +1376,16 @@ async function uploadMagoFile(magoId, field, file){
     current.push({url: publicUrl, name: file.name, path});
     const {error: updErr} = await sb.from('magicians').update({[field]: current}).eq('id', magoId);
     if(updErr){
+      setStatus('❌ Se subió pero no se pudo guardar: ' + updErr.message);
       alert('El archivo se subió pero no se pudo guardar en la ficha: ' + updErr.message);
       console.error(updErr);
       return;
     }
+    setStatus('✅ ¡Subido correctamente!');
     await loadAll();
     closeDrawer(); openMagoDetail(magoId);
-    toast('Archivo subido correctamente');
   } catch(e){
+    setStatus('❌ Error inesperado: ' + e.message);
     alert('Error inesperado al subir: ' + e.message);
     console.error(e);
   }
