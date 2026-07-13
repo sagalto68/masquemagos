@@ -1345,17 +1345,33 @@ async function deleteMago(id){
 }
 async function uploadMagoFile(magoId, field, file){
   if(!file) return;
-  toast('Subiendo archivo...');
-  const path = `${magoId}/${field}/${Date.now()}-${file.name}`;
-  const {error: upErr} = await sb.storage.from('magos-media').upload(path, file);
-  if(upErr){ toast('Error al subir: '+upErr.message); console.error(upErr); return; }
-  const {data:{publicUrl}} = sb.storage.from('magos-media').getPublicUrl(path);
-  const m = STATE.magicians.find(x=>x.id===magoId);
-  const current = m[field] || [];
-  current.push({url: publicUrl, name: file.name, path});
-  await sb.from('magicians').update({[field]: current}).eq('id', magoId);
-  await loadAll(); toast('Archivo subido');
-  closeDrawer(); openMagoDetail(magoId);
+  toast('Subiendo archivo, espera...');
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${magoId}/${field}/${Date.now()}-${safeName}`;
+    const {error: upErr} = await sb.storage.from('magos-media').upload(path, file);
+    if(upErr){
+      alert('Error al subir el archivo: ' + upErr.message);
+      console.error(upErr);
+      return;
+    }
+    const {data:{publicUrl}} = sb.storage.from('magos-media').getPublicUrl(path);
+    const m = STATE.magicians.find(x=>x.id===magoId);
+    const current = [...(m[field] || [])];
+    current.push({url: publicUrl, name: file.name, path});
+    const {error: updErr} = await sb.from('magicians').update({[field]: current}).eq('id', magoId);
+    if(updErr){
+      alert('El archivo se subió pero no se pudo guardar en la ficha: ' + updErr.message);
+      console.error(updErr);
+      return;
+    }
+    await loadAll();
+    closeDrawer(); openMagoDetail(magoId);
+    toast('Archivo subido correctamente');
+  } catch(e){
+    alert('Error inesperado al subir: ' + e.message);
+    console.error(e);
+  }
 }
 async function removeMagoFile(magoId, field, index){
   const m = STATE.magicians.find(x=>x.id===magoId);
