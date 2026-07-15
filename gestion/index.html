@@ -187,6 +187,7 @@ const TYPE_STYLES = {
   particular: { label:'Particular', bg:'#EEF2FF', text:'#4338CA', icon:'👤' },
   empresa: { label:'Empresa', bg:'#F0FDF4', text:'#15803D', icon:'🏢' },
   ayuntamiento: { label:'Ayuntamiento', bg:'#FEF3C7', text:'#92400E', icon:'🏛️' },
+  agencia: { label:'Agencia de eventos', bg:'#FDF2F8', text:'#9D174D', icon:'🎪' },
 };
 const STATUS_STYLES = {
   nuevo: { label:'Nuevo', bg:'#F1F5F9', text:'#475569' },
@@ -314,7 +315,7 @@ function viewClientes(){
     </div>
     <input type="text" placeholder="Buscar cliente..." style="max-width:280px;margin-bottom:14px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      ${['todos','particular','empresa','ayuntamiento'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f}</button>`).join('')}
+      ${['todos','particular','empresa','ayuntamiento','agencia'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
       ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>`<button class="chip-sm ${STATE.statusFilter===s?'active':''}" onclick="STATE.statusFilter='${s}'; render()">${s==='todos'?'Todos los estados':STATUS_STYLES[s].label}</button>`).join('')}
@@ -343,7 +344,7 @@ function openClientForm(){
         <h2 style="font-size:21px;margin-bottom:20px">Nuevo cliente</h2>
         <div style="display:grid;gap:12px">
           <div><label class="f">Nombre</label><input type="text" id="nc-name" /></div>
-          <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option></select></div>
+          <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="agencia">Agencia de eventos</option></select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" /></div>
           <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
@@ -399,6 +400,7 @@ async function openClientDetail(id){
             <option value="particular" ${c.type==='particular'?'selected':''}>Particular</option>
             <option value="empresa" ${c.type==='empresa'?'selected':''}>Empresa</option>
             <option value="ayuntamiento" ${c.type==='ayuntamiento'?'selected':''}>Ayuntamiento</option>
+            <option value="agencia" ${c.type==='agencia'?'selected':''}>Agencia de eventos</option>
           </select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="cd-event" value="${c.event_type||''}" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="cd-phone" value="${c.phone||''}" /></div>
@@ -994,7 +996,7 @@ function viewDocumentos(){
 }
 
 // ---------------- EMAILS ----------------
-let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true };
+let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true, agencia:true };
 let emailLocalityFilter = 'todas';
 
 function viewEmails(){
@@ -1014,7 +1016,7 @@ function viewEmails(){
       <div class="card">
         <label class="f">Segmentar por tipo</label>
         <div style="display:flex;gap:16px;margin-bottom:16px">
-          ${['particular','empresa','ayuntamiento'].map(t=>`
+          ${['particular','empresa','ayuntamiento','agencia'].map(t=>`
             <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer">
               <input type="checkbox" ${emailTypeFilter[t]?'checked':''} onchange="emailTypeFilter['${t}']=this.checked; render()" />
               ${TYPE_STYLES[t].label}
