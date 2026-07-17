@@ -188,6 +188,7 @@ const TYPE_STYLES = {
   empresa: { label:'Empresa', bg:'#F0FDF4', text:'#15803D', icon:'🏢' },
   ayuntamiento: { label:'Ayuntamiento', bg:'#FEF3C7', text:'#92400E', icon:'🏛️' },
   agencia: { label:'Agencia de eventos', bg:'#FDF2F8', text:'#9D174D', icon:'🎪' },
+  asociacion: { label:'Asociación de fiestas', bg:'#ECFEFF', text:'#0E7490', icon:'🎉' },
 };
 const STATUS_STYLES = {
   nuevo: { label:'Nuevo', bg:'#F1F5F9', text:'#475569' },
@@ -214,7 +215,7 @@ const NAV_ITEMS = [
   {id:'documentos', label:'Documentos', icon:'🗂️'},
   {id:'calculadora', label:'Comisión', icon:'🧮'},
   {id:'finanzas', label:'Finanzas', icon:'💰'},
-  {id:'emails', label:'Emails', icon:'✉️'},
+  {id:'emails', label:'Emails/WhatsApp', icon:'✉️'},
 ];
 
 function renderNav(){
@@ -315,7 +316,7 @@ function viewClientes(){
     </div>
     <input type="text" placeholder="Buscar cliente..." style="max-width:280px;margin-bottom:14px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      ${['todos','particular','empresa','ayuntamiento','agencia'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
+      ${['todos','particular','empresa','ayuntamiento','agencia','asociacion'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
       ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>`<button class="chip-sm ${STATE.statusFilter===s?'active':''}" onclick="STATE.statusFilter='${s}'; render()">${s==='todos'?'Todos los estados':STATUS_STYLES[s].label}</button>`).join('')}
@@ -344,7 +345,7 @@ function openClientForm(){
         <h2 style="font-size:21px;margin-bottom:20px">Nuevo cliente</h2>
         <div style="display:grid;gap:12px">
           <div><label class="f">Nombre</label><input type="text" id="nc-name" /></div>
-          <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="agencia">Agencia de eventos</option></select></div>
+          <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="agencia">Agencia de eventos</option><option value="asociacion">Asociación de fiestas</option></select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" /></div>
           <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
@@ -401,6 +402,7 @@ async function openClientDetail(id){
             <option value="empresa" ${c.type==='empresa'?'selected':''}>Empresa</option>
             <option value="ayuntamiento" ${c.type==='ayuntamiento'?'selected':''}>Ayuntamiento</option>
             <option value="agencia" ${c.type==='agencia'?'selected':''}>Agencia de eventos</option>
+            <option value="asociacion" ${c.type==='asociacion'?'selected':''}>Asociación de fiestas</option>
           </select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="cd-event" value="${c.event_type||''}" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="cd-phone" value="${c.phone||''}" /></div>
@@ -425,7 +427,7 @@ async function openClientDetail(id){
               </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
+            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.magician?'· '+magoStatusLabel(g.magician_status):''}</div>
             ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
           </div>`).join('')}
         </div>
@@ -439,6 +441,12 @@ async function openClientDetail(id){
           <select id="ng-magician">
             <option value="">Sin mago asignado</option>
             ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+          </select>
+          <input type="text" id="ng-magician-manual" placeholder="...o escribe el nombre a mano" />
+          <select id="ng-magician-status">
+            <option value="pendiente">Pendiente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="rechazado">Rechazado</option>
           </select>
           <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
           <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
@@ -515,10 +523,13 @@ async function addGig(clientId){
   const date = document.getElementById('ng-date').value;
   const time = document.getElementById('ng-time').value;
   const magicianId = document.getElementById('ng-magician').value;
+  const magicianManual = document.getElementById('ng-magician-manual').value;
   const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
+  const magicianName = magicianManual || magicianObj?.name || null;
+  const magicianStatus = document.getElementById('ng-magician-status').value;
   const price = document.getElementById('ng-price').value;
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
-  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianId||null, magician: magicianObj?.name||null, price: price?Number(price):null});
+  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null});
   const feedbackDate = new Date(date);
   feedbackDate.setDate(feedbackDate.getDate() + 1);
   await sb.from('calls').insert({
@@ -563,7 +574,7 @@ function viewCalendario(){
           </div>
           <div style="flex:1">
             <div style="font-size:15px;font-weight:600">${g.clients?.name||'—'}</div>
-            <div style="font-size:13px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.event_time?'· '+g.event_time:''} ${g.magician?'· Mago: '+g.magician:''} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
+            <div style="font-size:13px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.event_time?'· '+g.event_time:''} ${g.magician?'· Mago: '+g.magician+' '+magoStatusLabel(g.magician_status):''} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''}</div>
           </div>
           ${badge(t)}
         </div>`;
@@ -590,6 +601,12 @@ function openGigDetail(gigId){
             <option value="">Sin mago asignado</option>
             ${STATE.magicians.map(m=>`<option value="${m.id}" ${g.magician_id===m.id?'selected':''}>${m.name}</option>`).join('')}
           </select></div>
+          <div><label class="f">...o escribe el nombre a mano</label><input type="text" id="gig-magician-manual" value="${g.magician_id?'':(g.magician||'')}" /></div>
+          <div><label class="f">Estado del mago</label><select id="gig-magician-status">
+            <option value="pendiente" ${g.magician_status==='pendiente'||!g.magician_status?'selected':''}>Pendiente</option>
+            <option value="confirmado" ${g.magician_status==='confirmado'?'selected':''}>Confirmado</option>
+            <option value="rechazado" ${g.magician_status==='rechazado'?'selected':''}>Rechazado</option>
+          </select></div>
           <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
         </div>
         <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}', '${g.client_id}')">Guardar cambios</button>
@@ -606,9 +623,12 @@ async function saveGigDetails(gigId, clientId){
   const event_date = document.getElementById('gig-date').value || null;
   const event_time = document.getElementById('gig-time').value;
   const magicianId = document.getElementById('gig-magician').value;
+  const magicianManual = document.getElementById('gig-magician-manual').value;
   const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
+  const magicianName = magicianManual || magicianObj?.name || null;
+  const magicianStatus = document.getElementById('gig-magician-status').value;
   const price = document.getElementById('gig-price').value;
-  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianId||null, magician: magicianObj?.name||null, price: price?Number(price):null}).eq('id', gigId);
+  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null}).eq('id', gigId);
   const stacked = document.querySelectorAll('.drawer-bg').length > 1;
   closeAllDrawers(); await loadAll(); render();
   if(stacked && clientId) openClientDetail(clientId);
@@ -996,27 +1016,38 @@ function viewDocumentos(){
 }
 
 // ---------------- EMAILS ----------------
-let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true, agencia:true };
+let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true, agencia:true, asociacion:true };
 let emailLocalityFilter = 'todas';
 
+let campaignChannel = 'email';
 function viewEmails(){
   const localities = [...new Set(STATE.clients.map(c=>c.locality).filter(Boolean))].sort();
-  const matched = STATE.clients.filter(c =>
+  const matchedEmail = STATE.clients.filter(c =>
     emailTypeFilter[c.type] &&
     (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) &&
     c.email
   );
-  const emailList = matched.map(c=>c.email).join(', ');
+  const matchedPhone = STATE.clients.filter(c =>
+    emailTypeFilter[c.type] &&
+    (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) &&
+    c.phone
+  );
+  const matched = campaignChannel==='email' ? matchedEmail : matchedPhone;
 
   return `
-    <h1 style="font-size:24px;margin-bottom:6px">Emails y promociones</h1>
-    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px;max-width:560px">Segmenta tus contactos, escribe el mensaje y copia los emails para pegarlos en el CCO de tu cliente de correo (Gmail, Outlook...).</p>
+    <h1 style="font-size:24px;margin-bottom:6px">Emails y WhatsApp</h1>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;max-width:560px">Segmenta tus contactos y manda promociones por el canal que prefieras.</p>
+
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="chip ${campaignChannel==='email'?'active':''}" onclick="campaignChannel='email'; render()">✉️ Email</button>
+      <button class="chip ${campaignChannel==='whatsapp'?'active':''}" onclick="campaignChannel='whatsapp'; render()">💬 WhatsApp</button>
+    </div>
 
     <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:flex-start">
       <div class="card">
         <label class="f">Segmentar por tipo</label>
-        <div style="display:flex;gap:16px;margin-bottom:16px">
-          ${['particular','empresa','ayuntamiento','agencia'].map(t=>`
+        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+          ${['particular','empresa','ayuntamiento','agencia','asociacion'].map(t=>`
             <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer">
               <input type="checkbox" ${emailTypeFilter[t]?'checked':''} onchange="emailTypeFilter['${t}']=this.checked; render()" />
               ${TYPE_STYLES[t].label}
@@ -1030,20 +1061,29 @@ function viewEmails(){
         </select>
 
         <div style="background:var(--warm);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13.5px">
-          <strong>${matched.length}</strong> contacto${matched.length!==1?'s':''} con email coinciden con este filtro
+          <strong>${matched.length}</strong> contacto${matched.length!==1?'s':''} con ${campaignChannel==='email'?'email':'teléfono'} coinciden con este filtro
         </div>
 
-        <label class="f">Asunto</label>
-        <input type="text" id="email-subject" placeholder="Ej: 🎩 Magia para tu próxima celebración" style="margin-bottom:16px" />
-
-        <label class="f">Mensaje</label>
-        <textarea id="email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:18px"></textarea>
-
-        <div style="display:flex;gap:10px">
-          <button class="btn" onclick="copyEmails()">📋 Copiar emails (${matched.length})</button>
-          <button class="btn secondary" onclick="openMailClient()">Abrir en mi correo</button>
-        </div>
-        <p style="font-size:11.5px;color:var(--muted);margin-top:10px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
+        ${campaignChannel==='email' ? `
+          <label class="f">Asunto</label>
+          <input type="text" id="email-subject" placeholder="Ej: 🎩 Magia para tu próxima celebración" style="margin-bottom:16px" />
+          <label class="f">Mensaje</label>
+          <textarea id="email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:18px"></textarea>
+          <div style="display:flex;gap:10px">
+            <button class="btn" onclick="copyEmails()">📋 Copiar emails (${matched.length})</button>
+            <button class="btn secondary" onclick="openMailClient()">Abrir en mi correo</button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:10px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
+        ` : `
+          <label class="f">Mensaje de WhatsApp</label>
+          <textarea id="wa-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:14px"></textarea>
+          <button class="btn secondary" onclick="copyPhones()" style="margin-bottom:16px">📋 Copiar teléfonos (${matched.length})</button>
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px">WhatsApp no permite enviar a varios contactos de golpe de forma gratuita. Pero puedes tocar cada botón de abajo — se abre WhatsApp con el mensaje ya escrito, solo te falta darle a enviar.</p>
+          <div style="display:grid;gap:6px;max-height:280px;overflow-y:auto">
+            ${matched.length===0?'<p style="font-size:13px;color:var(--muted)">Ningún contacto con teléfono coincide.</p>':''}
+            ${matched.map(c=>`<button class="btn secondary" style="justify-content:space-between;text-align:left" onclick="sendWhatsapp('${c.phone}')">💬 ${c.name} <span style="opacity:.6">${c.phone}</span></button>`).join('')}
+          </div>
+        `}
       </div>
 
       <div>
@@ -1053,13 +1093,25 @@ function viewEmails(){
           ${matched.map(c=>`<div class="row" style="cursor:default;padding:10px 14px">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600">${c.name}</div>
-              <div style="font-size:11.5px;color:var(--muted)">${c.email} ${c.locality?'· '+c.locality:''}</div>
+              <div style="font-size:11.5px;color:var(--muted)">${campaignChannel==='email'?c.email:c.phone} ${c.locality?'· '+c.locality:''}</div>
             </div>
           </div>`).join('')}
         </div>
       </div>
     </div>
   `;
+}
+function copyPhones(){
+  const matched = STATE.clients.filter(c => emailTypeFilter[c.type] && (emailLocalityFilter==='todas' || c.locality===emailLocalityFilter) && c.phone);
+  const list = matched.map(c=>c.phone).join(', ');
+  if(!list){ toast('No hay teléfonos que coincidan con el filtro'); return; }
+  navigator.clipboard.writeText(list);
+  toast(`${matched.length} teléfonos copiados al portapapeles`);
+}
+function sendWhatsapp(phone){
+  const msg = document.getElementById('wa-body')?.value || '';
+  const cleanPhone = phone.replace(/[^0-9+]/g, '');
+  window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 function copyEmails(){
   const localities = [...new Set(STATE.clients.map(c=>c.locality).filter(Boolean))];
@@ -1168,7 +1220,7 @@ function viewBolos(){
               </div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:13.5px;font-weight:600">${g.clients?.name||'—'}</div>
-                <div style="font-size:12px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.magician?'· '+g.magician:''}</div>
+                <div style="font-size:12px;color:var(--muted)">${g.place||'Lugar sin especificar'} ${g.magician?'· '+g.magician+' '+magoStatusLabel(g.magician_status):''}</div>
               </div>
               <strong style="font-size:13.5px">${g.price?Number(g.price).toFixed(2)+'€':'—'}</strong>
             </div>`).join('')}
@@ -1424,6 +1476,11 @@ async function removeMagoFile(magoId, field, index){
   closeDrawer(); openMagoDetail(magoId);
 }
 
+function magoStatusLabel(status){
+  if(status==='confirmado') return '<span style="color:#166534;font-weight:600">✓ Confirmado</span>';
+  if(status==='rechazado') return '<span style="color:#991B1B;font-weight:600">✕ Rechazado</span>';
+  return '<span style="color:#92400E;font-weight:600">⏳ Pendiente</span>';
+}
 function fmtDate(d){
   if(!d) return '—';
   return new Date(d).toLocaleDateString('es-ES', {day:'2-digit', month:'short', year: 'numeric'});
