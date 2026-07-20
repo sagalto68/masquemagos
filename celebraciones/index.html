@@ -279,6 +279,7 @@ footer{background:#1A1005;padding:36px 20px;padding-bottom:max(36px,calc(20px + 
 .faq-item{border-bottom:1px solid var(--border);padding:20px 0}
 .faq-q{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px}
 .faq-a{font-size:14px;color:var(--muted);line-height:1.7;font-weight:300}
+#testi-scroll::-webkit-scrollbar{display:none}
 </style>
 
 
@@ -475,30 +476,34 @@ function gtag_report_conversion(url) {
 <section class="sec" style="padding-top:60px;padding-bottom:60px">
   <p class="sec-label reveal" style="text-align:center">Lo que dicen de nosotros</p>
   <h2 class="sec-h2 reveal d1" style="text-align:center;margin-bottom:36px">Familias <em>felices</em></h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;max-width:1000px;margin:0 auto">
-    <div class="reveal d1" style="background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
+  <div style="position:relative;max-width:1000px;margin:0 auto">
+    <button onclick="document.getElementById('testi-scroll').scrollBy({left:-320,behavior:'smooth'})" aria-label="Anterior" style="position:absolute;left:-18px;top:50%;transform:translateY(-50%);z-index:2;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;font-size:16px;color:var(--gold-btn)">‹</button>
+    <button onclick="document.getElementById('testi-scroll').scrollBy({left:320,behavior:'smooth'})" aria-label="Siguiente" style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);z-index:2;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;font-size:16px;color:var(--gold-btn)">›</button>
+    <div id="testi-scroll" style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 4px 16px 4px;scrollbar-width:none">
+    <div class="reveal d1" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
       <div style="color:var(--gold);font-size:15px;margin-bottom:12px">★★★★★</div>
       <p style="font-size:14.5px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:16px">"Fue genial 🤩 Pepe un 10, encantador, recomendable al cien x cien, muchas gracias y hasta la próxima que espero que sea pronto 🤗"</p>
       <p style="font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;color:var(--text)">Charo</p>
       <p style="font-size:12.5px;color:var(--muted)">Cumpleaños de su marido, 80 años</p>
     </div>
-    <div class="reveal d2" style="background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
+    <div class="reveal d2" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
       <div style="color:var(--gold);font-size:15px;margin-bottom:12px">★★★★★</div>
       <p style="font-size:14.5px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:16px">"Más que magos me salvó la celebración! Tenía contratado un mago con otra compañía y nos dejó colgados a última hora, más que magos en tan solo 3h nos consiguió uno pudiendo salvar así el evento! Además el espectáculo fue genial y el trato muy profesional. Sin duda vale la pena!!"</p>
       <p style="font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;color:var(--text)">Ana</p>
       <p style="font-size:12.5px;color:var(--muted)">Comunión</p>
     </div>
-    <div class="reveal d3" style="background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
+    <div class="reveal d3" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
       <div style="color:var(--gold);font-size:15px;margin-bottom:12px">★★★★★</div>
       <p style="font-size:14.5px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:16px">"Muy contentos. Sergio animó un montón la fiesta, no solo hizo números de magia, es cómico también porque yo no dejé de reír todo el rato jejeje. Sin duda volveré a contactaros 🤗"</p>
       <p style="font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;color:var(--text)">María</p>
       <p style="font-size:12.5px;color:var(--muted)">Bautizo</p>
     </div>
-    <div class="reveal d4" style="background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
+    <div class="reveal d4" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:var(--warm);border:1px solid var(--border);border-radius:16px;padding:28px 24px">
       <div style="color:var(--gold);font-size:15px;margin-bottom:12px">★★★★★</div>
       <p style="font-size:14.5px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:16px">"Les contacté y fueron súper profesionales y simpáticas. Contraté un mago y fue genial, súper divertido, des del primer momento todo fue muy fácil de organizar y el espectáculo superó nuestras expectativas, los volvería a contratar sin duda !"</p>
       <p style="font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;color:var(--text)">Elizabeth</p>
       <p style="font-size:12.5px;color:var(--muted)">Cumpleaños infantil</p>
+    </div>
     </div>
   </div>
 </section>
