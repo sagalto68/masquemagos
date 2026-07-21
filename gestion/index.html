@@ -451,7 +451,7 @@ async function openClientDetail(id){
             <option value="rechazado">Rechazado</option>
           </select>
           <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
-          <div><label class="f">Mes en que se factura (para Finanzas)</label><input type="month" id="ng-billing-month" /></div>
+          <div><label class="f">Mes en que se factura (para Finanzas)</label><div style="display:flex;gap:8px">${billingMonthSelects('ng-billing-month', '')}</div></div>
           <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
         </div>
 
@@ -484,7 +484,18 @@ function closeAllDrawers(){
   document.querySelectorAll('.drawer-bg').forEach(el=>el.remove());
 }
 async function updateStatus(id, status){
+  const previous = STATE.clients.find(c=>c.id===id);
   await sb.from('clients').update({status}).eq('id', id);
+  if(status === 'presupuestado' && previous?.status !== 'presupuestado'){
+    const followUp = new Date();
+    followUp.setDate(followUp.getDate() + 2);
+    await sb.from('calls').insert({
+      client_id: id,
+      reason: 'Seguimiento del presupuesto enviado',
+      due_date: followUp.toISOString().slice(0,10),
+      kind: 'llamada',
+    });
+  }
   await loadAll(); render(); toast('Estado actualizado');
 }
 async function saveClientEdits(id){
@@ -532,18 +543,21 @@ async function addGig(clientId){
   const magicianName = magicianManual || magicianObj?.name || null;
   const magicianStatus = document.getElementById('ng-magician-status').value;
   const price = document.getElementById('ng-price').value;
-  const billingMonth = document.getElementById('ng-billing-month').value || null;
+  const billingMonth = readBillingMonth('ng-billing-month');
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
   await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth});
-  const feedbackDate = new Date(date);
-  feedbackDate.setDate(feedbackDate.getDate() + 1);
-  await sb.from('calls').insert({
-    client_id: clientId,
-    reason: `Pedir feedback del bolo${place?' en '+place:''}`,
-    due_date: feedbackDate.toISOString().slice(0,10),
-    kind: 'feedback',
-  });
-  closeDrawer(); await loadAll(); render(); toast('Bolo guardado y feedback programado para el día siguiente');
+  if(magicianStatus === 'confirmado'){
+    const feedbackDate = new Date(date);
+    feedbackDate.setDate(feedbackDate.getDate() + 1);
+    await sb.from('calls').insert({
+      client_id: clientId,
+      reason: `Pedir feedback del bolo${place?' en '+place:''}`,
+      due_date: feedbackDate.toISOString().slice(0,10),
+      kind: 'feedback',
+    });
+  }
+  closeDrawer(); await loadAll(); render();
+  toast(magicianStatus === 'confirmado' ? 'Bolo guardado y feedback programado para el día siguiente' : 'Bolo guardado');
   openClientDetail(clientId);
 }
 async function deleteGig(gigId, clientId){
@@ -669,7 +683,7 @@ function openGigDetail(gigId){
             <option value="rechazado" ${g.magician_status==='rechazado'?'selected':''}>Rechazado</option>
           </select></div>
           <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
-          <div><label class="f">Mes en que se factura (para Finanzas)</label><input type="month" id="gig-billing-month" value="${g.billing_month||''}" /></div>
+          <div><label class="f">Mes en que se factura (para Finanzas)</label><div style="display:flex;gap:8px">${billingMonthSelects('gig-billing-month', g.billing_month)}</div></div>
         </div>
         <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}', '${g.client_id}')">Guardar cambios</button>
         <label class="f">Feedback</label>
@@ -690,8 +704,20 @@ async function saveGigDetails(gigId, clientId){
   const magicianName = magicianManual || magicianObj?.name || null;
   const magicianStatus = document.getElementById('gig-magician-status').value;
   const price = document.getElementById('gig-price').value;
-  const billingMonth = document.getElementById('gig-billing-month').value || null;
+  const billingMonth = readBillingMonth('gig-billing-month');
+  const previousGig = STATE.gigs.find(x=>x.id===gigId);
+  const wasConfirmed = previousGig?.magician_status === 'confirmado';
   await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth}).eq('id', gigId);
+  if(magicianStatus === 'confirmado' && !wasConfirmed && event_date){
+    const feedbackDate = new Date(event_date);
+    feedbackDate.setDate(feedbackDate.getDate() + 1);
+    await sb.from('calls').insert({
+      client_id: clientId || previousGig?.client_id,
+      reason: `Pedir feedback del bolo${place?' en '+place:''}`,
+      due_date: feedbackDate.toISOString().slice(0,10),
+      kind: 'feedback',
+    });
+  }
   const stacked = document.querySelectorAll('.drawer-bg').length > 1;
   closeAllDrawers(); await loadAll(); render();
   if(stacked && clientId) openClientDetail(clientId);
@@ -1547,6 +1573,31 @@ function magoStatusLabel(status){
   if(status==='confirmado') return '<span style="color:#166534;font-weight:600">✓ Confirmado</span>';
   if(status==='rechazado') return '<span style="color:#991B1B;font-weight:600">✕ Rechazado</span>';
   return '<span style="color:#92400E;font-weight:600">⏳ Pendiente</span>';
+}
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function billingMonthSelects(idPrefix, currentValue){
+  const now = new Date();
+  const [curY, curM] = (currentValue || '').split('-');
+  const selectedY = curY || String(now.getFullYear());
+  const selectedM = curM || String(now.getMonth()+1).padStart(2,'0');
+  const years = [];
+  for(let y = now.getFullYear()-1; y <= now.getFullYear()+1; y++) years.push(String(y));
+  return `
+    <select id="${idPrefix}-m" style="flex:1">
+      <option value="" ${!curM?'selected':''}>Sin especificar</option>
+      ${MESES_ES.map((name,i)=>{
+        const val = String(i+1).padStart(2,'0');
+        return `<option value="${val}" ${val===selectedM && curM ?'selected':''}>${name}</option>`;
+      }).join('')}
+    </select>
+    <select id="${idPrefix}-y" style="width:100px">
+      ${years.map(y=>`<option value="${y}" ${y===selectedY?'selected':''}>${y}</option>`).join('')}
+    </select>`;
+}
+function readBillingMonth(idPrefix){
+  const m = document.getElementById(idPrefix+'-m').value;
+  const y = document.getElementById(idPrefix+'-y').value;
+  return m ? `${y}-${m}` : null;
 }
 function fmtDate(d){
   if(!d) return '—';
