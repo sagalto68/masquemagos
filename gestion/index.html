@@ -406,6 +406,7 @@ async function openClientDetail(id){
             <option value="asociacion" ${c.type==='asociacion'?'selected':''}>Asociación de fiestas</option>
           </select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="cd-event" value="${c.event_type||''}" /></div>
+          <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="cd-event-date" value="${c.event_date||''}" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="cd-phone" value="${c.phone||''}" /></div>
           <div><label class="f">Email</label><input type="email" id="cd-email" value="${c.email||''}" /></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -450,6 +451,7 @@ async function openClientDetail(id){
             <option value="rechazado">Rechazado</option>
           </select>
           <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
+          <div><label class="f">Mes en que se factura (para Finanzas)</label><input type="month" id="ng-billing-month" /></div>
           <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
         </div>
 
@@ -490,6 +492,7 @@ async function saveClientEdits(id){
     name: document.getElementById('cd-name').value,
     type: document.getElementById('cd-type').value,
     event_type: document.getElementById('cd-event').value,
+    event_date: document.getElementById('cd-event-date').value || null,
     phone: document.getElementById('cd-phone').value,
     email: document.getElementById('cd-email').value,
     locality: document.getElementById('cd-locality').value,
@@ -529,8 +532,9 @@ async function addGig(clientId){
   const magicianName = magicianManual || magicianObj?.name || null;
   const magicianStatus = document.getElementById('ng-magician-status').value;
   const price = document.getElementById('ng-price').value;
+  const billingMonth = document.getElementById('ng-billing-month').value || null;
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
-  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null});
+  await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth});
   const feedbackDate = new Date(date);
   feedbackDate.setDate(feedbackDate.getDate() + 1);
   await sb.from('calls').insert({
@@ -665,6 +669,7 @@ function openGigDetail(gigId){
             <option value="rechazado" ${g.magician_status==='rechazado'?'selected':''}>Rechazado</option>
           </select></div>
           <div><label class="f">Precio cobrado (€)</label><input type="number" id="gig-price" value="${g.price||''}" /></div>
+          <div><label class="f">Mes en que se factura (para Finanzas)</label><input type="month" id="gig-billing-month" value="${g.billing_month||''}" /></div>
         </div>
         <button class="btn" style="margin-bottom:18px;width:100%" onclick="saveGigDetails('${g.id}', '${g.client_id}')">Guardar cambios</button>
         <label class="f">Feedback</label>
@@ -685,7 +690,8 @@ async function saveGigDetails(gigId, clientId){
   const magicianName = magicianManual || magicianObj?.name || null;
   const magicianStatus = document.getElementById('gig-magician-status').value;
   const price = document.getElementById('gig-price').value;
-  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null}).eq('id', gigId);
+  const billingMonth = document.getElementById('gig-billing-month').value || null;
+  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth}).eq('id', gigId);
   const stacked = document.querySelectorAll('.drawer-bg').length > 1;
   closeAllDrawers(); await loadAll(); render();
   if(stacked && clientId) openClientDetail(clientId);
@@ -947,7 +953,10 @@ function renderCalc(){
 
 // ---------------- FINANZAS ----------------
 function viewFinanzas(){
-  const gigsMonth = STATE.gigs.filter(g => g.event_date && g.event_date.slice(0,7) === financeMonth && g.price);
+  const gigsMonth = STATE.gigs.filter(g => {
+    const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
+    return gigMonth === financeMonth && g.price;
+  });
   const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
   const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
   const comision = facturado * (financePct/100);
@@ -964,10 +973,11 @@ function viewFinanzas(){
         <input type="month" value="${financeMonth}" oninput="financeMonth=this.value; render()" style="width:auto" />
       </div>
     </div>
-    <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;text-transform:capitalize">${monthLabel}</p>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:6px;text-transform:capitalize">${monthLabel}</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px">Calculado según el "mes en que se factura" que le pongas a cada bolo — así un bolo de septiembre que cerráis/facturáis en julio cuenta en julio. Si un bolo no tiene ese mes puesto, se usa la fecha del propio bolo como reserva.</p>
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
-      <div class="card"><div style="font-size:22px;font-weight:700">${facturado.toFixed(2)}€</div><div style="font-size:12.5px;color:var(--muted)">Facturado a clientes</div></div>
+      <div class="card"><div style="font-size:22px;font-weight:700">${facturado.toFixed(2)}€</div><div style="font-size:12.5px;color:var(--muted)">Facturado</div></div>
       <div class="card"><div style="font-size:22px;font-weight:700;color:#166534">${comision.toFixed(2)}€</div><div style="font-size:12.5px;color:var(--muted)">Vuestra comisión (${financePct}%)</div></div>
       <div class="card"><div style="font-size:22px;font-weight:700;color:#991B1B">${gastos.toFixed(2)}€</div><div style="font-size:12.5px;color:var(--muted)">Gastos del mes</div></div>
       <div class="card" style="background:${neto>=0?'#DCFCE7':'#FEE2E2'}"><div style="font-size:22px;font-weight:700;color:${neto>=0?'#166534':'#991B1B'}">${neto.toFixed(2)}€</div><div style="font-size:12.5px;color:var(--muted)">Ganancia neta</div></div>
@@ -982,9 +992,9 @@ function viewFinanzas(){
       <div>
         <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Bolos facturados este mes</h3>
         <div class="card" style="padding:0;overflow:hidden">
-          ${gigsMonth.length===0?'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin bolos con precio este mes.</div>':''}
-          ${gigsMonth.map(g=>`<div class="row" style="cursor:default">
-            <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12px;color:var(--muted)">${fmtDate(g.event_date)}</div></div>
+          ${gigsMonth.length===0?'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin bolos facturados este mes.</div>':''}
+          ${gigsMonth.map(g=>`<div class="row" style="cursor:pointer" onclick="openGigDetail('${g.id}')">
+            <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12px;color:var(--muted)">${g.event_date?fmtDate(g.event_date):'Sin fecha de bolo'} ${g.place?'· '+g.place:''}</div></div>
             <strong style="font-size:13.5px">${Number(g.price).toFixed(2)}€</strong>
           </div>`).join('')}
         </div>
