@@ -235,13 +235,14 @@ function closeSidebar(){
 }
 
 async function loadAll(){
-  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}] = await Promise.all([
+  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}] = await Promise.all([
     sb.from('clients').select('*, notes(*)').order('created_at', {ascending:false}),
     sb.from('calls').select('*, clients(name)').eq('done', false).order('due_date'),
     sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}),
-    sb.from('gigs').select('*, clients(name, type), magicians(name)').order('event_date', {ascending:true, nullsFirst:false}),
+    sb.from('gigs').select('*, clients(name, type, source), magicians(name)').order('event_date', {ascending:true, nullsFirst:false}),
     sb.from('expenses').select('*').order('expense_date', {ascending:false}),
     sb.from('magicians').select('*').order('name'),
+    sb.from('message_templates').select('*').order('created_at'),
   ]);
   STATE.clients = clients || [];
   STATE.calls = calls || [];
@@ -249,6 +250,7 @@ async function loadAll(){
   STATE.gigs = gigs || [];
   STATE.expenses = expenses || [];
   STATE.magicians = magicians || [];
+  STATE.templates = templates || [];
 }
 
 async function boot(){
@@ -289,9 +291,12 @@ function viewDashboard(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">Llamadas pendientes</h3>
-        ${STATE.calls.slice(0,4).map(c=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
-          <div><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-          <span style="font-size:12px;color:var(--gold-btn);font-weight:600">${fmtDate(c.due_date)}</span></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Ninguna pendiente 🎉</p>'}
+        ${STATE.calls.slice(0,4).map(c=>{
+          const overdue = c.due_date < new Date().toISOString().slice(0,10);
+          return `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
+          <div><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+          <span style="font-size:12px;font-weight:600;color:${overdue?'#991B1B':'var(--gold-btn)'}">${fmtDate(c.due_date)}</span></div>`;
+        }).join('') || '<p style="font-size:13px;color:var(--muted)">Ninguna pendiente 🎉</p>'}
       </div>
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos</h3>
@@ -429,7 +434,7 @@ async function openClientDetail(id){
               </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.magician?'· '+magoStatusLabel(g.magician_status):''}</div>
+            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.magician?'· '+magoStatusLabel(g.magician_status):''} ${g.billing_month?'· Se factura: '+g.billing_month:''}</div>
             ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
           </div>`).join('')}
         </div>
@@ -707,7 +712,12 @@ async function saveGigDetails(gigId, clientId){
   const billingMonth = readBillingMonth('gig-billing-month');
   const previousGig = STATE.gigs.find(x=>x.id===gigId);
   const wasConfirmed = previousGig?.magician_status === 'confirmado';
-  await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth}).eq('id', gigId);
+  const {error: updGigErr} = await sb.from('gigs').update({place, event_date, event_time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, price: price?Number(price):null, billing_month: billingMonth}).eq('id', gigId);
+  if(updGigErr){
+    alert('Error al guardar el bolo: ' + updGigErr.message);
+    console.error(updGigErr);
+    return;
+  }
   if(magicianStatus === 'confirmado' && !wasConfirmed && event_date){
     const feedbackDate = new Date(event_date);
     feedbackDate.setDate(feedbackDate.getDate() + 1);
@@ -742,27 +752,34 @@ async function saveGigFeedback(gigId, clientId){
 function viewLlamadas(){
   const llamadas = STATE.calls.filter(c=>c.kind==='llamada');
   const feedback = STATE.calls.filter(c=>c.kind==='feedback');
+  const today = new Date().toISOString().slice(0,10);
   return `
     <h1 style="font-size:24px;margin-bottom:20px">Llamadas y seguimientos</h1>
     <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pendientes</h3>
     <div style="display:grid;gap:10px;margin-bottom:28px">
       ${llamadas.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente 🎉</p>':''}
-      ${llamadas.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
-        <span>📞</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px" />
+      ${llamadas.map(c=>{
+        const overdue = c.due_date < today;
+        return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
+        <span>${overdue?'🔴':'📞'}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
         <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
     <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Feedback pendiente de pedir</h3>
     <div style="display:grid;gap:10px">
       ${feedback.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente.</p>':''}
-      ${feedback.map(c=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
-        <span>⏰</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px" />
+      ${feedback.map(c=>{
+        const overdue = c.due_date < today;
+        return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
+        <span>${overdue?'🔴':'⏰'}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
         <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
   `;
 }
@@ -785,7 +802,7 @@ const ISSUER = {
 };
 let docItems = [{desc:'', price:0}];
 let docType = 'presupuesto';
-let docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'' };
+let docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
 
 function updateTotalsDisplay(){
   const subtotal = docItems.reduce((s,it)=>s+(Number(it.price)||0),0);
@@ -829,6 +846,10 @@ function viewPresupuestos(){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
           <div><label class="f">Lugar del evento</label><input type="text" id="doc-location" placeholder="Dirección del bolo" value="${docMeta.location}" oninput="docMeta.location=this.value" /></div>
           <div><label class="f">Hora</label><input type="text" id="doc-time" placeholder="Ej: 18:00" value="${docMeta.time}" oninput="docMeta.time=this.value" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-bottom:16px;background:var(--warm);padding:12px;border-radius:10px">
+          <div><label class="f">Fecha del bolo (para crearlo junto al documento)</label><input type="date" id="doc-gig-date" value="${docMeta.gigDate}" oninput="docMeta.gigDate=this.value" /></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);padding-bottom:9px"><input type="checkbox" id="doc-create-gig" ${docMeta.createGig?'checked':''} onchange="docMeta.createGig=this.checked" /> Crear bolo</label>
         </div>
         <label class="f">Conceptos</label>
         <div id="doc-items">${docItems.map((it,i)=>`
@@ -890,9 +911,17 @@ async function generateDoc(){
   const {data, error} = await sb.from('documents').insert(payload).select().single();
   if(error){ toast('Error al guardar'); console.error(error); return; }
   printDoc({...data, clients:{name:client?.name}});
+  let gigMsg = '';
+  if(docMeta.createGig && docMeta.gigDate){
+    const {error: gigError} = await sb.from('gigs').insert({
+      client_id: clientId, place: docMeta.location, event_date: docMeta.gigDate, event_time: docMeta.time,
+      price: total, magician_status: 'pendiente',
+    });
+    gigMsg = gigError ? ' (el bolo no se pudo crear)' : ' y bolo creado';
+  }
   docItems = [{desc:'',price:0}];
-  docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'' };
-  await loadAll(); render(); toast('Documento generado');
+  docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
+  await loadAll(); render(); toast('Documento generado' + gigMsg);
 }
 async function deleteDoc(id){
   if(!confirm('¿Borrar este documento? No se puede deshacer.')) return;
@@ -989,6 +1018,15 @@ function viewFinanzas(){
   const gastos = expensesMonth.reduce((s,e)=>s+Number(e.amount),0);
   const neto = comision - gastos;
 
+  // Facturación por origen (todo el histórico, para ver qué canal trae más negocio)
+  const originTotals = {};
+  STATE.gigs.filter(g=>g.price).forEach(g=>{
+    const origin = g.clients?.source || 'Sin origen';
+    originTotals[origin] = (originTotals[origin] || 0) + Number(g.price);
+  });
+  const originRows = Object.entries(originTotals).sort((a,b)=>b[1]-a[1]);
+  const originTotal = originRows.reduce((s,[,v])=>s+v, 0);
+
   const [y,m] = financeMonth.split('-');
   const monthLabel = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('es-ES', {month:'long', year:'numeric'});
 
@@ -997,6 +1035,8 @@ function viewFinanzas(){
       <h1 style="font-size:24px">Finanzas</h1>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="month" value="${financeMonth}" oninput="financeMonth=this.value; render()" style="width:auto" />
+        <button class="btn secondary" style="padding:9px 12px;font-size:12.5px" onclick="exportFinanzasCSV()">⬇ Excel</button>
+        <button class="btn secondary" style="padding:9px 12px;font-size:12.5px" onclick="exportFinanzasPDF()">⬇ PDF</button>
       </div>
     </div>
     <p style="font-size:13.5px;color:var(--muted);margin-bottom:6px;text-transform:capitalize">${monthLabel}</p>
@@ -1049,7 +1089,103 @@ function viewFinanzas(){
         </div>
       </div>
     </div>
+
+    <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin:32px 0 10px">De dónde viene el negocio (histórico completo)</h3>
+    <div class="card">
+      ${originRows.length===0?'<p style="font-size:13px;color:var(--muted)">Todavía no hay bolos con precio para analizar.</p>':''}
+      ${originRows.map(([origin, total])=>{
+        const pct = originTotal>0 ? (total/originTotal*100) : 0;
+        return `<div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+            <span style="font-weight:600">${origin}</span>
+            <span style="color:var(--muted)">${total.toFixed(2)}€ · ${pct.toFixed(0)}%</span>
+          </div>
+          <div style="background:var(--warm);border-radius:100px;height:8px;overflow:hidden">
+            <div style="background:var(--gold-btn);height:100%;width:${pct}%"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
   `;
+}
+function exportFinanzasCSV(){
+  const gigsMonth = STATE.gigs.filter(g => {
+    const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
+    return gigMonth === financeMonth && g.price;
+  });
+  const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
+  const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
+  const comision = facturado * (financePct/100);
+  const gastos = expensesMonth.reduce((s,e)=>s+Number(e.amount),0);
+  const neto = comision - gastos;
+
+  let rows = [];
+  rows.push(['Finanzas', financeMonth]);
+  rows.push([]);
+  rows.push(['Bolos facturados este mes']);
+  rows.push(['Cliente','Fecha del bolo','Lugar','Precio']);
+  gigsMonth.forEach(g=>rows.push([g.clients?.name||'', g.event_date||'', g.place||'', Number(g.price).toFixed(2)]));
+  rows.push([]);
+  rows.push(['Gastos este mes']);
+  rows.push(['Descripción','Fecha','Importe']);
+  expensesMonth.forEach(e=>rows.push([e.description, e.expense_date, Number(e.amount).toFixed(2)]));
+  rows.push([]);
+  rows.push(['Resumen']);
+  rows.push(['Facturado', facturado.toFixed(2)]);
+  rows.push([`Comisión (${financePct}%)`, comision.toFixed(2)]);
+  rows.push(['Gastos', gastos.toFixed(2)]);
+  rows.push(['Ganancia neta', neto.toFixed(2)]);
+
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `finanzas-${financeMonth}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Excel descargado');
+}
+function exportFinanzasPDF(){
+  const gigsMonth = STATE.gigs.filter(g => {
+    const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
+    return gigMonth === financeMonth && g.price;
+  });
+  const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
+  const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
+  const comision = facturado * (financePct/100);
+  const gastos = expensesMonth.reduce((s,e)=>s+Number(e.amount),0);
+  const neto = comision - gastos;
+  const [y,m] = financeMonth.split('-');
+  const monthLabel = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" />
+    <title>Finanzas ${financeMonth}</title>
+    <style>body{font-family:Arial,sans-serif;margin:0;padding:40px;color:#1A1005}
+    table{width:100%;border-collapse:collapse;margin-bottom:24px}
+    th,td{text-align:left;padding:8px 4px;border-bottom:1px solid #eee;font-size:13px}
+    th{color:#8a6425;border-bottom:2px solid #8a6425}
+    </style></head><body>
+    <h1 style="color:#8a6425;text-transform:capitalize">Finanzas — ${monthLabel}</h1>
+    <div style="display:flex;gap:16px;margin-bottom:30px">
+      <div style="flex:1;background:#FFF8EE;border-radius:10px;padding:14px"><div style="font-size:20px;font-weight:700">${facturado.toFixed(2)}€</div><div style="font-size:12px;color:#6B5640">Facturado</div></div>
+      <div style="flex:1;background:#DCFCE7;border-radius:10px;padding:14px"><div style="font-size:20px;font-weight:700;color:#166534">${comision.toFixed(2)}€</div><div style="font-size:12px;color:#6B5640">Comisión (${financePct}%)</div></div>
+      <div style="flex:1;background:#FEE2E2;border-radius:10px;padding:14px"><div style="font-size:20px;font-weight:700;color:#991B1B">${gastos.toFixed(2)}€</div><div style="font-size:12px;color:#6B5640">Gastos</div></div>
+      <div style="flex:1;background:${neto>=0?'#DCFCE7':'#FEE2E2'};border-radius:10px;padding:14px"><div style="font-size:20px;font-weight:700;color:${neto>=0?'#166534':'#991B1B'}">${neto.toFixed(2)}€</div><div style="font-size:12px;color:#6B5640">Ganancia neta</div></div>
+    </div>
+    <h2 style="color:#8a6425;font-size:16px">Bolos facturados</h2>
+    <table><tr><th>Cliente</th><th>Fecha del bolo</th><th>Lugar</th><th style="text-align:right">Precio</th></tr>
+    ${gigsMonth.map(g=>`<tr><td>${g.clients?.name||''}</td><td>${g.event_date?fmtDate(g.event_date):''}</td><td>${g.place||''}</td><td style="text-align:right">${Number(g.price).toFixed(2)}€</td></tr>`).join('')}
+    </table>
+    <h2 style="color:#8a6425;font-size:16px">Gastos</h2>
+    <table><tr><th>Descripción</th><th>Fecha</th><th style="text-align:right">Importe</th></tr>
+    ${expensesMonth.map(e=>`<tr><td>${e.description}</td><td>${fmtDate(e.expense_date)}</td><td style="text-align:right">${Number(e.amount).toFixed(2)}€</td></tr>`).join('')}
+    </table>
+    <script>window.onload = () => { window.print(); };<\/script>
+    </body></html>`;
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 async function addExpense(){
   const description = document.getElementById('exp-desc').value;
@@ -1158,25 +1294,49 @@ function viewEmails(){
         </div>
 
         ${campaignChannel==='email' ? `
+          <label class="f">Plantilla</label>
+          <select onchange="applyTemplate(this.value)" style="margin-bottom:16px">
+            <option value="">— Escribir desde cero —</option>
+            ${STATE.templates.filter(t=>t.channel==='email').map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}
+          </select>
           <label class="f">Asunto</label>
           <input type="text" id="email-subject" placeholder="Ej: 🎩 Magia para tu próxima celebración" style="margin-bottom:16px" />
           <label class="f">Mensaje</label>
-          <textarea id="email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:18px"></textarea>
-          <div style="display:flex;gap:10px">
+          <textarea id="email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:12px"></textarea>
+          <div style="display:flex;gap:10px;margin-bottom:18px">
             <button class="btn" onclick="copyEmails()">📋 Copiar emails (${matched.length})</button>
             <button class="btn secondary" onclick="openMailClient()">Abrir en mi correo</button>
+            <button class="btn secondary" onclick="saveAsTemplate('email')">💾 Guardar como plantilla</button>
           </div>
-          <p style="font-size:11.5px;color:var(--muted);margin-top:10px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:-8px;margin-bottom:16px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
         ` : `
+          <label class="f">Plantilla</label>
+          <select onchange="applyTemplate(this.value)" style="margin-bottom:16px">
+            <option value="">— Escribir desde cero —</option>
+            ${STATE.templates.filter(t=>t.channel==='whatsapp').map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}
+          </select>
           <label class="f">Mensaje de WhatsApp</label>
-          <textarea id="wa-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:14px"></textarea>
-          <button class="btn secondary" onclick="copyPhones()" style="margin-bottom:16px">📋 Copiar teléfonos (${matched.length})</button>
+          <textarea id="wa-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:12px"></textarea>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn secondary" onclick="copyPhones()">📋 Copiar teléfonos (${matched.length})</button>
+            <button class="btn secondary" onclick="saveAsTemplate('whatsapp')">💾 Guardar como plantilla</button>
+          </div>
           <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px">WhatsApp no permite enviar a varios contactos de golpe de forma gratuita. Pero puedes tocar cada botón de abajo — se abre WhatsApp con el mensaje ya escrito, solo te falta darle a enviar.</p>
           <div style="display:grid;gap:6px;max-height:280px;overflow-y:auto">
             ${matched.length===0?'<p style="font-size:13px;color:var(--muted)">Ningún contacto con teléfono coincide.</p>':''}
             ${matched.map(c=>`<button class="btn secondary" style="justify-content:space-between;text-align:left" onclick="sendWhatsapp('${c.phone}')">💬 ${c.name} <span style="opacity:.6">${c.phone}</span></button>`).join('')}
           </div>
         `}
+        ${STATE.templates.filter(t=>t.channel===campaignChannel).length>0?`
+        <div style="margin-top:20px">
+          <h4 style="font-size:12px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tus plantillas de ${campaignChannel==='email'?'email':'WhatsApp'}</h4>
+          <div style="display:grid;gap:6px">
+            ${STATE.templates.filter(t=>t.channel===campaignChannel).map(t=>`<div class="row" style="cursor:default;padding:8px 12px">
+              <div style="flex:1;font-size:13px">${t.name}</div>
+              <button onclick="deleteTemplate('${t.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">✕</button>
+            </div>`).join('')}
+          </div>
+        </div>` : ''}
       </div>
 
       <div>
@@ -1200,6 +1360,31 @@ function copyPhones(){
   if(!list){ toast('No hay teléfonos que coincidan con el filtro'); return; }
   navigator.clipboard.writeText(list);
   toast(`${matched.length} teléfonos copiados al portapapeles`);
+}
+function applyTemplate(id){
+  if(!id) return;
+  const t = STATE.templates.find(x=>x.id===id);
+  if(!t) return;
+  if(t.channel==='email'){
+    document.getElementById('email-subject').value = t.subject || '';
+    document.getElementById('email-body').value = t.body || '';
+  } else {
+    document.getElementById('wa-body').value = t.body || '';
+  }
+}
+async function saveAsTemplate(channel){
+  const name = prompt('¿Cómo quieres llamar a esta plantilla?');
+  if(!name) return;
+  const subject = channel==='email' ? document.getElementById('email-subject').value : null;
+  const body = channel==='email' ? document.getElementById('email-body').value : document.getElementById('wa-body').value;
+  if(!body){ toast('Escribe primero el mensaje'); return; }
+  await sb.from('message_templates').insert({channel, name, subject, body});
+  await loadAll(); render(); toast('Plantilla guardada');
+}
+async function deleteTemplate(id){
+  if(!confirm('¿Borrar esta plantilla?')) return;
+  await sb.from('message_templates').delete().eq('id', id);
+  await loadAll(); render(); toast('Plantilla borrada');
 }
 function sendWhatsapp(phone){
   const msg = document.getElementById('wa-body')?.value || '';
@@ -1326,6 +1511,9 @@ function viewBolos(){
 // ---------------- MAGOS ----------------
 let magoComunidadFilter = 'todas';
 let magoSearch = '';
+let magoSortBy = 'name';
+let magoOnlyFavorites = false;
+let magoOnlyActive = true;
 
 function magoStats(magoId){
   const gigs = STATE.gigs.filter(g=>g.magician_id===magoId);
@@ -1334,32 +1522,73 @@ function magoStats(magoId){
 }
 
 function viewMagos(){
-  const filtered = STATE.magicians.filter(m =>
+  let filtered = STATE.magicians.filter(m =>
     (magoComunidadFilter==='todas' || m.comunidad===magoComunidadFilter) &&
-    m.name.toLowerCase().includes(magoSearch.toLowerCase())
+    m.name.toLowerCase().includes(magoSearch.toLowerCase()) &&
+    (!magoOnlyFavorites || m.favorite) &&
+    (!magoOnlyActive || m.active !== false)
   );
+  filtered = filtered.map(m => ({...m, _stats: magoStats(m.id)}));
+  if(magoSortBy==='bolos') filtered.sort((a,b)=>b._stats.count-a._stats.count);
+  else if(magoSortBy==='facturado') filtered.sort((a,b)=>b._stats.total-a._stats.total);
+  else filtered.sort((a,b)=>a.name.localeCompare(b.name));
+
   return `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <h1 style="font-size:24px">Magos</h1>
       <button class="btn" onclick="openMagoForm()">+ Nuevo mago</button>
     </div>
-    <input type="text" placeholder="Buscar mago..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:280px;margin-bottom:14px" />
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <input type="text" placeholder="Buscar mago..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:240px" />
+      <select onchange="magoSortBy=this.value; render()" style="max-width:170px">
+        <option value="name" ${magoSortBy==='name'?'selected':''}>Ordenar: Nombre</option>
+        <option value="bolos" ${magoSortBy==='bolos'?'selected':''}>Ordenar: Más bolos</option>
+        <option value="facturado" ${magoSortBy==='facturado'?'selected':''}>Ordenar: Más facturado</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" ${magoOnlyFavorites?'checked':''} onchange="magoOnlyFavorites=this.checked; render()" /> ⭐ Solo favoritos
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" ${magoOnlyActive?'checked':''} onchange="magoOnlyActive=this.checked; render()" /> Solo activos
+      </label>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
       <button class="chip ${magoComunidadFilter==='todas'?'active':''}" onclick="magoComunidadFilter='todas'; render()">Todas</button>
       ${CCAA.map(c=>`<button class="chip ${magoComunidadFilter===c?'active':''}" onclick="magoComunidadFilter='${c}'; render()">${c}</button>`).join('')}
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
-      ${filtered.length===0?'<div style="padding:24px;text-align:center;color:var(--muted);font-size:13.5px">Ningún mago coincide con este filtro.</div>':''}
+    ${filtered.length===0?'<div class="card" style="text-align:center;color:var(--muted);font-size:13.5px;padding:30px">Ningún mago coincide con este filtro.</div>':''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
       ${filtered.map(m=>{
-        const stats = magoStats(m.id);
-        return `<div class="row" onclick="openMagoDetail('${m.id}')">
-          <div class="row-icon" style="background:#EEF2FF;font-size:18px">🪄</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14.5px;font-weight:600">${m.name}</div>
-            <div style="font-size:12.5px;color:var(--muted)">${m.comunidad||'Sin comunidad'} ${m.phone?'· '+m.phone:''}</div>
+        const stats = m._stats;
+        const photo = (m.photos && m.photos[0]) ? m.photos[0].url : null;
+        const specialties = (m.specialties||'').split(',').map(s=>s.trim()).filter(Boolean);
+        const inactive = m.active === false;
+        return `<div class="card" style="padding:0;overflow:hidden;opacity:${inactive?0.55:1}">
+          <div style="display:flex;gap:12px;padding:16px 16px 12px;cursor:pointer" onclick="openMagoDetail('${m.id}')">
+            ${photo
+              ? `<img src="${photo}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0" />`
+              : `<div style="width:52px;height:52px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🪄</div>`}
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:15px;font-weight:700">${m.name}</span>
+                ${m.favorite?'<span style="font-size:13px">⭐</span>':''}
+                ${inactive?'<span style="font-size:10.5px;background:#F1F5F9;color:#64748B;padding:2px 6px;border-radius:100px;font-weight:600">INACTIVO</span>':''}
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">${m.comunidad||'Sin comunidad'}</div>
+              ${m.coverage?`<div style="font-size:11.5px;color:var(--muted);margin-top:2px">📍 ${m.coverage}</div>`:''}
+            </div>
           </div>
-          <span style="font-size:12.5px;color:var(--muted);margin-right:8px">${stats.count} bolo${stats.count!==1?'s':''}</span>
-          <strong style="font-size:13.5px">${stats.total.toFixed(2)}€</strong>
+          ${specialties.length>0?`<div style="display:flex;gap:5px;flex-wrap:wrap;padding:0 16px 12px">
+            ${specialties.map(s=>`<span style="font-size:10.5px;background:var(--warm);color:var(--gold-btn);padding:3px 8px;border-radius:100px;font-weight:600">${s}</span>`).join('')}
+          </div>`:''}
+          <div style="display:flex;justify-content:space-between;background:var(--warm);padding:10px 16px;font-size:12.5px">
+            <span><strong>${stats.count}</strong> bolo${stats.count!==1?'s':''}</span>
+            <span><strong>${stats.total.toFixed(2)}€</strong> facturados</span>
+          </div>
+          <div style="display:flex;border-top:1px solid var(--border)">
+            <a href="https://wa.me/${(m.phone||'').replace(/[^0-9+]/g,'')}" target="_blank" onclick="event.stopPropagation()" style="flex:1;text-align:center;padding:10px;font-size:12.5px;font-weight:600;color:${m.phone?'#166534':'#ccc'};text-decoration:none;border-right:1px solid var(--border);pointer-events:${m.phone?'auto':'none'}">💬 WhatsApp</a>
+            <a href="tel:${m.phone||''}" onclick="event.stopPropagation()" style="flex:1;text-align:center;padding:10px;font-size:12.5px;font-weight:600;color:${m.phone?'var(--gold-btn)':'#ccc'};text-decoration:none;pointer-events:${m.phone?'auto':'none'}">📞 Llamar</a>
+          </div>
         </div>`;
       }).join('')}
     </div>
@@ -1379,6 +1608,12 @@ function openMagoForm(){
             <option value="">Selecciona...</option>
             ${CCAA.map(c=>`<option value="${c}">${c}</option>`).join('')}
           </select></div>
+          <div><label class="f">Zona de cobertura (poblaciones donde trabaja)</label><input type="text" id="nm-coverage" placeholder="Ej: Barcelona, Badalona, Sabadell..." /></div>
+          <div><label class="f">Especialidades (separadas por comas)</label><input type="text" id="nm-specialties" placeholder="Ej: Cumpleaños, Cerca, Escenario, Bilingüe" /></div>
+          <div style="display:flex;gap:20px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="nm-favorite" /> ⭐ Favorito</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="nm-active" checked /> Activo</label>
+          </div>
           <div><label class="f">Notas</label><textarea id="nm-notes" style="min-height:70px"></textarea></div>
           <button class="btn" style="margin-top:8px" onclick="saveMago()">Guardar mago</button>
         </div>
@@ -1393,6 +1628,10 @@ async function saveMago(){
     phone: document.getElementById('nm-phone').value,
     email: document.getElementById('nm-email').value,
     comunidad: document.getElementById('nm-comunidad').value,
+    coverage: document.getElementById('nm-coverage').value,
+    specialties: document.getElementById('nm-specialties').value,
+    favorite: document.getElementById('nm-favorite').checked,
+    active: document.getElementById('nm-active').checked,
     notes: document.getElementById('nm-notes').value,
   };
   if(!payload.name){ toast('Ponle un nombre al mago'); return; }
@@ -1424,6 +1663,12 @@ function openMagoDetail(id){
             <option value="">Sin especificar</option>
             ${CCAA.map(c=>`<option value="${c}" ${m.comunidad===c?'selected':''}>${c}</option>`).join('')}
           </select></div>
+          <div><label class="f">Zona de cobertura (poblaciones donde trabaja)</label><input type="text" id="mg-coverage" value="${m.coverage||''}" placeholder="Ej: Barcelona, Badalona, Sabadell..." /></div>
+          <div><label class="f">Especialidades (separadas por comas)</label><input type="text" id="mg-specialties" value="${m.specialties||''}" placeholder="Ej: Cumpleaños, Cerca, Escenario, Bilingüe" /></div>
+          <div style="display:flex;gap:20px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="mg-favorite" ${m.favorite?'checked':''} /> ⭐ Favorito</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="mg-active" ${m.active!==false?'checked':''} /> Activo</label>
+          </div>
           <div><label class="f">Notas</label><textarea id="mg-notes" style="min-height:60px">${m.notes||''}</textarea></div>
         </div>
         <button class="btn" style="width:100%;margin-bottom:20px" onclick="saveMagoEdits('${m.id}')">Guardar cambios</button>
@@ -1490,6 +1735,10 @@ async function saveMagoEdits(id){
     phone: document.getElementById('mg-phone').value,
     email: document.getElementById('mg-email').value,
     comunidad: document.getElementById('mg-comunidad').value,
+    coverage: document.getElementById('mg-coverage').value,
+    specialties: document.getElementById('mg-specialties').value,
+    favorite: document.getElementById('mg-favorite').checked,
+    active: document.getElementById('mg-active').checked,
     notes: document.getElementById('mg-notes').value,
   };
   if(!payload.name){ toast('El nombre no puede quedar vacío'); return; }
