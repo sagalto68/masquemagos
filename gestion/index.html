@@ -296,6 +296,39 @@ function render(){
 }
 
 // ---------------- DASHBOARD ----------------
+function callSection(icon, title, calls, todayStr, quickActions){
+  const hoy = calls.filter(c=>c.due_date === todayStr);
+  const atrasadas = calls.filter(c=>c.due_date < todayStr);
+  const proximas = calls.filter(c=>c.due_date > todayStr).slice(0, 3);
+
+  function row(c, overdue){
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F1EBDD">
+      <div style="min-width:0"><div style="font-size:13.5px;font-weight:600">${c.clients?.name||'—'}</div><div style="font-size:12px;color:var(--muted)">${c.reason}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:11.5px;font-weight:600;color:${overdue?'#991B1B':'var(--gold-btn)'}">${fmtDate(c.due_date)}</span>
+        ${quickActions(c.clients?.phone)}
+      </div></div>`;
+  }
+
+  return `
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:12px">${icon} ${title}</h3>
+      ${calls.length===0?'<p style="font-size:13px;color:var(--muted)">Nada pendiente 🎉</p>':''}
+      ${hoy.length>0?`
+        <div style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Para hoy</div>
+        ${hoy.map(c=>row(c,false)).join('')}
+      `:''}
+      ${atrasadas.length>0?`
+        <div style="font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase;letter-spacing:.04em;margin:${hoy.length>0?'12px':'0'} 0 4px">Atrasadas (${atrasadas.length})</div>
+        ${atrasadas.map(c=>row(c,true)).join('')}
+      `:''}
+      ${proximas.length>0?`
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:${(hoy.length>0||atrasadas.length>0)?'12px':'0'} 0 4px">Próximos días</div>
+        ${proximas.map(c=>row(c,false)).join('')}
+      `:''}
+      ${calls.length>0?`<button onclick="goTo('llamadas')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:10px;cursor:pointer">Ver todas →</button>`:''}
+    </div>`;
+}
 function viewDashboard(){
   const activos = STATE.clients.filter(c => !['perdido','confirmado'].includes(c.status)).length;
   const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
@@ -401,23 +434,12 @@ function viewDashboard(){
       </div>
     </div>` : ''}
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-      <div class="card">
-        <h3 style="font-size:16px;margin-bottom:14px">Llamadas pendientes</h3>
-        ${STATE.calls.slice(0,4).map(c=>{
-          const overdue = c.due_date < todayStr;
-          const isToday = c.due_date === todayStr;
-          const isTomorrow = c.due_date === tomorrowStr;
-          const tag = overdue ? '<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>' : isToday ? '<span style="color:#166534;font-size:11px;font-weight:700">· HOY</span>' : isTomorrow ? '<span style="color:var(--gold-btn);font-size:11px;font-weight:700">· MAÑANA</span>' : '';
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD">
-          <div style="min-width:0"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${tag}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-            <span style="font-size:12px;font-weight:600;color:${overdue?'#991B1B':'var(--gold-btn)'}">${fmtDate(c.due_date)}</span>
-            ${quickActions(c.clients?.phone)}
-          </div></div>`;
-        }).join('') || '<p style="font-size:13px;color:var(--muted)">Ninguna pendiente 🎉</p>'}
-        ${STATE.calls.length>0?`<button onclick="goTo('llamadas')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todas →</button>`:''}
-      </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+      ${callSection('📞', 'Llamadas de seguimiento', STATE.calls.filter(c=>c.kind==='llamada'), todayStr, quickActions)}
+      ${callSection('⏰', 'Feedback pendiente de pedir', STATE.calls.filter(c=>c.kind==='feedback'), todayStr, quickActions)}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:20px">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos (14 días)</h3>
         ${proximosBolos.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
