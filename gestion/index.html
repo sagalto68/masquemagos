@@ -742,7 +742,7 @@ async function promptFeedback(gigId, clientId){
 
 // ---------------- CALENDARIO ----------------
 let calMonth = new Date().toISOString().slice(0,7); // YYYY-MM
-let calSelectedDay = new Date().toISOString().slice(0,10);
+let calSelectedDay = todayLocalStr();
 
 function viewCalendario(){
   const gigs = STATE.gigs.filter(g=>g.event_date);
@@ -754,7 +754,7 @@ function viewCalendario(){
   const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
   const daysInMonth = new Date(year, month, 0).getDate();
   const monthLabel = firstOfMonth.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = todayLocalStr();
 
   let cells = '';
   for(let i=0; i<startOffset; i++) cells += `<div></div>`;
@@ -818,7 +818,9 @@ function viewCalendario(){
 function calShiftMonth(delta){
   const [y,m] = calMonth.split('-').map(Number);
   const d = new Date(y, m-1+delta, 1);
-  calMonth = d.toISOString().slice(0,7);
+  const newY = d.getFullYear();
+  const newM = String(d.getMonth()+1).padStart(2,'0');
+  calMonth = `${newY}-${newM}`;
   render();
 }
 function openGigDetail(gigId){
@@ -911,7 +913,7 @@ async function saveGigFeedback(gigId, clientId){
 function viewLlamadas(){
   const llamadas = STATE.calls.filter(c=>c.kind==='llamada');
   const feedback = STATE.calls.filter(c=>c.kind==='feedback');
-  const today = new Date().toISOString().slice(0,10);
+  const today = todayLocalStr();
   return `
     <h1 style="font-size:24px;margin-bottom:20px">Llamadas y seguimientos</h1>
     <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pendientes</h3>
@@ -961,7 +963,7 @@ const ISSUER = {
 };
 let docItems = [{desc:'', price:0}];
 let docType = 'presupuesto';
-let docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
+let docMeta = { clientId:'', date:todayLocalStr(), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
 
 function updateTotalsDisplay(){
   const subtotal = docItems.reduce((s,it)=>s+(Number(it.price)||0),0);
@@ -1079,7 +1081,7 @@ async function generateDoc(){
     gigMsg = gigError ? ' (el bolo no se pudo crear)' : ' y bolo creado';
   }
   docItems = [{desc:'',price:0}];
-  docMeta = { clientId:'', date:new Date().toISOString().slice(0,10), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
+  docMeta = { clientId:'', date:todayLocalStr(), fiscalName:'', nif:'', address:'', location:'', time:'', gigDate:'', createGig:true };
   await loadAll(); render(); toast('Documento generado' + gigMsg);
 }
 async function deleteDoc(id){
@@ -2009,6 +2011,10 @@ function readBillingMonth(idPrefix){
   return m ? `${y}-${m}` : null;
 }
 const AVATAR_COLORS = ['#8a6425','#166534','#1D4ED8','#9D174D','#0E7490','#7C3AED','#B45309'];
+function todayLocalStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function avatarInitials(name){
   if(!name) return {initials:'?', color:'#94A3B8'};
   const parts = name.trim().split(/\s+/);
