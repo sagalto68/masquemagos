@@ -200,7 +200,7 @@ const STATUS_STYLES = {
 };
 function badge(style){ return `<span class="badge" style="background:${style.bg};color:${style.text}">${style.label}</span>`; }
 
-let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], magicians:[], typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
+let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], magicians:[], settings:{monthly_goal:0, annual_goal:0}, typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
 const CCAA = ['Andalucía','Aragón','Asturias','Islas Baleares','Canarias','Cantabria','Castilla-La Mancha','Castilla y León','Cataluña','Extremadura','Galicia','La Rioja','Madrid','Murcia','Navarra','País Vasco','Comunidad Valenciana','Ceuta','Melilla'];
 let financeMonth = new Date().toISOString().slice(0,7); // YYYY-MM
 let financePct = 20;
@@ -235,7 +235,7 @@ function closeSidebar(){
 }
 
 async function loadAll(){
-  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}] = await Promise.all([
+  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}, {data:settings}] = await Promise.all([
     sb.from('clients').select('*, notes(*)').order('created_at', {ascending:false}),
     sb.from('calls').select('*, clients(name)').eq('done', false).order('due_date'),
     sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}),
@@ -243,6 +243,7 @@ async function loadAll(){
     sb.from('expenses').select('*').order('expense_date', {ascending:false}),
     sb.from('magicians').select('*').order('name'),
     sb.from('message_templates').select('*').order('created_at'),
+    sb.from('settings').select('*').eq('id', 1).maybeSingle(),
   ]);
   STATE.clients = clients || [];
   STATE.calls = calls || [];
@@ -251,6 +252,7 @@ async function loadAll(){
   STATE.expenses = expenses || [];
   STATE.magicians = magicians || [];
   STATE.templates = templates || [];
+  STATE.settings = settings || {monthly_goal:0, annual_goal:0};
 }
 
 async function boot(){
@@ -280,14 +282,78 @@ function viewDashboard(){
   const confirmados = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= new Date().setHours(0,0,0,0)).length;
   const pendientes = STATE.calls.length;
   const proximosBolos = STATE.gigs.filter(g=>g.event_date).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date)).slice(0,4);
+
+  const nowMonth = new Date().toISOString().slice(0,7);
+  const nowYear = new Date().getFullYear();
+  const facturadoMes = STATE.gigs.filter(g => {
+    const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
+    return gigMonth === nowMonth && g.price;
+  }).reduce((s,g)=>s+Number(g.price),0);
+  const facturadoAnio = STATE.gigs.filter(g => {
+    const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
+    return gigMonth && gigMonth.startsWith(String(nowYear)) && g.price;
+  }).reduce((s,g)=>s+Number(g.price),0);
+  const monthlyGoal = Number(STATE.settings?.monthly_goal || 0);
+  const annualGoal = Number(STATE.settings?.annual_goal || 0);
+  const monthlyPct = monthlyGoal>0 ? Math.min(100, facturadoMes/monthlyGoal*100) : 0;
+  const annualPct = annualGoal>0 ? Math.min(100, facturadoAnio/annualGoal*100) : 0;
+
+  const today = new Date();
+  const coldLeads = STATE.clients.filter(c => {
+    if(['perdido','confirmado'].includes(c.status)) return false;
+    if(!c.status_updated_at) return false;
+    const days = (today - new Date(c.status_updated_at)) / (1000*60*60*24);
+    return days >= 5;
+  }).sort((a,b)=>new Date(a.status_updated_at)-new Date(b.status_updated_at));
+
   return `
     <h1 style="font-size:26px;margin-bottom:4px">Buenos días 👋</h1>
     <p style="color:var(--muted);margin-bottom:28px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
       <div class="card"><div style="font-size:28px;font-weight:700;color:var(--gold-btn)">${activos}</div><div style="font-size:13px;color:var(--muted)">Leads activos</div></div>
       <div class="card"><div style="font-size:28px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:13px;color:var(--muted)">Bolos confirmados</div></div>
       <div class="card"><div style="font-size:28px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:13px;color:var(--muted)">Llamadas pendientes</div></div>
     </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="font-size:16px">Meta de facturación</h3>
+        <button onclick="editGoals()" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;cursor:pointer;font-weight:600">✎ Editar metas</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span>Este mes</span><span style="color:var(--muted)">${facturadoMes.toFixed(0)}€ ${monthlyGoal>0?'de '+monthlyGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
+          </div>
+          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
+            <div style="background:var(--gold-btn);height:100%;width:${monthlyPct}%;transition:width .3s"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span>Este año</span><span style="color:var(--muted)">${facturadoAnio.toFixed(0)}€ ${annualGoal>0?'de '+annualGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
+          </div>
+          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
+            <div style="background:#166534;height:100%;width:${annualPct}%;transition:width .3s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${coldLeads.length>0?`
+    <div class="card" style="margin-bottom:20px;border-color:#FCD34D;background:#FFFBEB">
+      <h3 style="font-size:16px;margin-bottom:12px">🥶 Leads fríos (5+ días sin moverse)</h3>
+      <div style="display:grid;gap:8px">
+        ${coldLeads.map(c=>{
+          const days = Math.floor((today - new Date(c.status_updated_at)) / (1000*60*60*24));
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #FDE68A;cursor:pointer" onclick="openClientDetail('${c.id}')">
+            <div><span style="font-weight:600;font-size:13.5px">${c.name}</span> <span style="font-size:12px;color:var(--muted)">· ${STATUS_STYLES[c.status]?.label||c.status}</span></div>
+            <span style="font-size:12px;color:#92400E;font-weight:600">${days} días sin moverse</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">Llamadas pendientes</h3>
@@ -306,6 +372,28 @@ function viewDashboard(){
       </div>
     </div>
   `;
+}
+function editGoals(){
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()" style="max-width:380px">
+        <h2 style="font-size:21px;margin-bottom:20px">Metas de facturación</h2>
+        <div style="display:grid;gap:14px">
+          <div><label class="f">Meta mensual (€)</label><input type="number" id="goal-monthly" value="${STATE.settings?.monthly_goal||0}" /></div>
+          <div><label class="f">Meta anual (€)</label><input type="number" id="goal-annual" value="${STATE.settings?.annual_goal||0}" /></div>
+          <button class="btn" onclick="saveGoals()">Guardar</button>
+        </div>
+        <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveGoals(){
+  const monthly_goal = Number(document.getElementById('goal-monthly').value) || 0;
+  const annual_goal = Number(document.getElementById('goal-annual').value) || 0;
+  const {error} = await sb.from('settings').update({monthly_goal, annual_goal}).eq('id', 1);
+  if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
+  closeDrawer(); await loadAll(); render(); toast('Metas actualizadas');
 }
 
 // ---------------- CLIENTES ----------------
@@ -490,7 +578,7 @@ function closeAllDrawers(){
 }
 async function updateStatus(id, status){
   const previous = STATE.clients.find(c=>c.id===id);
-  await sb.from('clients').update({status}).eq('id', id);
+  await sb.from('clients').update({status, status_updated_at: new Date().toISOString()}).eq('id', id);
   if(status === 'presupuestado' && previous?.status !== 'presupuestado'){
     const followUp = new Date();
     followUp.setDate(followUp.getDate() + 2);
