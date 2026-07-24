@@ -339,7 +339,7 @@ function viewDashboard(){
   const bolosFuturos = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= todayMidnight);
   const confirmados = bolosFuturos.length;
   const pendientes = STATE.calls.length;
-  const proximosBolos = bolosFuturos.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date)).slice(0,5);
+  const proximosBolos = bolosFuturos.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const sinMago = bolosFuturos.filter(g => new Date(g.event_date) <= in14 && !g.magician).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
