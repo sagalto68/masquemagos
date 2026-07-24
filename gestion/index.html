@@ -256,9 +256,9 @@ function closeSidebar(){
 async function loadAll(){
   const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}, {data:settings}] = await Promise.all([
     sb.from('clients').select('*, notes(*)').order('created_at', {ascending:false}),
-    sb.from('calls').select('*, clients(name)').eq('done', false).order('due_date'),
+    sb.from('calls').select('*, clients(name, phone)').eq('done', false).order('due_date'),
     sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}),
-    sb.from('gigs').select('*, clients(name, type, source), magicians(name)').order('event_date', {ascending:true, nullsFirst:false}),
+    sb.from('gigs').select('*, clients(name, type, source, phone), magicians(name)').order('event_date', {ascending:true, nullsFirst:false}),
     sb.from('expenses').select('*').order('expense_date', {ascending:false}),
     sb.from('magicians').select('*').order('name'),
     sb.from('message_templates').select('*').order('created_at'),
@@ -298,9 +298,17 @@ function render(){
 // ---------------- DASHBOARD ----------------
 function viewDashboard(){
   const activos = STATE.clients.filter(c => !['perdido','confirmado'].includes(c.status)).length;
-  const confirmados = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= new Date().setHours(0,0,0,0)).length;
+  const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+  const in14 = new Date(todayMidnight); in14.setDate(in14.getDate()+14);
+  const todayStr = todayMidnight.toISOString().slice(0,10);
+  const tomorrowStr = new Date(todayMidnight.getTime()+86400000).toISOString().slice(0,10);
+
+  const bolosFuturos = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= todayMidnight);
+  const confirmados = bolosFuturos.length;
   const pendientes = STATE.calls.length;
-  const proximosBolos = STATE.gigs.filter(g=>g.event_date).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date)).slice(0,4);
+  const proximosBolos = bolosFuturos.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date)).slice(0,5);
+
+  const sinMago = bolosFuturos.filter(g => new Date(g.event_date) <= in14 && !g.magician).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const nowMonth = new Date().toISOString().slice(0,7);
   const nowYear = new Date().getFullYear();
@@ -325,12 +333,21 @@ function viewDashboard(){
     return days >= 5;
   }).sort((a,b)=>new Date(a.status_updated_at)-new Date(b.status_updated_at));
 
+  function quickActions(phone){
+    if(!phone) return '';
+    const clean = phone.replace(/[^0-9+]/g,'');
+    return `<div style="display:flex;gap:6px;flex-shrink:0" onclick="event.stopPropagation()">
+      <a href="https://wa.me/${clean}" target="_blank" style="width:30px;height:30px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>
+      <a href="tel:${phone}" style="width:30px;height:30px;border-radius:8px;background:var(--warm);display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">📞</a>
+    </div>`;
+  }
+
   return `
     <h1 style="font-size:26px;margin-bottom:4px">Buenos días 👋</h1>
     <p style="color:var(--muted);margin-bottom:28px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#FDF2E9">🎯</div><div><div style="font-size:26px;font-weight:700;color:var(--gold-btn)">${activos}</div><div style="font-size:12.5px;color:var(--muted)">Leads activos</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#DCFCE7">🎩</div><div><div style="font-size:26px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:12.5px;color:var(--muted)">Bolos confirmados</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#DCFCE7">🎩</div><div><div style="font-size:26px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:12.5px;color:var(--muted)">Bolos por venir</div></div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE">📞</div><div><div style="font-size:26px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:12.5px;color:var(--muted)">Llamadas pendientes</div></div></div>
     </div>
 
@@ -359,6 +376,17 @@ function viewDashboard(){
       </div>
     </div>
 
+    ${sinMago.length>0?`
+    <div class="card" style="margin-bottom:20px;border-color:#FCA5A5;background:#FEF2F2">
+      <h3 style="font-size:16px;margin-bottom:12px">⚠️ Bolos en los próximos 14 días sin mago asignado</h3>
+      <div style="display:grid;gap:8px">
+        ${sinMago.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #FECACA;cursor:pointer" onclick="openGigDetail('${g.id}')">
+          <div><span style="font-weight:600;font-size:13.5px">${g.clients?.name||'—'}</span> <span style="font-size:12px;color:var(--muted)">· ${g.place||'sin lugar'}</span></div>
+          <span style="font-size:12px;color:#991B1B;font-weight:600">${fmtDate(g.event_date)}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+
     ${coldLeads.length>0?`
     <div class="card" style="margin-bottom:20px;border-color:#FCD34D;background:#FFFBEB">
       <h3 style="font-size:16px;margin-bottom:12px">🥶 Leads fríos (5+ días sin moverse)</h3>
@@ -377,17 +405,28 @@ function viewDashboard(){
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">Llamadas pendientes</h3>
         ${STATE.calls.slice(0,4).map(c=>{
-          const overdue = c.due_date < new Date().toISOString().slice(0,10);
-          return `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
-          <div><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-          <span style="font-size:12px;font-weight:600;color:${overdue?'#991B1B':'var(--gold-btn)'}">${fmtDate(c.due_date)}</span></div>`;
+          const overdue = c.due_date < todayStr;
+          const isToday = c.due_date === todayStr;
+          const isTomorrow = c.due_date === tomorrowStr;
+          const tag = overdue ? '<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>' : isToday ? '<span style="color:#166534;font-size:11px;font-weight:700">· HOY</span>' : isTomorrow ? '<span style="color:var(--gold-btn);font-size:11px;font-weight:700">· MAÑANA</span>' : '';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD">
+          <div style="min-width:0"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${tag}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span style="font-size:12px;font-weight:600;color:${overdue?'#991B1B':'var(--gold-btn)'}">${fmtDate(c.due_date)}</span>
+            ${quickActions(c.clients?.phone)}
+          </div></div>`;
         }).join('') || '<p style="font-size:13px;color:var(--muted)">Ninguna pendiente 🎉</p>'}
+        ${STATE.calls.length>0?`<button onclick="goTo('llamadas')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todas →</button>`:''}
       </div>
       <div class="card">
-        <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos</h3>
-        ${proximosBolos.map(g=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F1EBDD">
-          <div><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'}</div></div>
-          <span style="font-size:12px;color:var(--muted)">${fmtDate(g.event_date)}</span></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin fechas confirmadas todavía</p>'}
+        <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos (14 días)</h3>
+        ${proximosBolos.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
+          <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span style="font-size:12px;color:var(--muted)">${fmtDate(g.event_date)}</span>
+            ${quickActions(g.clients?.phone)}
+          </div></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin bolos en los próximos 14 días</p>'}
+        <button onclick="goTo('calendario')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver calendario →</button>
       </div>
     </div>
   `;
