@@ -333,13 +333,17 @@ function viewDashboard(){
   const activos = STATE.clients.filter(c => !['perdido','confirmado'].includes(c.status)).length;
   const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
   const in14 = new Date(todayMidnight); in14.setDate(in14.getDate()+14);
+  const in1Month = new Date(todayMidnight); in1Month.setMonth(in1Month.getMonth()+1);
   const todayStr = todayMidnight.toISOString().slice(0,10);
   const tomorrowStr = new Date(todayMidnight.getTime()+86400000).toISOString().slice(0,10);
 
   const bolosFuturos = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= todayMidnight);
-  const confirmados = bolosFuturos.length;
+  const bolosFuturosConfirmados = bolosFuturos.filter(g => g.magician_status === 'confirmado');
+  const bolosFuturosPendientes = bolosFuturos.filter(g => g.magician_status !== 'confirmado');
+  const confirmados = bolosFuturosConfirmados.length;
   const pendientes = STATE.calls.length;
-  const proximosBolos = bolosFuturos.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  const proximosBolos = bolosFuturosConfirmados.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  const proximosPendientes = bolosFuturosPendientes.filter(g => new Date(g.event_date) <= in1Month).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const sinMago = bolosFuturos.filter(g => new Date(g.event_date) <= in14 && !g.magician).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
@@ -380,7 +384,7 @@ function viewDashboard(){
     <p style="color:var(--muted);margin-bottom:28px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#FDF2E9">🎯</div><div><div style="font-size:26px;font-weight:700;color:var(--gold-btn)">${activos}</div><div style="font-size:12.5px;color:var(--muted)">Leads activos</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#DCFCE7">🎩</div><div><div style="font-size:26px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:12.5px;color:var(--muted)">Bolos por venir</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#DCFCE7">🎩</div><div><div style="font-size:26px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:12.5px;color:var(--muted)">Bolos confirmados</div></div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE">📞</div><div><div style="font-size:26px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:12.5px;color:var(--muted)">Llamadas pendientes</div></div></div>
     </div>
 
@@ -439,16 +443,26 @@ function viewDashboard(){
       ${callSection('⏰', 'Feedback pendiente de pedir', STATE.calls.filter(c=>c.kind==='feedback'), todayStr, quickActions)}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr;gap:20px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
-        <h3 style="font-size:16px;margin-bottom:14px">Próximos bolos (14 días)</h3>
+        <h3 style="font-size:16px;margin-bottom:14px">✅ Confirmados (14 días)</h3>
         ${proximosBolos.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
           <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'}</div></div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <span style="font-size:12px;color:var(--muted)">${fmtDate(g.event_date)}</span>
             ${quickActions(g.clients?.phone)}
-          </div></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin bolos en los próximos 14 días</p>'}
+          </div></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Sin bolos confirmados en los próximos 14 días</p>'}
         <button onclick="goTo('calendario')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver calendario →</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:14px">⏳ Pendientes por confirmar (1 mes)</h3>
+        ${proximosPendientes.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
+          <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span style="font-size:12px;color:var(--gold-btn);font-weight:600">${fmtDate(g.event_date)}</span>
+            ${quickActions(g.clients?.phone)}
+          </div></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Nada pendiente de confirmar 🎉</p>'}
+        <button onclick="bolosStatusTab='pendientes'; goTo('bolos')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todos →</button>
       </div>
     </div>
   `;
@@ -628,6 +642,14 @@ async function saveClient(){
   if(notesText.trim()){
     await sb.from('notes').insert({client_id: data.id, text: notesText.trim()});
   }
+  const followUp = new Date();
+  followUp.setDate(followUp.getDate() + 1);
+  await sb.from('calls').insert({
+    client_id: data.id,
+    reason: 'Contactar con el lead',
+    due_date: followUp.toISOString().slice(0,10),
+    kind: 'llamada',
+  });
   closeDrawer(); await loadAll(); render(); toast('Cliente guardado');
 }
 
@@ -740,10 +762,20 @@ async function updateStatus(id, status){
   await sb.from('clients').update({status, status_updated_at: new Date().toISOString()}).eq('id', id);
   if(status === 'presupuestado' && previous?.status !== 'presupuestado'){
     const followUp = new Date();
-    followUp.setDate(followUp.getDate() + 2);
+    followUp.setDate(followUp.getDate() + 3);
     await sb.from('calls').insert({
       client_id: id,
       reason: 'Seguimiento del presupuesto enviado',
+      due_date: followUp.toISOString().slice(0,10),
+      kind: 'llamada',
+    });
+  }
+  if(status === 'contactado' && previous?.status !== 'contactado'){
+    const followUp = new Date();
+    followUp.setDate(followUp.getDate() + 1);
+    await sb.from('calls').insert({
+      client_id: id,
+      reason: 'Enviar presupuesto',
       due_date: followUp.toISOString().slice(0,10),
       kind: 'llamada',
     });
@@ -807,6 +839,15 @@ async function addGig(clientId){
       reason: `Pedir feedback del bolo${place?' en '+place:''}`,
       due_date: feedbackDate.toISOString().slice(0,10),
       kind: 'feedback',
+    });
+  } else {
+    const followUp = new Date();
+    followUp.setDate(followUp.getDate() + 3);
+    await sb.from('calls').insert({
+      client_id: clientId,
+      reason: `Seguimiento del bolo presupuestado${place?' en '+place:''} (aún sin confirmar)`,
+      due_date: followUp.toISOString().slice(0,10),
+      kind: 'llamada',
     });
   }
   closeDrawer(); await loadAll(); render();
@@ -1662,6 +1703,7 @@ function openMailClient(){
 let bolosGroupBy = 'mes';
 let bolosShowAll = false;
 let bolosSelected = null; // set on first render per group type
+let bolosStatusTab = 'confirmados';
 
 function isoWeek(d){
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1700,7 +1742,9 @@ function setBolosGroup(g){
 
 function viewBolos(){
   if(bolosSelected===null) bolosSelected = defaultPeriod();
-  const withDate = STATE.gigs.filter(g=>g.event_date).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
+  const withDate = STATE.gigs.filter(g=>g.event_date && (bolosStatusTab==='confirmados' ? g.magician_status==='confirmado' : g.magician_status!=='confirmado')).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
+  const countConfirmados = STATE.gigs.filter(g=>g.event_date && g.magician_status==='confirmado').length;
+  const countPendientes = STATE.gigs.filter(g=>g.event_date && g.magician_status!=='confirmado').length;
   const groups = {};
   withDate.forEach(g=>{
     const key = groupKey(g.event_date);
@@ -1728,7 +1772,11 @@ function viewBolos(){
         <button class="chip ${bolosShowAll?'active':''}" onclick="bolosShowAll=!bolosShowAll; render()">Ver todos</button>
       </div>
     </div>
-    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px">${withDate.length} bolo${withDate.length!==1?'s':''} registrado${withDate.length!==1?'s':''} en total.</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="chip ${bolosStatusTab==='confirmados'?'active':''}" onclick="bolosStatusTab='confirmados'; render()">✅ Confirmados (${countConfirmados})</button>
+      <button class="chip ${bolosStatusTab==='pendientes'?'active':''}" onclick="bolosStatusTab='pendientes'; render()">⏳ Pendientes por confirmar (${countPendientes})</button>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:24px">${withDate.length} bolo${withDate.length!==1?'s':''} ${bolosStatusTab==='confirmados'?'confirmado':'pendiente'}${withDate.length!==1?'s':''} en este apartado.</p>
 
     ${visibleKeys.length===0?'<p style="color:var(--muted);font-size:13.5px">Sin bolos en este periodo.</p>':''}
     ${visibleKeys.map(key=>{
