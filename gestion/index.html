@@ -277,7 +277,22 @@ async function loadAll(){
 async function boot(){
   renderNav();
   await loadAll();
+  await autoMarkLostLeads();
   render();
+}
+async function autoMarkLostLeads(){
+  const now = new Date();
+  const stale = STATE.clients.filter(c => {
+    if(!['nuevo','contactado'].includes(c.status)) return false;
+    if(!c.status_updated_at) return false;
+    const days = (now - new Date(c.status_updated_at)) / (1000*60*60*24);
+    return days >= 30;
+  });
+  if(stale.length===0) return;
+  for(const c of stale){
+    await sb.from('clients').update({status:'perdido', status_updated_at: new Date().toISOString()}).eq('id', c.id);
+  }
+  await loadAll();
 }
 
 function render(){
@@ -346,6 +361,8 @@ function viewDashboard(){
   const proximosPendientes = bolosFuturosPendientes.filter(g => new Date(g.event_date) <= in1Month).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const sinMago = bolosFuturos.filter(g => new Date(g.event_date) <= in14 && !g.magician).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  const in7 = new Date(todayMidnight); in7.setDate(in7.getDate()+7);
+  const pendingSoon = bolosFuturos.filter(g => new Date(g.event_date) <= in7 && g.magician_status !== 'confirmado').sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const nowMonth = new Date().toISOString().slice(0,7);
   const nowYear = new Date().getFullYear();
@@ -420,6 +437,17 @@ function viewDashboard(){
         ${sinMago.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #FECACA;cursor:pointer" onclick="openGigDetail('${g.id}')">
           <div><span style="font-weight:600;font-size:13.5px">${g.clients?.name||'—'}</span> <span style="font-size:12px;color:var(--muted)">· ${g.place||'sin lugar'}</span></div>
           <span style="font-size:12px;color:#991B1B;font-weight:600">${fmtDate(g.event_date)}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${pendingSoon.length>0?`
+    <div class="card" style="margin-bottom:20px;border-color:#FDBA74;background:#FFF7ED">
+      <h3 style="font-size:16px;margin-bottom:12px">🟠 Bolos en menos de 7 días sin confirmar</h3>
+      <div style="display:grid;gap:8px">
+        ${pendingSoon.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #FED7AA;cursor:pointer" onclick="openGigDetail('${g.id}')">
+          <div><span style="font-weight:600;font-size:13.5px">${g.clients?.name||'—'}</span> <span style="font-size:12px;color:var(--muted)">· ${g.magician?g.magician+' · ':''}${g.place||'sin lugar'}</span></div>
+          <span style="font-size:12px;color:#C2410C;font-weight:600">${fmtDate(g.event_date)}</span>
         </div>`).join('')}
       </div>
     </div>` : ''}
@@ -740,7 +768,11 @@ async function openClientDetail(id){
 
         <h3 style="font-size:15px;margin:22px 0 10px">Programar llamada</h3>
         <div style="display:grid;gap:8px;margin-bottom:26px">
-          <input type="text" id="cd-call-reason" placeholder="Motivo (ej: seguimiento presupuesto)" />
+          <select id="cd-call-category" onchange="toggleCallReasonOtro()">
+            ${Object.entries(CALL_CATEGORIES).filter(([k])=>k!=='feedback').map(([k,cat])=>`<option value="${k}">${cat.icon} ${cat.label}</option>`).join('')}
+            <option value="otro">📝 Otro (escribir motivo)</option>
+          </select>
+          <input type="text" id="cd-call-reason" placeholder="Motivo" style="display:none" />
           <input type="date" id="cd-call-date" />
           <button class="btn secondary" onclick="addCall('${c.id}')">Programar</button>
         </div>
@@ -814,11 +846,23 @@ async function addNote(clientId){
   closeDrawer(); await loadAll(); render(); toast('Nota guardada');
   openClientDetail(clientId);
 }
+function toggleCallReasonOtro(){
+  const isOtro = document.getElementById('cd-call-category').value === 'otro';
+  document.getElementById('cd-call-reason').style.display = isOtro ? 'block' : 'none';
+}
 async function addCall(clientId){
-  const reason = document.getElementById('cd-call-reason').value;
+  const categoryValue = document.getElementById('cd-call-category').value;
   const due = document.getElementById('cd-call-date').value;
+  let reason, category;
+  if(categoryValue === 'otro'){
+    reason = document.getElementById('cd-call-reason').value;
+    category = 'manual';
+  } else {
+    reason = CALL_CATEGORIES[categoryValue].label;
+    category = categoryValue;
+  }
   if(!reason || !due){ toast('Rellena motivo y fecha'); return; }
-  await sb.from('calls').insert({client_id: clientId, reason, due_date: due, kind: 'llamada', category: 'manual'});
+  await sb.from('calls').insert({client_id: clientId, reason, due_date: due, kind: 'llamada', category});
   closeDrawer(); await loadAll(); render(); toast('Llamada programada');
 }
 async function addGig(clientId){
@@ -1058,22 +1102,50 @@ function callCategoryOf(c){
   return c.category || (c.kind==='feedback' ? 'feedback' : 'manual');
 }
 let llamadasCategoryFilter = 'todas';
+const CATEGORY_TEMPLATE_MAP = {
+  lead_contact: 'Bienvenida nuevo lead',
+  presupuesto_enviar: 'Seguimiento presupuesto',
+  presupuesto_seguimiento: 'Seguimiento presupuesto',
+  bolo_seguimiento: 'Recordatorio del evento',
+  feedback: 'Petición de reseña',
+};
+const CATEGORY_FALLBACK_MSG = {
+  lead_contact: 'Hola! Gracias por contactar con Más que Magos 🎩 Cuéntanos un poco más sobre vuestro evento y te preparamos una propuesta a medida.',
+  presupuesto_enviar: 'Hola! Aquí tienes el presupuesto para tu evento. Cualquier duda, decidnos 🎩',
+  presupuesto_seguimiento: 'Hola! Te escribo para saber si has podido ver el presupuesto que te enviamos. ¿Tienes alguna duda o quieres que ajustemos algo?',
+  bolo_seguimiento: 'Hola! Te escribimos para confirmar los últimos detalles de vuestro evento. ¡Ya queda menos!',
+  feedback: 'Hola! Esperamos que lo hayáis pasado genial en vuestra celebración 🪄 Si te ha gustado nuestro servicio, nos ayudaría muchísimo que nos dejaras una reseña.',
+};
+function waTextForCall(c){
+  const category = callCategoryOf(c);
+  const templateName = CATEGORY_TEMPLATE_MAP[category];
+  const template = templateName ? STATE.templates.find(t=>t.channel==='whatsapp' && t.name===templateName) : null;
+  return template ? template.body : (CATEGORY_FALLBACK_MSG[category] || '');
+}
+function sendCallWhatsapp(callId){
+  const c = STATE.calls.find(x=>x.id===callId);
+  if(!c || !c.clients?.phone){ toast('Este cliente no tiene teléfono guardado'); return; }
+  const text = waTextForCall(c);
+  const clean = c.clients.phone.replace(/[^0-9+]/g,'');
+  window.open(`https://wa.me/${clean}?text=${encodeURIComponent(text)}`, '_blank');
+}
+function callRow(c, icon){
+  const today = todayLocalStr();
+  const overdue = c.due_date < today;
+  const cat = CALL_CATEGORIES[callCategoryOf(c)];
+  return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
+    <span>${overdue?'🔴':icon}</span>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason} ${cat?'<span style="opacity:.6">· '+cat.label+'</span>':''}</div></div>
+    ${c.clients?.phone?`<button onclick="sendCallWhatsapp('${c.id}')" title="Enviar WhatsApp con plantilla" style="width:34px;height:34px;border-radius:8px;background:#DCFCE7;border:none;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0">💬</button>`:''}
+    <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
+    <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
+  </div>`;
+}
 function viewLlamadas(){
   const today = todayLocalStr();
   const filtered = llamadasCategoryFilter==='todas' ? STATE.calls : STATE.calls.filter(c=>callCategoryOf(c)===llamadasCategoryFilter);
   const llamadas = filtered.filter(c=>c.kind==='llamada');
   const feedback = filtered.filter(c=>c.kind==='feedback');
-
-  function callRow(c, icon){
-    const overdue = c.due_date < today;
-    const cat = CALL_CATEGORIES[callCategoryOf(c)];
-    return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
-      <span>${overdue?'🔴':icon}</span>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason} ${cat?'<span style="opacity:.6">· '+cat.label+'</span>':''}</div></div>
-      <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
-      <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
-    </div>`;
-  }
 
   return `
     <h1 style="font-size:24px;margin-bottom:16px">Llamadas y seguimientos</h1>
