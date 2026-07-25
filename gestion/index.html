@@ -504,19 +504,28 @@ function viewClientes(){
     <div style="display:flex;gap:8px;margin-bottom:10px">
       ${['todos','particular','empresa','ayuntamiento','agencia','asociacion'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
-      ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>`<button class="chip-sm ${STATE.statusFilter===s?'active':''}" onclick="STATE.statusFilter='${s}'; render()">${s==='todos'?'Todos los estados':STATUS_STYLES[s].label}</button>`).join('')}
+    <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>{
+        const count = s==='todos' ? STATE.clients.length : STATE.clients.filter(c=>c.status===s).length;
+        return `<button class="chip-sm ${STATE.statusFilter===s?'active':''}" onclick="STATE.statusFilter='${s}'; render()">${s==='todos'?'Todos los estados':STATUS_STYLES[s].label} (${count})</button>`;
+      }).join('')}
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       ${filtered.length===0?'<div class="empty-state"><div class="icon">🔍</div><p>Ningún cliente coincide con este filtro.</p></div>':''}
       ${filtered.map(c=>{
         const t=TYPE_STYLES[c.type], s=STATUS_STYLES[c.status];
         const av = avatarInitials(c.name);
+        const gigCount = STATE.gigs.filter(g=>g.client_id===c.id).length;
+        const infoParts = [c.event_type, c.phone, c.email].filter(Boolean);
         return `<div class="row" onclick="openClientDetail('${c.id}')">
           <div class="avatar" style="background:${av.color}">${av.initials}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:14.5px;font-weight:600">${t.icon} ${c.name}</div>
-            <div style="font-size:12.5px;color:var(--muted)">${c.event_type||'—'} - ${c.phone||'—'} - ${c.email||'—'}</div>
+            <div style="font-size:14.5px;font-weight:600">${t.icon} ${c.name} ${gigCount>1?'<span style="font-size:11px;background:#DCFCE7;color:#166534;padding:2px 7px;border-radius:100px;font-weight:700;margin-left:4px">🔁 repite</span>':''}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${infoParts.join(' · ')||'Sin datos de contacto'} ${c.event_date?' · 📅 '+fmtDate(c.event_date):''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0" onclick="event.stopPropagation()">
+            ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9+]/g,'')}" target="_blank" style="width:30px;height:30px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>
+            <a href="tel:${c.phone}" style="width:30px;height:30px;border-radius:8px;background:var(--warm);display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">📞</a>`:''}
           </div>
           ${badge(s)}
         </div>`;
