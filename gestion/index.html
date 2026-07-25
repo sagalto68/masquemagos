@@ -568,9 +568,15 @@ function openClientForm(){
         </div>
 
         <h4 style="font-size:11px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Datos del evento</h4>
-        <div style="display:grid;gap:12px">
+        <div style="display:grid;gap:12px;margin-bottom:22px">
           <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
           <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="nc-date" /></div>
+          <div><label class="f">Presupuesto aproximado que menciona (€)</label><input type="number" id="nc-budget" placeholder="Ej: 300" /></div>
+        </div>
+
+        <h4 style="font-size:11px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Notas</h4>
+        <div style="display:grid;gap:12px">
+          <textarea id="nc-notes" placeholder="Lo que comentó en la primera llamada..." style="min-height:80px"></textarea>
           <button class="btn" style="margin-top:8px" onclick="saveClient()">Guardar cliente</button>
         </div>
         <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
@@ -602,6 +608,8 @@ function checkDuplicateClient(){
 async function saveClient(){
   const sourceValue = document.getElementById('nc-source').value;
   const source = sourceValue === 'Otro' ? document.getElementById('nc-source-otro').value : sourceValue;
+  const budget = document.getElementById('nc-budget').value;
+  const notesText = document.getElementById('nc-notes').value;
   const payload = {
     name: document.getElementById('nc-name').value,
     type: document.getElementById('nc-type').value,
@@ -612,10 +620,14 @@ async function saveClient(){
     province: document.getElementById('nc-province').value,
     source: source,
     event_date: document.getElementById('nc-date').value || null,
+    budget_estimate: budget ? Number(budget) : null,
   };
   if(!payload.name){ toast('Ponle un nombre al cliente'); return; }
-  const {error} = await sb.from('clients').insert(payload);
+  const {data, error} = await sb.from('clients').insert(payload).select().single();
   if(error){ toast('Error al guardar'); console.error(error); return; }
+  if(notesText.trim()){
+    await sb.from('notes').insert({client_id: data.id, text: notesText.trim()});
+  }
   closeDrawer(); await loadAll(); render(); toast('Cliente guardado');
 }
 
@@ -646,6 +658,7 @@ async function openClientDetail(id){
           </select></div>
           <div><label class="f">Tipo de evento</label><input type="text" id="cd-event" value="${c.event_type||''}" /></div>
           <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="cd-event-date" value="${c.event_date||''}" /></div>
+          <div><label class="f">Presupuesto aproximado que menciona (€)</label><input type="number" id="cd-budget" value="${c.budget_estimate||''}" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="cd-phone" value="${c.phone||''}" /></div>
           <div><label class="f">Email</label><input type="email" id="cd-email" value="${c.email||''}" /></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -748,6 +761,7 @@ async function saveClientEdits(id){
     locality: document.getElementById('cd-locality').value,
     province: document.getElementById('cd-province').value,
     source: document.getElementById('cd-source').value,
+    budget_estimate: document.getElementById('cd-budget').value ? Number(document.getElementById('cd-budget').value) : null,
   };
   if(!payload.name){ toast('El nombre no puede quedar vacío'); return; }
   await sb.from('clients').update(payload).eq('id', id);
