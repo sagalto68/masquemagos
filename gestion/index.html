@@ -649,6 +649,7 @@ async function saveClient(){
     reason: 'Contactar con el lead',
     due_date: followUp.toISOString().slice(0,10),
     kind: 'llamada',
+    category: 'lead_contact',
   });
   closeDrawer(); await loadAll(); render(); toast('Cliente guardado');
 }
@@ -768,6 +769,7 @@ async function updateStatus(id, status){
       reason: 'Seguimiento del presupuesto enviado',
       due_date: followUp.toISOString().slice(0,10),
       kind: 'llamada',
+      category: 'presupuesto_seguimiento',
     });
   }
   if(status === 'contactado' && previous?.status !== 'contactado'){
@@ -778,6 +780,7 @@ async function updateStatus(id, status){
       reason: 'Enviar presupuesto',
       due_date: followUp.toISOString().slice(0,10),
       kind: 'llamada',
+      category: 'presupuesto_enviar',
     });
   }
   await loadAll(); render(); toast('Estado actualizado');
@@ -815,7 +818,7 @@ async function addCall(clientId){
   const reason = document.getElementById('cd-call-reason').value;
   const due = document.getElementById('cd-call-date').value;
   if(!reason || !due){ toast('Rellena motivo y fecha'); return; }
-  await sb.from('calls').insert({client_id: clientId, reason, due_date: due});
+  await sb.from('calls').insert({client_id: clientId, reason, due_date: due, kind: 'llamada', category: 'manual'});
   closeDrawer(); await loadAll(); render(); toast('Llamada programada');
 }
 async function addGig(clientId){
@@ -839,6 +842,7 @@ async function addGig(clientId){
       reason: `Pedir feedback del bolo${place?' en '+place:''}`,
       due_date: feedbackDate.toISOString().slice(0,10),
       kind: 'feedback',
+      category: 'feedback',
     });
   } else {
     const followUp = new Date();
@@ -848,6 +852,7 @@ async function addGig(clientId){
       reason: `Seguimiento del bolo presupuestado${place?' en '+place:''} (aún sin confirmar)`,
       due_date: followUp.toISOString().slice(0,10),
       kind: 'llamada',
+      category: 'bolo_seguimiento',
     });
   }
   closeDrawer(); await loadAll(); render();
@@ -1017,6 +1022,7 @@ async function saveGigDetails(gigId, clientId){
       reason: `Pedir feedback del bolo${place?' en '+place:''}`,
       due_date: feedbackDate.toISOString().slice(0,10),
       kind: 'feedback',
+      category: 'feedback',
     });
   }
   const stacked = document.querySelectorAll('.drawer-bg').length > 1;
@@ -1040,37 +1046,53 @@ async function saveGigFeedback(gigId, clientId){
 }
 
 // ---------------- LLAMADAS ----------------
+const CALL_CATEGORIES = {
+  lead_contact: {label:'Contactar lead', icon:'👋'},
+  presupuesto_enviar: {label:'Enviar presupuesto', icon:'📤'},
+  presupuesto_seguimiento: {label:'Seguimiento presupuesto', icon:'📋'},
+  bolo_seguimiento: {label:'Seguimiento bolo pendiente', icon:'🎩'},
+  feedback: {label:'Feedback', icon:'⭐'},
+  manual: {label:'Manual / otras', icon:'📝'},
+};
+function callCategoryOf(c){
+  return c.category || (c.kind==='feedback' ? 'feedback' : 'manual');
+}
+let llamadasCategoryFilter = 'todas';
 function viewLlamadas(){
-  const llamadas = STATE.calls.filter(c=>c.kind==='llamada');
-  const feedback = STATE.calls.filter(c=>c.kind==='feedback');
   const today = todayLocalStr();
+  const filtered = llamadasCategoryFilter==='todas' ? STATE.calls : STATE.calls.filter(c=>callCategoryOf(c)===llamadasCategoryFilter);
+  const llamadas = filtered.filter(c=>c.kind==='llamada');
+  const feedback = filtered.filter(c=>c.kind==='feedback');
+
+  function callRow(c, icon){
+    const overdue = c.due_date < today;
+    const cat = CALL_CATEGORIES[callCategoryOf(c)];
+    return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
+      <span>${overdue?'🔴':icon}</span>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason} ${cat?'<span style="opacity:.6">· '+cat.label+'</span>':''}</div></div>
+      <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
+      <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
+    </div>`;
+  }
+
   return `
-    <h1 style="font-size:24px;margin-bottom:20px">Llamadas y seguimientos</h1>
+    <h1 style="font-size:24px;margin-bottom:16px">Llamadas y seguimientos</h1>
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <button class="chip ${llamadasCategoryFilter==='todas'?'active':''}" onclick="llamadasCategoryFilter='todas'; render()">Todas (${STATE.calls.length})</button>
+      ${Object.entries(CALL_CATEGORIES).map(([key,cat])=>{
+        const count = STATE.calls.filter(c=>callCategoryOf(c)===key).length;
+        return `<button class="chip ${llamadasCategoryFilter===key?'active':''}" onclick="llamadasCategoryFilter='${key}'; render()">${cat.icon} ${cat.label} (${count})</button>`;
+      }).join('')}
+    </div>
     <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pendientes</h3>
     <div style="display:grid;gap:10px;margin-bottom:28px">
       ${llamadas.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente 🎉</p>':''}
-      ${llamadas.map(c=>{
-        const overdue = c.due_date < today;
-        return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
-        <span>${overdue?'🔴':'📞'}</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
-        <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
-      </div>`;
-      }).join('')}
+      ${llamadas.map(c=>callRow(c,'📞')).join('')}
     </div>
     <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Feedback pendiente de pedir</h3>
     <div style="display:grid;gap:10px">
       ${feedback.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente.</p>':''}
-      ${feedback.map(c=>{
-        const overdue = c.due_date < today;
-        return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
-        <span>${overdue?'🔴':'⏰'}</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason}</div></div>
-        <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
-        <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
-      </div>`;
-      }).join('')}
+      ${feedback.map(c=>callRow(c,'⏰')).join('')}
     </div>
   `;
 }
