@@ -538,26 +538,70 @@ function openClientForm(){
   const html = `
     <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()">
-        <h2 style="font-size:21px;margin-bottom:20px">Nuevo cliente</h2>
-        <div style="display:grid;gap:12px">
-          <div><label class="f">Nombre</label><input type="text" id="nc-name" /></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="font-size:21px">Nuevo cliente</h2>
+          <button onclick="closeDrawer()" aria-label="Cerrar" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+        </div>
+
+        <div id="nc-duplicate-warning" style="display:none;background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#92400E"></div>
+
+        <h4 style="font-size:11px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Datos de contacto</h4>
+        <div style="display:grid;gap:12px;margin-bottom:22px">
+          <div><label class="f">Nombre</label><input type="text" id="nc-name" oninput="checkDuplicateClient()" /></div>
           <div><label class="f">Tipo</label><select id="nc-type"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="agencia">Agencia de eventos</option><option value="asociacion">Asociación de fiestas</option></select></div>
-          <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
-          <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" oninput="checkDuplicateClient()" /></div>
           <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div><label class="f">Población</label><input type="text" id="nc-locality" placeholder="Ej: Sitges" /></div>
             <div><label class="f">Provincia</label><input type="text" id="nc-province" placeholder="Ej: Barcelona" /></div>
           </div>
-          <div><label class="f">Origen</label><input type="text" id="nc-source" placeholder="Web, Instagram, Google Ads..." /></div>
+          <div><label class="f">Origen</label><select id="nc-source" onchange="toggleOtroSource()">
+            <option value="">Selecciona...</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Google Ads">Google Ads</option>
+            <option value="Web / Google">Web / Google</option>
+            <option value="Referido / boca a boca">Referido / boca a boca</option>
+            <option value="Otro">Otro</option>
+          </select></div>
+          <div id="nc-source-otro-wrap" style="display:none"><label class="f">¿Cuál?</label><input type="text" id="nc-source-otro" /></div>
+        </div>
+
+        <h4 style="font-size:11px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Datos del evento</h4>
+        <div style="display:grid;gap:12px">
+          <div><label class="f">Tipo de evento</label><input type="text" id="nc-event" placeholder="Comunión, boda, cena de empresa..." /></div>
           <div><label class="f">Fecha del evento (si ya la sabéis)</label><input type="date" id="nc-date" /></div>
           <button class="btn" style="margin-top:8px" onclick="saveClient()">Guardar cliente</button>
         </div>
+        <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+  setTimeout(()=>document.getElementById('nc-name')?.focus(), 50);
+}
+function toggleOtroSource(){
+  const isOtro = document.getElementById('nc-source').value === 'Otro';
+  document.getElementById('nc-source-otro-wrap').style.display = isOtro ? 'block' : 'none';
+}
+function checkDuplicateClient(){
+  const name = document.getElementById('nc-name').value.trim().toLowerCase();
+  const phone = document.getElementById('nc-phone').value.trim();
+  const warningBox = document.getElementById('nc-duplicate-warning');
+  if(!name && !phone){ warningBox.style.display = 'none'; return; }
+  const match = STATE.clients.find(c =>
+    (name.length>2 && c.name.trim().toLowerCase() === name) ||
+    (phone.length>5 && c.phone && c.phone.replace(/\s/g,'') === phone.replace(/\s/g,''))
+  );
+  if(match){
+    warningBox.style.display = 'block';
+    warningBox.innerHTML = `⚠️ Ya existe un cliente parecido: <strong>${match.name}</strong> ${match.phone?'('+match.phone+')':''} — revisa si es la misma persona antes de crear uno nuevo.`;
+  } else {
+    warningBox.style.display = 'none';
+  }
 }
 async function saveClient(){
+  const sourceValue = document.getElementById('nc-source').value;
+  const source = sourceValue === 'Otro' ? document.getElementById('nc-source-otro').value : sourceValue;
   const payload = {
     name: document.getElementById('nc-name').value,
     type: document.getElementById('nc-type').value,
@@ -566,7 +610,7 @@ async function saveClient(){
     email: document.getElementById('nc-email').value,
     locality: document.getElementById('nc-locality').value,
     province: document.getElementById('nc-province').value,
-    source: document.getElementById('nc-source').value,
+    source: source,
     event_date: document.getElementById('nc-date').value || null,
   };
   if(!payload.name){ toast('Ponle un nombre al cliente'); return; }
