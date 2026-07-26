@@ -344,6 +344,7 @@ function callSection(icon, title, calls, todayStr, quickActions){
       ${calls.length>0?`<button onclick="goTo('llamadas')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:10px;cursor:pointer">Ver todas →</button>`:''}
     </div>`;
 }
+let dashboardShowAll = false;
 function viewDashboard(){
   const activos = STATE.clients.filter(c => !['perdido','confirmado'].includes(c.status)).length;
   const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
@@ -396,15 +397,58 @@ function viewDashboard(){
     </div>`;
   }
 
+  // ---- Lista de foco: "esto es lo único que tienes que hacer ahora" ----
+  const focusItems = [];
+  STATE.calls.filter(c=>c.due_date < todayStr).forEach(c=>{
+    focusItems.push({rank:0, icon:'🔴', title:c.clients?.name||'—', subtitle:c.reason, tag:'Llamada vencida', tagColor:'#991B1B', onClick:`openClientDetail('${c.client_id}')`, phone:c.clients?.phone});
+  });
+  STATE.calls.filter(c=>c.due_date === todayStr).forEach(c=>{
+    focusItems.push({rank:1, icon:'📞', title:c.clients?.name||'—', subtitle:c.reason, tag:'Hoy', tagColor:'#166534', onClick:`openClientDetail('${c.client_id}')`, phone:c.clients?.phone});
+  });
+  sinMago.slice(0,3).forEach(g=>{
+    focusItems.push({rank:2, icon:'⚠️', title:g.clients?.name||'—', subtitle:'Bolo sin mago · '+(g.place||''), tag:fmtDate(g.event_date), tagColor:'#991B1B', onClick:`openGigDetail('${g.id}')`, phone:g.clients?.phone});
+  });
+  pendingSoon.slice(0,3).forEach(g=>{
+    focusItems.push({rank:3, icon:'🟠', title:g.clients?.name||'—', subtitle:'Sin confirmar · '+(g.place||''), tag:fmtDate(g.event_date), tagColor:'#C2410C', onClick:`openGigDetail('${g.id}')`, phone:g.clients?.phone});
+  });
+  coldLeads.slice(0,3).forEach(c=>{
+    const days = Math.floor((today - new Date(c.status_updated_at)) / (1000*60*60*24));
+    focusItems.push({rank:4, icon:'🥶', title:c.name, subtitle:STATUS_STYLES[c.status]?.label||c.status, tag:days+' días parado', tagColor:'#92400E', onClick:`openClientDetail('${c.id}')`, phone:c.phone});
+  });
+  const focusTop = focusItems.sort((a,b)=>a.rank-b.rank).slice(0,6);
+
   return `
     <h1 style="font-size:26px;margin-bottom:4px">Buenos días 👋</h1>
-    <p style="color:var(--muted);margin-bottom:28px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
+    <p style="color:var(--muted);margin-bottom:20px;font-size:14px">Esto es lo que tenéis hoy sobre la mesa.</p>
+
+    <div class="card" style="margin-bottom:20px;border-color:var(--gold-btn);border-width:2px">
+      <h3 style="font-size:16px;margin-bottom:4px">🎯 Solo esto por ahora</h3>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px">Lo más urgente, en orden. No hace falta mirar nada más ahora mismo.</p>
+      ${focusTop.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada urgente ahora mismo 🎉 Todo bajo control.</p>':''}
+      <div style="display:grid;gap:8px">
+        ${focusTop.map(item=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="${item.onClick}">
+          <span style="font-size:16px;flex-shrink:0">${item.icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600">${item.title}</div>
+            <div style="font-size:12px;color:var(--muted)">${item.subtitle}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${item.tagColor};white-space:nowrap">${item.tag}</span>
+          ${quickActions(item.phone)}
+        </div>`).join('')}
+      </div>
+    </div>
+
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#FDF2E9">🎯</div><div><div style="font-size:26px;font-weight:700;color:var(--gold-btn)">${activos}</div><div style="font-size:12.5px;color:var(--muted)">Leads activos</div></div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#DCFCE7">🎩</div><div><div style="font-size:26px;font-weight:700;color:#166534">${confirmados}</div><div style="font-size:12.5px;color:var(--muted)">Bolos confirmados</div></div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE">📞</div><div><div style="font-size:26px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:12.5px;color:var(--muted)">Llamadas pendientes</div></div></div>
     </div>
 
+    <button onclick="dashboardShowAll=!dashboardShowAll; render()" style="width:100%;background:none;border:1px dashed var(--border);color:var(--muted);padding:12px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:20px;cursor:pointer">
+      ${dashboardShowAll?'▲ Ocultar el resto de detalle':'▼ Ver todo el detalle (metas, listas completas...)'}
+    </button>
+
+    ${!dashboardShowAll ? '' : `
     <div class="card" style="margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h3 style="font-size:16px">Meta de facturación</h3>
@@ -493,6 +537,7 @@ function viewDashboard(){
         <button onclick="bolosStatusTab='pendientes'; goTo('bolos')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todos →</button>
       </div>
     </div>
+    `}
   `;
 }
 function editGoals(){
@@ -1133,13 +1178,22 @@ function callRow(c, icon){
   const today = todayLocalStr();
   const overdue = c.due_date < today;
   const cat = CALL_CATEGORIES[callCategoryOf(c)];
-  return `<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
+  return `<div class="card" style="display:flex;align-items:center;gap:10px;padding:14px 18px;flex-wrap:wrap;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
     <span>${overdue?'🔴':icon}</span>
-    <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason} ${cat?'<span style="opacity:.6">· '+cat.label+'</span>':''}</div></div>
+    <div style="flex:1;min-width:140px"><div style="font-size:14px;font-weight:600">${c.clients?.name||'—'} ${overdue?'<span style="color:#991B1B;font-size:11px;font-weight:700">· VENCIDA</span>':''}</div><div style="font-size:12.5px;color:var(--muted)">${c.reason} ${cat?'<span style="opacity:.6">· '+cat.label+'</span>':''}</div></div>
     ${c.clients?.phone?`<button onclick="sendCallWhatsapp('${c.id}')" title="Enviar WhatsApp con plantilla" style="width:34px;height:34px;border-radius:8px;background:#DCFCE7;border:none;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0">💬</button>`:''}
-    <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:140px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
+    <button onclick="snoozeCall('${c.id}',1)" title="Aplazar a mañana" style="padding:7px 11px;border-radius:8px;background:var(--warm);border:none;font-size:12px;font-weight:600;color:var(--gold-btn);cursor:pointer;white-space:nowrap">Mañana</button>
+    <button onclick="snoozeCall('${c.id}',3)" title="Aplazar 3 días" style="padding:7px 11px;border-radius:8px;background:var(--warm);border:none;font-size:12px;font-weight:600;color:var(--gold-btn);cursor:pointer;white-space:nowrap">+3 días</button>
+    <input type="date" value="${c.due_date}" onchange="rescheduleCall('${c.id}', this.value)" style="width:130px;font-size:12.5px;padding:6px 8px;${overdue?'border-color:#F87171':''}" />
     <button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="markDone('${c.id}')">Hecha</button>
   </div>`;
+}
+async function snoozeCall(id, days){
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const newDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  await sb.from('calls').update({due_date:newDate}).eq('id', id);
+  await loadAll(); render(); toast(days===1 ? 'Aplazada a mañana' : `Aplazada ${days} días`);
 }
 function viewLlamadas(){
   const today = todayLocalStr();
