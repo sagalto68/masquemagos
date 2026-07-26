@@ -602,12 +602,12 @@ function viewClientes(){
       ${filtered.map(c=>{
         const t=TYPE_STYLES[c.type], s=STATUS_STYLES[c.status];
         const av = avatarInitials(c.name);
-        const gigCount = STATE.gigs.filter(g=>g.client_id===c.id).length;
         const infoParts = [c.event_type, c.phone, c.email].filter(Boolean);
+        const bolosConfirmadosCount = STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status==='confirmado').length;
         return `<div class="row" onclick="openClientDetail('${c.id}')">
           <div class="avatar" style="background:${av.color}">${av.initials}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:14.5px;font-weight:600">${t.icon} ${c.name} ${gigCount>1?'<span style="font-size:11px;background:#DCFCE7;color:#166534;padding:2px 7px;border-radius:100px;font-weight:700;margin-left:4px">🔁 repite</span>':''}</div>
+            <div style="font-size:14.5px;font-weight:600">${t.icon} ${c.name} ${bolosConfirmadosCount>1?'<span style="font-size:11px;background:#DCFCE7;color:#166534;padding:2px 7px;border-radius:100px;font-weight:700;margin-left:4px">🔁 repite</span>':''}</div>
             <div style="font-size:12.5px;color:var(--muted)">${infoParts.join(' · ')||'Sin datos de contacto'} ${c.event_date?' · 📅 '+fmtDate(c.event_date):''}</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-shrink:0" onclick="event.stopPropagation()">
@@ -732,6 +732,8 @@ async function openClientDetail(id){
   const t=TYPE_STYLES[c.type];
   const notes = (c.notes||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   const gigs = STATE.gigs.filter(g=>g.client_id===id).sort((a,b)=>new Date(b.event_date||0)-new Date(a.event_date||0));
+  const presupuestos = gigs.filter(g=>g.magician_status !== 'confirmado');
+  const bolosConfirmados = gigs.filter(g=>g.magician_status === 'confirmado');
   const html = `
     <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()">
@@ -765,10 +767,10 @@ async function openClientDetail(id){
         </div>
         <button class="btn" style="width:100%;margin-bottom:22px" onclick="saveClientEdits('${c.id}')">Guardar cambios del cliente</button>
 
-        <h3 style="font-size:15px;margin-bottom:10px">Historial de bolos</h3>
+        <h3 style="font-size:15px;margin-bottom:10px">Presupuestado</h3>
         <div style="display:grid;gap:8px;margin-bottom:14px">
-          ${gigs.length===0?'<p style="font-size:13px;color:var(--muted);font-style:italic">Sin bolos registrados todavía.</p>':''}
-          ${gigs.map(g=>`<div style="background:var(--warm);border-radius:10px;padding:12px 14px;font-size:13px">
+          ${presupuestos.length===0?'<p style="font-size:13px;color:var(--muted);font-style:italic">Sin presupuestos registrados todavía.</p>':''}
+          ${presupuestos.map(g=>`<div style="background:var(--warm);border-radius:10px;padding:12px 14px;font-size:13px">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px">
               <strong>${g.event_date?fmtDate(g.event_date):'Sin fecha'} ${g.event_time?'· '+g.event_time:''}</strong>
               <span>
@@ -777,30 +779,60 @@ async function openClientDetail(id){
               </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.magician?'· '+magoStatusLabel(g.magician_status):''} ${g.billing_month?'· Se factura: '+g.billing_month:''}</div>
-            ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
+            <div style="color:var(--muted)">Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}</div>
           </div>`).join('')}
         </div>
         <div style="display:grid;gap:8px;margin-bottom:22px;padding:14px;border:1px dashed var(--border);border-radius:10px">
-          <label class="f" style="margin-bottom:0">Añadir nuevo bolo</label>
-          <input type="text" id="ng-place" placeholder="Lugar" />
+          <label class="f" style="margin-bottom:0">Añadir presupuesto</label>
+          <input type="text" id="np-place" placeholder="Lugar" />
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <input type="date" id="ng-date" />
-            <input type="text" id="ng-time" placeholder="Hora (ej: 18:00)" />
+            <input type="date" id="np-date" />
+            <input type="text" id="np-time" placeholder="Hora (ej: 18:00)" />
           </div>
-          <select id="ng-magician">
+          <select id="np-magician">
             <option value="">Sin mago asignado</option>
             ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
           </select>
-          <input type="text" id="ng-magician-manual" placeholder="...o escribe el nombre a mano" />
-          <select id="ng-magician-status">
+          <input type="text" id="np-magician-manual" placeholder="...o escribe el nombre a mano" />
+          <select id="np-status">
             <option value="pendiente">Pendiente</option>
             <option value="confirmado">Confirmado</option>
             <option value="rechazado">Rechazado</option>
           </select>
-          <input type="number" id="ng-price" placeholder="Precio cobrado (€)" />
-          <div><label class="f">Mes en que se factura (para Finanzas)</label><div style="display:flex;gap:8px">${billingMonthSelects('ng-billing-month', '')}</div></div>
-          <button class="btn secondary" onclick="addGig('${c.id}')">Guardar bolo</button>
+          <button class="btn secondary" onclick="addPresupuesto('${c.id}')">Guardar presupuesto</button>
+        </div>
+
+        <h3 style="font-size:15px;margin-bottom:10px">Bolo</h3>
+        <div style="display:grid;gap:8px;margin-bottom:14px">
+          ${bolosConfirmados.length===0?'<p style="font-size:13px;color:var(--muted);font-style:italic">Sin bolos confirmados todavía.</p>':''}
+          ${bolosConfirmados.map(g=>`<div style="background:var(--warm);border-radius:10px;padding:12px 14px;font-size:13px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <strong>${g.event_date?fmtDate(g.event_date):'Sin fecha'} ${g.event_time?'· '+g.event_time:''}</strong>
+              <span>
+                <button onclick="openGigDetail('${g.id}')" style="background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer;margin-right:10px">Editar</button>
+                <button onclick="deleteGig('${g.id}','${c.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">Borrar</button>
+              </span>
+            </div>
+            <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
+            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.billing_month?'· Se factura: '+g.billing_month:''}</div>
+            ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
+          </div>`).join('')}
+        </div>
+        <div style="display:grid;gap:8px;margin-bottom:22px;padding:14px;border:1px dashed var(--border);border-radius:10px">
+          <label class="f" style="margin-bottom:0">Añadir bolo (100% confirmado)</label>
+          <input type="text" id="nb-place" placeholder="Lugar" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input type="date" id="nb-date" />
+            <input type="text" id="nb-time" placeholder="Hora (ej: 18:00)" />
+          </div>
+          <select id="nb-magician">
+            <option value="">Sin mago asignado</option>
+            ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+          </select>
+          <input type="text" id="nb-magician-manual" placeholder="...o escribe el nombre a mano" />
+          <input type="number" id="nb-price" placeholder="Precio cobrado (€)" />
+          <div><label class="f">Mes en que se factura (para Finanzas)</label><div style="display:flex;gap:8px">${billingMonthSelects('nb-billing-month', '')}</div></div>
+          <button class="btn secondary" onclick="addBolo('${c.id}')">Guardar bolo</button>
         </div>
 
         <h3 style="font-size:15px;margin-bottom:10px">Notas y seguimiento</h3>
@@ -909,6 +941,55 @@ async function addCall(clientId){
   if(!reason || !due){ toast('Rellena motivo y fecha'); return; }
   await sb.from('calls').insert({client_id: clientId, reason, due_date: due, kind: 'llamada', category});
   closeDrawer(); await loadAll(); render(); toast('Llamada programada');
+}
+async function addPresupuesto(clientId){
+  const place = document.getElementById('np-place').value;
+  const date = document.getElementById('np-date').value;
+  const time = document.getElementById('np-time').value;
+  const magicianId = document.getElementById('np-magician').value;
+  const magicianManual = document.getElementById('np-magician-manual').value;
+  const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
+  const magicianName = magicianManual || magicianObj?.name || null;
+  const magicianStatus = document.getElementById('np-status').value;
+  if(!date){ toast('Ponle al menos una fecha al presupuesto'); return; }
+  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus});
+  if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
+  if(magicianStatus !== 'confirmado'){
+    const followUp = new Date();
+    followUp.setDate(followUp.getDate() + 3);
+    await sb.from('calls').insert({
+      client_id: clientId,
+      reason: `Seguimiento del bolo presupuestado${place?' en '+place:''} (aún sin confirmar)`,
+      due_date: followUp.toISOString().slice(0,10),
+      kind: 'llamada',
+      category: 'bolo_seguimiento',
+    });
+  }
+  await loadAll(); render(); openClientDetail(clientId); toast('Presupuesto guardado');
+}
+async function addBolo(clientId){
+  const place = document.getElementById('nb-place').value;
+  const date = document.getElementById('nb-date').value;
+  const time = document.getElementById('nb-time').value;
+  const magicianId = document.getElementById('nb-magician').value;
+  const magicianManual = document.getElementById('nb-magician-manual').value;
+  const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
+  const magicianName = magicianManual || magicianObj?.name || null;
+  const price = document.getElementById('nb-price').value;
+  const billingMonth = readBillingMonth('nb-billing-month');
+  if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
+  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: 'confirmado', price: price?Number(price):null, billing_month: billingMonth});
+  if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
+  const feedbackDate = new Date(date);
+  feedbackDate.setDate(feedbackDate.getDate() + 1);
+  await sb.from('calls').insert({
+    client_id: clientId,
+    reason: `Pedir feedback del bolo${place?' en '+place:''}`,
+    due_date: feedbackDate.toISOString().slice(0,10),
+    kind: 'feedback',
+    category: 'feedback',
+  });
+  await loadAll(); render(); openClientDetail(clientId); toast('Bolo guardado y feedback programado para el día siguiente');
 }
 async function addGig(clientId){
   const place = document.getElementById('ng-place').value;
