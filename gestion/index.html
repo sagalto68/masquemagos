@@ -1718,6 +1718,7 @@ function viewEmails(){
           <div style="display:grid;gap:6px">
             ${STATE.templates.filter(t=>t.channel===campaignChannel).map(t=>`<div class="row" style="cursor:default;padding:8px 12px">
               <div style="flex:1;font-size:13px">${t.name}</div>
+              <button onclick="editTemplate('${t.id}')" style="background:none;border:none;color:var(--gold-btn);font-size:12px;cursor:pointer;margin-right:10px">✎ Editar</button>
               <button onclick="deleteTemplate('${t.id}')" style="background:none;border:none;color:#991B1B;font-size:12px;cursor:pointer">✕</button>
             </div>`).join('')}
           </div>
@@ -1765,6 +1766,38 @@ async function saveAsTemplate(channel){
   if(!body){ toast('Escribe primero el mensaje'); return; }
   await sb.from('message_templates').insert({channel, name, subject, body});
   await loadAll(); render(); toast('Plantilla guardada');
+}
+function editTemplate(id){
+  const t = STATE.templates.find(x=>x.id===id);
+  if(!t) return;
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="font-size:21px">Editar plantilla</h2>
+          <button onclick="closeDrawer()" aria-label="Cerrar" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+        </div>
+        <div style="display:grid;gap:12px">
+          <div><label class="f">Nombre</label><input type="text" id="et-name" value="${t.name}" /></div>
+          ${t.channel==='email'?`<div><label class="f">Asunto</label><input type="text" id="et-subject" value="${t.subject||''}" /></div>`:''}
+          <div><label class="f">Mensaje</label><textarea id="et-body" style="min-height:160px">${t.body}</textarea></div>
+          <button class="btn" onclick="saveTemplateEdit('${t.id}')">Guardar cambios</button>
+        </div>
+        <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+async function saveTemplateEdit(id){
+  const t = STATE.templates.find(x=>x.id===id);
+  const payload = {
+    name: document.getElementById('et-name').value,
+    body: document.getElementById('et-body').value,
+  };
+  if(t.channel==='email') payload.subject = document.getElementById('et-subject').value;
+  if(!payload.name || !payload.body){ toast('Rellena nombre y mensaje'); return; }
+  await sb.from('message_templates').update(payload).eq('id', id);
+  closeDrawer(); await loadAll(); render(); toast('Plantilla actualizada');
 }
 async function deleteTemplate(id){
   if(!confirm('¿Borrar esta plantilla?')) return;
@@ -1906,6 +1939,7 @@ let magoSearch = '';
 let magoSortBy = 'name';
 let magoOnlyFavorites = false;
 let magoOnlyActive = true;
+let magoRoleTab = 'mago';
 
 function magoStats(magoId){
   const gigs = STATE.gigs.filter(g=>g.magician_id===magoId);
@@ -1915,6 +1949,7 @@ function magoStats(magoId){
 
 function viewMagos(){
   let filtered = STATE.magicians.filter(m =>
+    (m.role||'mago') === magoRoleTab &&
     (magoComunidadFilter==='todas' || m.comunidad===magoComunidadFilter) &&
     m.name.toLowerCase().includes(magoSearch.toLowerCase()) &&
     (!magoOnlyFavorites || m.favorite) &&
@@ -1926,12 +1961,16 @@ function viewMagos(){
   else filtered.sort((a,b)=>a.name.localeCompare(b.name));
 
   return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h1 style="font-size:24px">Magos</h1>
-      <button class="btn" onclick="openMagoForm()">+ Nuevo mago</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h1 style="font-size:24px">${magoRoleTab==='mago'?'Magos':'Animadores'}</h1>
+      <button class="btn" onclick="openMagoForm()">+ Nuevo ${magoRoleTab==='mago'?'mago':'animador'}</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="chip ${magoRoleTab==='mago'?'active':''}" onclick="magoRoleTab='mago'; render()">🪄 Magos (${STATE.magicians.filter(m=>(m.role||'mago')==='mago').length})</button>
+      <button class="chip ${magoRoleTab==='animador'?'active':''}" onclick="magoRoleTab='animador'; render()">🎭 Animadores (${STATE.magicians.filter(m=>m.role==='animador').length})</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
-      <input type="text" placeholder="Buscar mago..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:240px" />
+      <input type="text" placeholder="Buscar..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:240px" />
       <select onchange="magoSortBy=this.value; render()" style="max-width:170px">
         <option value="name" ${magoSortBy==='name'?'selected':''}>Ordenar: Nombre</option>
         <option value="bolos" ${magoSortBy==='bolos'?'selected':''}>Ordenar: Más bolos</option>
@@ -1992,9 +2031,13 @@ function openMagoForm(){
   const html = `
     <div class="drawer-bg">
       <div class="drawer" onclick="event.stopPropagation()">
-        <h2 style="font-size:21px;margin-bottom:20px">Nuevo mago</h2>
+        <h2 style="font-size:21px;margin-bottom:20px">Nuevo ${magoRoleTab==='mago'?'mago':'animador'}</h2>
         <div style="display:grid;gap:12px">
           <div><label class="f">Nombre</label><input type="text" id="nm-name" /></div>
+          <div><label class="f">Tipo</label><select id="nm-role">
+            <option value="mago" ${magoRoleTab==='mago'?'selected':''}>🪄 Mago</option>
+            <option value="animador" ${magoRoleTab==='animador'?'selected':''}>🎭 Animador</option>
+          </select></div>
           <div><label class="f">Teléfono</label><input type="tel" id="nm-phone" /></div>
           <div><label class="f">Email</label><input type="email" id="nm-email" /></div>
           <div><label class="f">Comunidad autónoma</label><select id="nm-comunidad">
@@ -2018,6 +2061,7 @@ function openMagoForm(){
 async function saveMago(){
   const payload = {
     name: document.getElementById('nm-name').value,
+    role: document.getElementById('nm-role').value,
     phone: document.getElementById('nm-phone').value,
     email: document.getElementById('nm-email').value,
     comunidad: document.getElementById('nm-comunidad').value,
@@ -2050,6 +2094,10 @@ function openMagoDetail(id){
 
         <div style="display:grid;gap:10px;margin-bottom:10px">
           <div><label class="f">Nombre</label><input type="text" id="mg-name" value="${m.name||''}" /></div>
+          <div><label class="f">Tipo</label><select id="mg-role">
+            <option value="mago" ${(m.role||'mago')==='mago'?'selected':''}>🪄 Mago</option>
+            <option value="animador" ${m.role==='animador'?'selected':''}>🎭 Animador</option>
+          </select></div>
           <div><label class="f">Teléfono</label><input type="tel" id="mg-phone" value="${m.phone||''}" /></div>
           <div><label class="f">Email</label><input type="email" id="mg-email" value="${m.email||''}" /></div>
           <div><label class="f">Comunidad autónoma</label><select id="mg-comunidad">
@@ -2125,6 +2173,7 @@ function openMagoDetail(id){
 async function saveMagoEdits(id){
   const payload = {
     name: document.getElementById('mg-name').value,
+    role: document.getElementById('mg-role').value,
     phone: document.getElementById('mg-phone').value,
     email: document.getElementById('mg-email').value,
     comunidad: document.getElementById('mg-comunidad').value,
