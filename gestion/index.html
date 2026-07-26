@@ -462,13 +462,12 @@ function viewDashboard(){
         const t = TYPE_STYLES[c.type] || TYPE_STYLES.particular;
         const infoLine = [t.label, c.event_type, c.event_date?fmtDate(c.event_date):null, c.locality, c.province, c.phone].filter(Boolean).join(' · ');
         return `<div class="card" style="cursor:pointer" onclick="openClientDetail('${c.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <strong style="font-size:14.5px">${c.name}</strong>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:${c.quotes.length>0?'8px':'0'}">
+          <div style="font-size:13px;min-width:0"><strong style="font-size:14.5px">${c.name}</strong> <span style="color:var(--muted)">${infoLine?'· '+infoLine:''}</span></div>
           ${quickActions(c.phone)}
         </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:${c.quotes.length>0?'8px':'0'}">${infoLine||'Sin más datos'}</div>
         ${c.quotes.map(g=>`<div style="font-size:12.5px;color:var(--muted);padding:4px 0;border-top:1px solid #F1EBDD">
-          ${g.place||'Lugar sin especificar'} ${g.event_date?'· '+fmtDate(g.event_date):''} · Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}
+          ${g.place||'Lugar sin especificar'} ${g.event_date?'· '+fmtDate(g.event_date):''} · ${g.performer_role==='animador'?'🎭 Animador':'🪄 Mago'}: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} · ${magoStatusLabel(g.magician_status)}
         </div>`).join('')}
       </div>`;
       }).join('')}
@@ -529,8 +528,7 @@ function viewDashboard(){
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">⏳ Pendientes por confirmar (1 mes)</h3>
         ${proximosPendientes.map(g=>{
-          const performer = STATE.magicians.find(m=>m.id===g.magician_id);
-          const roleLabel = performer ? (performer.role==='animador'?'🎭 Animador':'🪄 Mago') : (g.magician?'🪄 Mago':'');
+          const roleLabel = g.performer_role==='animador' ? '🎭 Animador' : '🪄 Mago';
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
           <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'} ${g.magician?'· '+roleLabel+': '+g.magician:''}</div></div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -807,7 +805,7 @@ async function openClientDetail(id){
               </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}</div>
+            <div style="color:var(--muted)">${g.performer_role==='animador'?'🎭 Animador':'🪄 Mago'}: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} · ${magoStatusLabel(g.magician_status)}</div>
           </div>`).join('')}
         </div>
         <div style="display:grid;gap:8px;margin-bottom:22px;padding:14px;border:1px dashed var(--border);border-radius:10px">
@@ -826,6 +824,7 @@ async function openClientDetail(id){
             ${STATE.magicians.filter(m=>(m.role||'mago')==='mago').map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
           </select>
           <input type="text" id="np-magician-manual" placeholder="...o escribe el nombre a mano" />
+          <input type="number" id="np-price" placeholder="Precio al que se ha presupuestado (€)" />
           <select id="np-status">
             <option value="pendiente">Pendiente</option>
             <option value="confirmado">Confirmado</option>
@@ -846,7 +845,7 @@ async function openClientDetail(id){
               </span>
             </div>
             <div style="color:var(--muted)">${g.place||'Lugar sin especificar'}</div>
-            <div style="color:var(--muted)">Mago: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.billing_month?'· Se factura: '+g.billing_month:''}</div>
+            <div style="color:var(--muted)">${g.performer_role==='animador'?'🎭 Animador':'🪄 Mago'}: ${g.magician||'—'} ${g.price?'· '+Number(g.price).toFixed(2)+'€':''} ${g.billing_month?'· Se factura: '+g.billing_month:''}</div>
             ${g.feedback?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,151,61,.2)"><strong>Feedback:</strong> ${g.feedback}</div>`:`<button onclick="promptFeedback('${g.id}','${c.id}')" style="margin-top:6px;background:none;border:none;color:var(--gold-btn);font-size:12px;font-weight:600;cursor:pointer">+ Añadir feedback</button>`}
           </div>`).join('')}
         </div>
@@ -988,13 +987,15 @@ async function addPresupuesto(clientId){
   const place = document.getElementById('np-place').value;
   const date = document.getElementById('np-date').value;
   const time = document.getElementById('np-time').value;
+  const role = document.getElementById('np-role').value;
   const magicianId = document.getElementById('np-magician').value;
   const magicianManual = document.getElementById('np-magician-manual').value;
   const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
   const magicianName = magicianManual || magicianObj?.name || null;
   const magicianStatus = document.getElementById('np-status').value;
+  const price = document.getElementById('np-price').value;
   if(!date){ toast('Ponle al menos una fecha al presupuesto'); return; }
-  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus});
+  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: magicianStatus, performer_role: role, price: price?Number(price):null});
   if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
   if(magicianStatus !== 'confirmado'){
     const followUp = new Date();
@@ -1013,6 +1014,7 @@ async function addBolo(clientId){
   const place = document.getElementById('nb-place').value;
   const date = document.getElementById('nb-date').value;
   const time = document.getElementById('nb-time').value;
+  const role = document.getElementById('nb-role').value;
   const magicianId = document.getElementById('nb-magician').value;
   const magicianManual = document.getElementById('nb-magician-manual').value;
   const magicianObj = STATE.magicians.find(m=>m.id===magicianId);
@@ -1020,7 +1022,7 @@ async function addBolo(clientId){
   const price = document.getElementById('nb-price').value;
   const billingMonth = readBillingMonth('nb-billing-month');
   if(!date){ toast('Ponle al menos una fecha al bolo'); return; }
-  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: 'confirmado', price: price?Number(price):null, billing_month: billingMonth});
+  const {error} = await sb.from('gigs').insert({client_id: clientId, place, event_date: date, event_time: time, magician_id: magicianManual?null:(magicianId||null), magician: magicianName, magician_status: 'confirmado', performer_role: role, price: price?Number(price):null, billing_month: billingMonth});
   if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
   const feedbackDate = new Date(date);
   feedbackDate.setDate(feedbackDate.getDate() + 1);
