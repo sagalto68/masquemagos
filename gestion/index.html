@@ -390,8 +390,12 @@ function viewDashboard(){
 
   const presupuestadosInfo = STATE.clients.filter(c=>c.status==='presupuestado').map(c=>({
     ...c,
-    quotes: STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status!=='confirmado'),
-  }));
+    quotes: STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status!=='confirmado').sort((a,b)=>new Date(a.event_date||'9999-12-31')-new Date(b.event_date||'9999-12-31')),
+  })).sort((a,b)=>{
+    const dateA = a.quotes[0]?.event_date || '9999-12-31';
+    const dateB = b.quotes[0]?.event_date || '9999-12-31';
+    return new Date(dateA) - new Date(dateB);
+  });
 
   function quickActions(phone){
     if(!phone) return '';
@@ -456,7 +460,7 @@ function viewDashboard(){
       ${presupuestadosInfo.length===0?'<p style="font-size:13.5px;color:var(--muted)">Ningún cliente en estado "Presupuestado" ahora mismo.</p>':''}
       ${presupuestadosInfo.map(c=>{
         const t = TYPE_STYLES[c.type] || TYPE_STYLES.particular;
-        const infoLine = [t.label, c.event_type, c.event_date?fmtDate(c.event_date):null, c.locality, c.phone].filter(Boolean).join(' · ');
+        const infoLine = [t.label, c.event_type, c.event_date?fmtDate(c.event_date):null, c.locality, c.province, c.phone].filter(Boolean).join(' · ');
         return `<div class="card" style="cursor:pointer" onclick="openClientDetail('${c.id}')">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <strong style="font-size:14.5px">${c.name}</strong>
@@ -524,12 +528,16 @@ function viewDashboard(){
       </div>
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">⏳ Pendientes por confirmar (1 mes)</h3>
-        ${proximosPendientes.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
-          <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'}</div></div>
+        ${proximosPendientes.map(g=>{
+          const performer = STATE.magicians.find(m=>m.id===g.magician_id);
+          const roleLabel = performer ? (performer.role==='animador'?'🎭 Animador':'🪄 Mago') : (g.magician?'🪄 Mago':'');
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
+          <div style="min-width:0" onclick="event.stopPropagation()"><div style="font-size:14px;font-weight:600">${g.clients?.name||'—'}</div><div style="font-size:12.5px;color:var(--muted)">${g.place||'—'} ${g.magician?'· '+roleLabel+': '+g.magician:''}</div></div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <span style="font-size:12px;color:var(--gold-btn);font-weight:600">${fmtDate(g.event_date)}</span>
             ${quickActions(g.clients?.phone)}
-          </div></div>`).join('') || '<p style="font-size:13px;color:var(--muted)">Nada pendiente de confirmar 🎉</p>'}
+          </div></div>`;
+        }).join('') || '<p style="font-size:13px;color:var(--muted)">Nada pendiente de confirmar 🎉</p>'}
         <button onclick="bolosStatusTab='pendientes'; goTo('bolos')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todos →</button>
       </div>
     </div>
@@ -809,9 +817,13 @@ async function openClientDetail(id){
             <input type="date" id="np-date" />
             <input type="text" id="np-time" placeholder="Hora (ej: 18:00)" />
           </div>
+          <select id="np-role" onchange="filterPerformerSelect('np')">
+            <option value="mago">🪄 Mago</option>
+            <option value="animador">🎭 Animador</option>
+          </select>
           <select id="np-magician">
             <option value="">Sin mago asignado</option>
-            ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+            ${STATE.magicians.filter(m=>(m.role||'mago')==='mago').map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
           </select>
           <input type="text" id="np-magician-manual" placeholder="...o escribe el nombre a mano" />
           <select id="np-status">
@@ -845,9 +857,13 @@ async function openClientDetail(id){
             <input type="date" id="nb-date" />
             <input type="text" id="nb-time" placeholder="Hora (ej: 18:00)" />
           </div>
+          <select id="nb-role" onchange="filterPerformerSelect('nb')">
+            <option value="mago">🪄 Mago</option>
+            <option value="animador">🎭 Animador</option>
+          </select>
           <select id="nb-magician">
             <option value="">Sin mago asignado</option>
-            ${STATE.magicians.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+            ${STATE.magicians.filter(m=>(m.role||'mago')==='mago').map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
           </select>
           <input type="text" id="nb-magician-manual" placeholder="...o escribe el nombre a mano" />
           <input type="number" id="nb-price" placeholder="Precio cobrado (€)" />
@@ -961,6 +977,12 @@ async function addCall(clientId){
   if(!reason || !due){ toast('Rellena motivo y fecha'); return; }
   await sb.from('calls').insert({client_id: clientId, reason, due_date: due, kind: 'llamada', category});
   closeDrawer(); await loadAll(); render(); toast('Llamada programada');
+}
+function filterPerformerSelect(prefix){
+  const role = document.getElementById(prefix+'-role').value;
+  const select = document.getElementById(prefix+'-magician');
+  const matching = STATE.magicians.filter(m=>(m.role||'mago')===role);
+  select.innerHTML = `<option value="">Sin ${role} asignado</option>` + matching.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 }
 async function addPresupuesto(clientId){
   const place = document.getElementById('np-place').value;
