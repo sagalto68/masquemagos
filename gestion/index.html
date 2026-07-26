@@ -449,29 +449,25 @@ function viewDashboard(){
       <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE">📞</div><div><div style="font-size:26px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:12.5px;color:var(--muted)">Llamadas pendientes</div></div></div>
     </div>
 
-    <div class="card" style="margin-bottom:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3 style="font-size:16px">Meta de facturación</h3>
-        <button onclick="editGoals()" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;cursor:pointer;font-weight:600">✎ Editar metas</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
-            <span>Este mes</span><span style="color:var(--muted)">${facturadoMes.toFixed(0)}€ ${monthlyGoal>0?'de '+monthlyGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
-          </div>
-          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
-            <div style="background:var(--gold-btn);height:100%;width:${monthlyPct}%;transition:width .3s"></div>
-          </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="font-size:16px">💰 Clientes presupuestados</h3>
+    </div>
+    <div style="display:grid;gap:10px;margin-bottom:20px">
+      ${presupuestadosInfo.length===0?'<p style="font-size:13.5px;color:var(--muted)">Ningún cliente en estado "Presupuestado" ahora mismo.</p>':''}
+      ${presupuestadosInfo.map(c=>{
+        const t = TYPE_STYLES[c.type] || TYPE_STYLES.particular;
+        const infoLine = [t.label, c.event_type, c.event_date?fmtDate(c.event_date):null, c.locality, c.phone].filter(Boolean).join(' · ');
+        return `<div class="card" style="cursor:pointer" onclick="openClientDetail('${c.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <strong style="font-size:14.5px">${c.name}</strong>
+          ${quickActions(c.phone)}
         </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
-            <span>Este año</span><span style="color:var(--muted)">${facturadoAnio.toFixed(0)}€ ${annualGoal>0?'de '+annualGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
-          </div>
-          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
-            <div style="background:#166534;height:100%;width:${annualPct}%;transition:width .3s"></div>
-          </div>
-        </div>
-      </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:${c.quotes.length>0?'8px':'0'}">${infoLine||'Sin más datos'}</div>
+        ${c.quotes.map(g=>`<div style="font-size:12.5px;color:var(--muted);padding:4px 0;border-top:1px solid #F1EBDD">
+          ${g.place||'Lugar sin especificar'} ${g.event_date?'· '+fmtDate(g.event_date):''} · Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}
+        </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
 
     ${sinMago.length>0?`
@@ -515,7 +511,7 @@ function viewDashboard(){
       ${callSection('⏰', 'Feedback pendiente de pedir', STATE.calls.filter(c=>c.kind==='feedback'), todayStr, quickActions)}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:14px">✅ Confirmados (14 días)</h3>
         ${proximosBolos.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1EBDD;cursor:pointer" onclick="openGigDetail('${g.id}')">
@@ -538,18 +534,29 @@ function viewDashboard(){
       </div>
     </div>
 
-    <h3 style="font-size:16px;margin:24px 0 12px">💰 Clientes presupuestados</h3>
-    <div style="display:grid;gap:10px">
-      ${presupuestadosInfo.length===0?'<p style="font-size:13.5px;color:var(--muted)">Ningún cliente en estado "Presupuestado" ahora mismo.</p>':''}
-      ${presupuestadosInfo.map(c=>`<div class="card" style="cursor:pointer" onclick="openClientDetail('${c.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${c.quotes.length>0?'10px':'0'}">
-          <strong style="font-size:14.5px">${c.name}</strong>
-          ${quickActions(c.phone)}
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="font-size:16px">Meta de facturación</h3>
+        <button onclick="editGoals()" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;cursor:pointer;font-weight:600">✎ Editar metas</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span>Este mes</span><span style="color:var(--muted)">${facturadoMes.toFixed(0)}€ ${monthlyGoal>0?'de '+monthlyGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
+          </div>
+          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
+            <div style="background:var(--gold-btn);height:100%;width:${monthlyPct}%;transition:width .3s"></div>
+          </div>
         </div>
-        ${c.quotes.map(g=>`<div style="font-size:12.5px;color:var(--muted);padding:4px 0;border-top:1px solid #F1EBDD">
-          ${g.place||'Lugar sin especificar'} ${g.event_date?'· '+fmtDate(g.event_date):''} · Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}
-        </div>`).join('')}
-      </div>`).join('')}
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span>Este año</span><span style="color:var(--muted)">${facturadoAnio.toFixed(0)}€ ${annualGoal>0?'de '+annualGoal.toFixed(0)+'€':'(sin meta puesta)'}</span>
+          </div>
+          <div style="background:var(--warm);border-radius:100px;height:10px;overflow:hidden">
+            <div style="background:#166534;height:100%;width:${annualPct}%;transition:width .3s"></div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
