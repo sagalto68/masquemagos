@@ -388,6 +388,11 @@ function viewDashboard(){
     return days >= 5;
   }).sort((a,b)=>new Date(a.status_updated_at)-new Date(b.status_updated_at));
 
+  const presupuestadosInfo = STATE.clients.filter(c=>c.status==='presupuestado').map(c=>({
+    ...c,
+    quotes: STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status!=='confirmado'),
+  }));
+
   function quickActions(phone){
     if(!phone) return '';
     const clean = phone.replace(/[^0-9+]/g,'');
@@ -444,11 +449,6 @@ function viewDashboard(){
       <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE">📞</div><div><div style="font-size:26px;font-weight:700;color:#1D4ED8">${pendientes}</div><div style="font-size:12.5px;color:var(--muted)">Llamadas pendientes</div></div></div>
     </div>
 
-    <button onclick="dashboardShowAll=!dashboardShowAll; render()" style="width:100%;background:none;border:1px dashed var(--border);color:var(--muted);padding:12px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:20px;cursor:pointer">
-      ${dashboardShowAll?'▲ Ocultar el resto de detalle':'▼ Ver todo el detalle (metas, listas completas...)'}
-    </button>
-
-    ${!dashboardShowAll ? '' : `
     <div class="card" style="margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h3 style="font-size:16px">Meta de facturación</h3>
@@ -537,7 +537,20 @@ function viewDashboard(){
         <button onclick="bolosStatusTab='pendientes'; goTo('bolos')" style="background:none;border:none;color:var(--gold-btn);font-size:12.5px;font-weight:600;margin-top:12px;cursor:pointer">Ver todos →</button>
       </div>
     </div>
-    `}
+
+    <h3 style="font-size:16px;margin:24px 0 12px">💰 Clientes presupuestados</h3>
+    <div style="display:grid;gap:10px">
+      ${presupuestadosInfo.length===0?'<p style="font-size:13.5px;color:var(--muted)">Ningún cliente en estado "Presupuestado" ahora mismo.</p>':''}
+      ${presupuestadosInfo.map(c=>`<div class="card" style="cursor:pointer" onclick="openClientDetail('${c.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${c.quotes.length>0?'10px':'0'}">
+          <strong style="font-size:14.5px">${c.name}</strong>
+          ${quickActions(c.phone)}
+        </div>
+        ${c.quotes.map(g=>`<div style="font-size:12.5px;color:var(--muted);padding:4px 0;border-top:1px solid #F1EBDD">
+          ${g.place||'Lugar sin especificar'} ${g.event_date?'· '+fmtDate(g.event_date):''} · Mago: ${g.magician||'—'} · ${magoStatusLabel(g.magician_status)}
+        </div>`).join('')}
+      </div>`).join('')}
+    </div>
   `;
 }
 function editGoals(){
@@ -1255,9 +1268,10 @@ function sendCallWhatsapp(callId){
   const clean = c.clients.phone.replace(/[^0-9+]/g,'');
   window.open(`https://wa.me/${clean}?text=${encodeURIComponent(text)}`, '_blank');
 }
-function callRow(c, icon){
+function callRow(c){
   const today = todayLocalStr();
   const overdue = c.due_date < today;
+  const icon = c.kind==='feedback' ? '⏰' : '📞';
   const cat = CALL_CATEGORIES[callCategoryOf(c)];
   return `<div class="card" style="display:flex;align-items:center;gap:10px;padding:14px 18px;flex-wrap:wrap;${overdue?'border-color:#FCA5A5;background:#FEF2F2':''}">
     <span>${overdue?'🔴':icon}</span>
@@ -1279,8 +1293,25 @@ async function snoozeCall(id, days){
 function viewLlamadas(){
   const today = todayLocalStr();
   const filtered = llamadasCategoryFilter==='todas' ? STATE.calls : STATE.calls.filter(c=>callCategoryOf(c)===llamadasCategoryFilter);
-  const llamadas = filtered.filter(c=>c.kind==='llamada');
-  const feedback = filtered.filter(c=>c.kind==='feedback');
+
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const tomorrowStr = (()=>{ const d=new Date(todayDate); d.setDate(d.getDate()+1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const weekEndStr = (()=>{ const d=new Date(todayDate); d.setDate(d.getDate()+7); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+
+  const vencidas = filtered.filter(c=>c.due_date < today);
+  const hoy = filtered.filter(c=>c.due_date === today);
+  const manana = filtered.filter(c=>c.due_date === tomorrowStr);
+  const estaSemana = filtered.filter(c=>c.due_date > tomorrowStr && c.due_date <= weekEndStr);
+  const masAdelante = filtered.filter(c=>c.due_date > weekEndStr);
+
+  function bucket(title, items, color){
+    if(items.length===0) return '';
+    return `
+      <h3 style="font-size:13px;font-weight:700;color:${color||'var(--gold-btn)'};text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">${title} (${items.length})</h3>
+      <div style="display:grid;gap:10px;margin-bottom:24px">
+        ${items.map(c=>callRow(c)).join('')}
+      </div>`;
+  }
 
   return `
     <h1 style="font-size:24px;margin-bottom:16px">Llamadas y seguimientos</h1>
@@ -1291,16 +1322,12 @@ function viewLlamadas(){
         return `<button class="chip ${llamadasCategoryFilter===key?'active':''}" onclick="llamadasCategoryFilter='${key}'; render()">${cat.icon} ${cat.label} (${count})</button>`;
       }).join('')}
     </div>
-    <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pendientes</h3>
-    <div style="display:grid;gap:10px;margin-bottom:28px">
-      ${llamadas.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente 🎉</p>':''}
-      ${llamadas.map(c=>callRow(c,'📞')).join('')}
-    </div>
-    <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Feedback pendiente de pedir</h3>
-    <div style="display:grid;gap:10px">
-      ${feedback.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente.</p>':''}
-      ${feedback.map(c=>callRow(c,'⏰')).join('')}
-    </div>
+    ${filtered.length===0?'<p style="font-size:13.5px;color:var(--muted)">Nada pendiente 🎉</p>':''}
+    ${bucket('🔴 Vencidas', vencidas, '#991B1B')}
+    ${bucket('Hoy', hoy, '#166534')}
+    ${bucket('Mañana', manana)}
+    ${bucket('Esta semana', estaSemana)}
+    ${bucket('Más adelante', masAdelante, 'var(--muted)')}
   `;
 }
 async function rescheduleCall(id, newDate){
