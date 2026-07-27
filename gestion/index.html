@@ -350,8 +350,8 @@ function viewDashboard(){
   const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
   const in14 = new Date(todayMidnight); in14.setDate(in14.getDate()+14);
   const in1Month = new Date(todayMidnight); in1Month.setMonth(in1Month.getMonth()+1);
-  const todayStr = todayMidnight.toISOString().slice(0,10);
-  const tomorrowStr = new Date(todayMidnight.getTime()+86400000).toISOString().slice(0,10);
+  const todayStr = todayLocalStr();
+  const tomorrowStr = (()=>{ const d=new Date(todayMidnight); d.setDate(d.getDate()+1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
   const bolosFuturos = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= todayMidnight);
   const bolosFuturosConfirmados = bolosFuturos.filter(g => g.magician_status === 'confirmado');
@@ -749,7 +749,7 @@ async function saveClient(){
   await sb.from('calls').insert({
     client_id: data.id,
     reason: 'Contactar con el lead',
-    due_date: followUp.toISOString().slice(0,10),
+    due_date: localDateStr(followUp),
     kind: 'llamada',
     category: 'lead_contact',
   });
@@ -914,7 +914,7 @@ async function updateStatus(id, status){
     await sb.from('calls').insert({
       client_id: id,
       reason: 'Seguimiento del presupuesto enviado',
-      due_date: followUp.toISOString().slice(0,10),
+      due_date: localDateStr(followUp),
       kind: 'llamada',
       category: 'presupuesto_seguimiento',
     });
@@ -925,7 +925,7 @@ async function updateStatus(id, status){
     await sb.from('calls').insert({
       client_id: id,
       reason: 'Enviar presupuesto',
-      due_date: followUp.toISOString().slice(0,10),
+      due_date: localDateStr(followUp),
       kind: 'llamada',
       category: 'presupuesto_enviar',
     });
@@ -1006,7 +1006,7 @@ async function addPresupuesto(clientId){
     await sb.from('calls').insert({
       client_id: clientId,
       reason: `Seguimiento del bolo presupuestado${place?' en '+place:''} (aún sin confirmar)`,
-      due_date: followUp.toISOString().slice(0,10),
+      due_date: localDateStr(followUp),
       kind: 'llamada',
       category: 'bolo_seguimiento',
     });
@@ -1032,7 +1032,7 @@ async function addBolo(clientId){
   await sb.from('calls').insert({
     client_id: clientId,
     reason: `Pedir feedback del bolo${place?' en '+place:''}`,
-    due_date: feedbackDate.toISOString().slice(0,10),
+    due_date: localDateStr(feedbackDate),
     kind: 'feedback',
     category: 'feedback',
   });
@@ -1057,7 +1057,7 @@ async function addGig(clientId){
     await sb.from('calls').insert({
       client_id: clientId,
       reason: `Pedir feedback del bolo${place?' en '+place:''}`,
-      due_date: feedbackDate.toISOString().slice(0,10),
+      due_date: localDateStr(feedbackDate),
       kind: 'feedback',
       category: 'feedback',
     });
@@ -1067,7 +1067,7 @@ async function addGig(clientId){
     await sb.from('calls').insert({
       client_id: clientId,
       reason: `Seguimiento del bolo presupuestado${place?' en '+place:''} (aún sin confirmar)`,
-      due_date: followUp.toISOString().slice(0,10),
+      due_date: localDateStr(followUp),
       kind: 'llamada',
       category: 'bolo_seguimiento',
     });
@@ -1237,7 +1237,7 @@ async function saveGigDetails(gigId, clientId){
     await sb.from('calls').insert({
       client_id: clientId || previousGig?.client_id,
       reason: `Pedir feedback del bolo${place?' en '+place:''}`,
-      due_date: feedbackDate.toISOString().slice(0,10),
+      due_date: localDateStr(feedbackDate),
       kind: 'feedback',
       category: 'feedback',
     });
@@ -2489,6 +2489,9 @@ function readBillingMonth(idPrefix){
 const AVATAR_COLORS = ['#8a6425','#166534','#1D4ED8','#9D174D','#0E7490','#7C3AED','#B45309'];
 function todayLocalStr(){
   const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function localDateStr(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function avatarInitials(name){
