@@ -127,9 +127,12 @@
       .nav__logo { height: 48px; }
       .cta__icon-btns { display: none; }
       .mqm-float { display: flex; position: fixed; bottom: 24px; right: 16px; z-index: 9999; flex-direction: column; gap: 12px; }
+      #collage-ayto { grid-template-rows: 150px 150px !important; }
     }
     /* Fondo negro en toda la página, sin el crudo/cream */
     body { background:#000 !important; }
+    .emp-filosofia__bg-img { opacity:1 !important; visibility:visible !important; transform:none !important; }
+    .emp-filosofia__bg { opacity:1 !important; }
     .emp-hero { background:#000 !important; }
     .emp-hero__title { color:#fff !important; }
     .emp-hero__title strong { color:#c9a84c !important; }
@@ -189,7 +192,7 @@
   </section>
 
   <!-- QUE HACEMOS: tarjetas con icono, sin foto -->
-  <section style="padding:70px 20px;background:#000">
+  <section style="padding:70px 20px 100px;background:#000">
     <div style="text-align:center;margin-bottom:48px">
       <h2 style="font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(28px,4vw,42px);letter-spacing:.02em;color:#fff">¿QUÉ HACEMOS?</h2>
     </div>
@@ -232,7 +235,17 @@
       </div>
 
     </div>
-    <p style="text-align:center;max-width:680px;margin:40px auto 0;font-size:20px;color:rgba(255,255,255,.75);font-style:italic;line-height:1.5">Y si tu ayuntamiento necesita algo que no está aquí, pregúntanos — hacemos magia para prácticamente cualquier tipo de evento municipal.</p>
+    <p style="text-align:center;max-width:720px;margin:64px auto 30px;font-size:26px;color:rgba(255,255,255,.8);font-style:italic;line-height:1.5">Y si tu ayuntamiento necesita algo que no está aquí, pregúntanos — hacemos magia para prácticamente cualquier tipo de evento municipal.</p>
+  </section>
+
+  <!-- COLLAGE DE FOTOS -->
+  <section style="padding:14px;background:#000">
+    <div id="collage-ayto" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:260px 260px;gap:10px;max-width:900px;margin:0 auto">
+      <img src="/images/ayuntamientos/collage-1.jpg" alt="Animación de calle en el centro histórico de una ciudad" style="width:100%;height:100%;object-fit:cover;border-radius:14px;object-position:center 15%" />
+      <img src="/images/ayuntamientos/collage-2.jpg" alt="Espectáculo de fuego en una plaza" style="width:100%;height:100%;object-fit:cover;border-radius:14px;object-position:center 30%" />
+      <img src="/images/ayuntamientos/collage-3.jpg" alt="Espectáculo de fuego nocturno" style="width:100%;height:100%;object-fit:cover;border-radius:14px;object-position:center 30%" />
+      <img src="/images/ayuntamientos/collage-4.jpg" alt="Espectáculo de magia callejera con aros" style="width:100%;height:100%;object-fit:cover;border-radius:14px;object-position:center 20%" />
+    </div>
   </section>
 
   <section style="padding:10px 20px 100px;background:#000">
