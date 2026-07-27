@@ -408,6 +408,9 @@ function viewDashboard(){
 
   // ---- Lista de foco: "esto es lo único que tienes que hacer ahora" ----
   const focusItems = [];
+  STATE.gigs.filter(g=>g.event_date===todayStr).forEach(g=>{
+    focusItems.push({rank:-1, icon:'🎉', title:g.clients?.name||'—', subtitle:(g.performer_role==='animador'?'🎭 ':'🪄 ')+(g.magician||'Sin mago')+' · '+(g.place||''), tag:'BOLO HOY'+(g.event_time?' · '+g.event_time:''), tagColor:'#166534', onClick:`openGigDetail('${g.id}')`, phone:g.clients?.phone});
+  });
   STATE.calls.filter(c=>c.due_date < todayStr).forEach(c=>{
     focusItems.push({rank:0, icon:'🔴', title:c.clients?.name||'—', subtitle:c.reason, tag:'Llamada vencida', tagColor:'#991B1B', onClick:`openClientDetail('${c.client_id}')`, phone:c.clients?.phone});
   });
