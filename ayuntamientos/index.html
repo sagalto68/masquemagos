@@ -238,33 +238,79 @@
   <section style="padding:10px 20px 100px;background:#000">
     <p style="text-align:center;text-transform:uppercase;letter-spacing:.1em;font-size:12.5px;color:#c9a84c;font-weight:700;margin-bottom:10px">Lo que dicen de nosotros</p>
     <h2 style="text-align:center;font-family:'Playfair Display',serif;font-size:28px;margin-bottom:40px;color:#fff">Ayuntamientos satisfechos</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;max-width:1000px;margin:0 auto">
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
+    <div style="position:relative;max-width:1000px;margin:0 auto">
+      <button onclick="testiMoveAyto(-1)" aria-label="Anterior" style="position:absolute;left:-18px;top:50%;transform:translateY(-50%);z-index:2;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;font-size:16px;color:#c9a84c">‹</button>
+      <button onclick="testiMoveAyto(1)" aria-label="Siguiente" style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);z-index:2;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;font-size:16px;color:#c9a84c">›</button>
+      <div id="testi-scroll-ayto" style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 4px 16px 4px;scrollbar-width:none">
+      <div class="testi-card-ayto" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
         <div style="color:#c9a84c;font-size:15px;margin-bottom:12px">★★★★★</div>
         <p style="font-size:14.5px;color:#3d3d3d;line-height:1.7;margin-bottom:16px">"Buscábamos algo diferente que fuera un atractivo turístico para nuestro municipio y decidimos hacer un festival de magia — el resultado superó todas nuestras expectativas. Reunió a familias de todas las edades y mantuvo a todos sorprendidos de principio a fin. El festival ha venido para quedarse."</p>
         <p style="font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:#1a1a1a">Concejal de Turismo</p>
         <p style="font-size:12.5px;color:#8a8a8a">Ayuntamiento</p>
       </div>
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
+      <div class="testi-card-ayto" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
         <div style="color:#c9a84c;font-size:15px;margin-bottom:12px">★★★★★</div>
         <p style="font-size:14.5px;color:#3d3d3d;line-height:1.7;margin-bottom:16px">"Queríamos una actividad que dejara huella en nuestras celebraciones y fue todo un acierto. La organización fue impecable, el trato excelente, y el público respondió con una ovación. Un espectáculo muy participativo, perfecto para las fiestas mayores."</p>
         <p style="font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:#1a1a1a">Concejal de Fiestas</p>
         <p style="font-size:12.5px;color:#8a8a8a">Ayuntamiento</p>
       </div>
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
+      <div class="testi-card-ayto" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
         <div style="color:#c9a84c;font-size:15px;margin-bottom:12px">★★★★★</div>
         <p style="font-size:14.5px;color:#3d3d3d;line-height:1.7;margin-bottom:16px">"Ha sido una de las actuaciones más valoradas de nuestra programación cultural. La plaza estuvo llena durante toda la función, y recibimos numerosos comentarios positivos de los vecinos. Lo recomendamos a cualquier institución que quiera ofrecer un evento de calidad."</p>
         <p style="font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:#1a1a1a">Técnica de Cultura</p>
         <p style="font-size:12.5px;color:#8a8a8a">Ayuntamiento</p>
       </div>
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
+      <div class="testi-card-ayto" style="min-width:300px;max-width:300px;flex-shrink:0;scroll-snap-align:start;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 24px">
         <div style="color:#c9a84c;font-size:15px;margin-bottom:12px">★★★★★</div>
         <p style="font-size:14.5px;color:#3d3d3d;line-height:1.7;margin-bottom:16px">"Trato excelente, la actuación muy bien, encantó tanto a niños como adultos. Fueron contratados de viernes para sábado y han venido para salvarnos las fiestas. Unos magos estupendos. Los recomiendo al 100%."</p>
         <p style="font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:#1a1a1a">Beatriz</p>
         <p style="font-size:12.5px;color:#8a8a8a">Asociación - fiestas de pueblo</p>
       </div>
+      </div>
     </div>
   </section>
+<script>
+(function(){
+  var track = document.getElementById('testi-scroll-ayto');
+  if(!track) return;
+  var original = Array.from(track.querySelectorAll('.testi-card-ayto'));
+  if(original.length === 0) return;
+
+  var prependClones = original.map(function(c){ return c.cloneNode(true); });
+  var appendClones = original.map(function(c){ return c.cloneNode(true); });
+  prependClones.slice().reverse().forEach(function(c){ track.insertBefore(c, track.firstChild); });
+  appendClones.forEach(function(c){ track.appendChild(c); });
+
+  function getStep(){
+    var card = track.querySelector('.testi-card-ayto');
+    if(!card) return 320;
+    var style = getComputedStyle(track);
+    var gap = parseFloat(style.columnGap || style.gap || 20);
+    return card.getBoundingClientRect().width + gap;
+  }
+  function setWidth(){ return getStep() * original.length; }
+
+  track.scrollLeft = setWidth();
+
+  function normalize(){
+    var w = setWidth();
+    if(track.scrollLeft >= w * 2 - 2){
+      track.scrollLeft = track.scrollLeft - w;
+    } else if(track.scrollLeft <= 2){
+      track.scrollLeft = track.scrollLeft + w;
+    }
+  }
+
+  window.testiMoveAyto = function(dir){
+    track.scrollBy({left: dir * getStep(), behavior:'smooth'});
+    clearTimeout(track._testiTimer);
+    track._testiTimer = setTimeout(normalize, 420);
+  };
+
+  window.addEventListener('resize', function(){ track.scrollLeft = setWidth(); });
+})();
+</script>
+<style>#testi-scroll-ayto::-webkit-scrollbar{display:none}</style>
 
   <!-- FILOSOFIA -->
   <section class="emp-filosofia">
