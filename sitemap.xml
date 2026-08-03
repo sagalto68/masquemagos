@@ -21,6 +21,33 @@
   </url>
 
   <url>
+    <loc>https://www.masquemagos.com/ayuntamientos/</loc>
+    <lastmod>2026-07-27</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/ayuntamientos/</loc>
+    <lastmod>2026-07-27</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/ayuntamientos.html</loc>
+    <lastmod>2026-07-27</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos.html" />
+  </url>
+
+  <url>
     <loc>https://www.masquemagos.com/celebraciones/</loc>
     <lastmod>2026-07-09</lastmod>
     <priority>0.8</priority>
