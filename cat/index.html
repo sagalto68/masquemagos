@@ -214,17 +214,19 @@ function gtag_report_phone_click(url) {
 
   <!-- NAV -->
   <nav class="nav">
-    <a href="index.html" class="nav__logo-link"><img src="/images/home/logo.png" alt="Més que Mags" class="nav__logo" width="300" height="143" /></a>    <ul class="nav__links">
+    <a href="index.html" class="nav__logo-link"><img src="/images/home/logo.png" alt="Més que Mags" class="nav__logo" width="300" height="143" /></a>
+    <span style="display:inline-flex;gap:5px;align-items:center;margin-left:14px;vertical-align:middle">
+<a href="https://www.masquemagos.com/" title="Español" style="opacity:0.45;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" fill="#AA151B"/><rect y="3.5" width="20" height="7" fill="#F1BF00"/></svg></a>
+<a href="https://www.masquemagos.com/cat/" title="Català" style="opacity:1;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" fill="#FCDD09"/><rect y="1.4" width="20" height="1.4" fill="#DA121A"/><rect y="4.2" width="20" height="1.4" fill="#DA121A"/><rect y="7" width="20" height="1.4" fill="#DA121A"/><rect y="9.8" width="20" height="1.4" fill="#DA121A"/><rect y="12.6" width="20" height="1.4" fill="#DA121A"/></svg></a>
+<a href="https://www.masquemagos.com/en/" title="English" style="opacity:0.45;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L27,13.5 M60,0 L33,13.5 M0,30 L27,16.5 M60,30 L33,16.5" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg></a>
+</span>
+    <ul class="nav__links">
       <li><a href="#magos" class="nav__link">Contractació de mags</a></li>
       <li><a href="#espectaculos" class="nav__link">Espectacles de màgia</a></li>
       <li><a href="#festivales" class="nav__link">Festivals de màgia</a></li>
       <li><a href="empresas.html" class="nav__link">Empreses</a></li>
+      <li><a href="ayuntamientos/" class="nav__link">Ajuntaments</a></li>
       <li><a href="#contacto" class="nav__link">Contacte</a></li>
-      <li style="display:inline-flex;gap:5px;align-items:center;">
-<a href="https://www.masquemagos.com/" title="Español" style="opacity:0.45;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" fill="#AA151B"/><rect y="3.5" width="20" height="7" fill="#F1BF00"/></svg></a>
-<a href="https://www.masquemagos.com/cat/" title="Català" style="opacity:1;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" fill="#FCDD09"/><rect y="1.4" width="20" height="1.4" fill="#DA121A"/><rect y="4.2" width="20" height="1.4" fill="#DA121A"/><rect y="7" width="20" height="1.4" fill="#DA121A"/><rect y="9.8" width="20" height="1.4" fill="#DA121A"/><rect y="12.6" width="20" height="1.4" fill="#DA121A"/></svg></a>
-<a href="https://www.masquemagos.com/en/" title="English" style="opacity:0.45;line-height:0;display:inline-block"><svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" fill="#00247D"/><path d="M0,0 L20,14 M20,0 L0,14" stroke="#fff" stroke-width="2.8"/><path d="M0,0 L20,14 M20,0 L0,14" stroke="#CF142B" stroke-width="1.4"/><path d="M10,0 V14 M0,7 H20" stroke="#fff" stroke-width="4.6"/><path d="M10,0 V14 M0,7 H20" stroke="#CF142B" stroke-width="2.6"/></svg></a>
-      </li>
       <li><button class="nav__hamburger" id="menuToggle" aria-label="Menú">
         <span></span><span></span><span></span>
       </button></li>
@@ -464,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { text: 'Espectacles de màgia', href: isHome ? '#espectaculos' : 'index.html#espectaculos' },
       { text: 'Festivals de màgia',   href: isHome ? '#festivales'   : 'index.html#festivales' },
       { text: 'Empreses',              href: 'empresas.html' },
+      { text: 'Ajuntaments',           href: 'ayuntamientos/' },
       { text: 'Eventos familiares',    href: 'celebraciones/index.html' },
       { text: 'Contacte',              href: isHome ? '#contacto'     : 'index.html#contacto' },
     ];
