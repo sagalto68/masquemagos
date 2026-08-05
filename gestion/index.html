@@ -297,6 +297,14 @@ async function autoMarkLostLeads(){
 
 function render(){
   const main = document.getElementById('main');
+
+  // Guarda qué campo tenía el foco y dónde estaba el cursor, para restaurarlo
+  // después de redibujar (si no, cada tecla escrita hace perder el foco).
+  const activeEl = document.activeElement;
+  const activeId = (activeEl && main.contains(activeEl) && activeEl.id) ? activeEl.id : null;
+  const selStart = activeEl ? activeEl.selectionStart : null;
+  const selEnd = activeEl ? activeEl.selectionEnd : null;
+
   if(STATE.route==='dashboard') main.innerHTML = viewDashboard();
   if(STATE.route==='clientes') main.innerHTML = viewClientes();
   if(STATE.route==='calendario') main.innerHTML = viewCalendario();
@@ -308,6 +316,16 @@ function render(){
   if(STATE.route==='calculadora'){ main.innerHTML = viewCalculadora(); renderCalc(); }
   if(STATE.route==='finanzas') main.innerHTML = viewFinanzas();
   if(STATE.route==='emails') main.innerHTML = viewEmails();
+
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el && typeof el.focus === 'function'){
+      el.focus();
+      if(selStart!=null && typeof el.setSelectionRange === 'function'){
+        try{ el.setSelectionRange(selStart, selEnd); }catch(e){}
+      }
+    }
+  }
 }
 
 // ---------------- DASHBOARD ----------------
@@ -610,7 +628,7 @@ function viewClientes(){
       <button class="btn" onclick="openClientForm()">+ Nuevo cliente</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-      <input type="text" placeholder="Buscar por nombre o teléfono..." style="max-width:280px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
+      <input type="text" id="client-search-input" placeholder="Buscar por nombre o teléfono..." style="max-width:280px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
       <select onchange="clientesSort=this.value; render()" style="max-width:170px">
         <option value="recientes" ${clientesSort==='recientes'?'selected':''}>Ordenar: Más recientes</option>
         <option value="nombre" ${clientesSort==='nombre'?'selected':''}>Ordenar: Nombre</option>
@@ -2166,7 +2184,7 @@ function viewMagos(){
       <button class="chip ${magoRoleTab==='animador'?'active':''}" onclick="magoRoleTab='animador'; render()">🎭 Animadores (${STATE.magicians.filter(m=>m.role==='animador').length})</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
-      <input type="text" placeholder="Buscar..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:240px" />
+      <input type="text" id="mago-search-input" placeholder="Buscar..." value="${magoSearch}" oninput="magoSearch=this.value; render()" style="max-width:240px" />
       <select onchange="magoSortBy=this.value; render()" style="max-width:170px">
         <option value="name" ${magoSortBy==='name'?'selected':''}>Ordenar: Nombre</option>
         <option value="bolos" ${magoSortBy==='bolos'?'selected':''}>Ordenar: Más bolos</option>
