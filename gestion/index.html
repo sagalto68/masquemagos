@@ -1097,7 +1097,7 @@ let calMonth = new Date().toISOString().slice(0,7); // YYYY-MM
 let calSelectedDay = todayLocalStr();
 
 function viewCalendario(){
-  const gigs = STATE.gigs.filter(g=>g.event_date);
+  const gigs = STATE.gigs.filter(g=>g.event_date && g.magician_status !== 'rechazado');
   const gigsByDay = {};
   gigs.forEach(g=>{ (gigsByDay[g.event_date] ||= []).push(g); });
 
