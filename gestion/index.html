@@ -369,11 +369,11 @@ function viewDashboard(){
   const nowYear = new Date().getFullYear();
   const facturadoMes = STATE.gigs.filter(g => {
     const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
-    return gigMonth === nowMonth && g.price;
+    return gigMonth === nowMonth && g.price && g.magician_status === 'confirmado';
   }).reduce((s,g)=>s+Number(g.price),0);
   const facturadoAnio = STATE.gigs.filter(g => {
     const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
-    return gigMonth && gigMonth.startsWith(String(nowYear)) && g.price;
+    return gigMonth && gigMonth.startsWith(String(nowYear)) && g.price && g.magician_status === 'confirmado';
   }).reduce((s,g)=>s+Number(g.price),0);
   const monthlyGoal = Number(STATE.settings?.monthly_goal || 0);
   const annualGoal = Number(STATE.settings?.annual_goal || 0);
@@ -1591,7 +1591,7 @@ function renderCalc(){
 function viewFinanzas(){
   const gigsMonth = STATE.gigs.filter(g => {
     const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
-    return gigMonth === financeMonth && g.price;
+    return gigMonth === financeMonth && g.price && g.magician_status === 'confirmado';
   });
   const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
   const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
@@ -1601,7 +1601,7 @@ function viewFinanzas(){
 
   // Facturación por origen (todo el histórico, para ver qué canal trae más negocio)
   const originTotals = {};
-  STATE.gigs.filter(g=>g.price).forEach(g=>{
+  STATE.gigs.filter(g=>g.price && g.magician_status==='confirmado').forEach(g=>{
     const origin = g.clients?.source || 'Sin origen';
     originTotals[origin] = (originTotals[origin] || 0) + Number(g.price);
   });
@@ -1692,7 +1692,7 @@ function viewFinanzas(){
 function exportFinanzasCSV(){
   const gigsMonth = STATE.gigs.filter(g => {
     const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
-    return gigMonth === financeMonth && g.price;
+    return gigMonth === financeMonth && g.price && g.magician_status === 'confirmado';
   });
   const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
   const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
@@ -1730,7 +1730,7 @@ function exportFinanzasCSV(){
 function exportFinanzasPDF(){
   const gigsMonth = STATE.gigs.filter(g => {
     const gigMonth = g.billing_month || (g.event_date ? g.event_date.slice(0,7) : null);
-    return gigMonth === financeMonth && g.price;
+    return gigMonth === financeMonth && g.price && g.magician_status === 'confirmado';
   });
   const expensesMonth = STATE.expenses.filter(e => e.expense_date && e.expense_date.slice(0,7) === financeMonth);
   const facturado = gigsMonth.reduce((s,g)=>s+Number(g.price),0);
