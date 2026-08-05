@@ -598,7 +598,7 @@ function viewClientes(){
   let filtered = STATE.clients.filter(c =>
     (STATE.typeFilter==='todos' || c.type===STATE.typeFilter) &&
     (STATE.statusFilter==='todos' || c.status===STATE.statusFilter) &&
-    c.name.toLowerCase().includes(STATE.search.toLowerCase())
+    (c.name.toLowerCase().includes(STATE.search.toLowerCase()) || (c.phone||'').replace(/\s/g,'').includes(STATE.search.replace(/\s/g,'')))
   );
   if(clientesSort==='nombre') filtered = [...filtered].sort((a,b)=>a.name.localeCompare(b.name));
   else if(clientesSort==='estado') filtered = [...filtered].sort((a,b)=>(a.status||'').localeCompare(b.status||''));
@@ -610,7 +610,7 @@ function viewClientes(){
       <button class="btn" onclick="openClientForm()">+ Nuevo cliente</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-      <input type="text" placeholder="Buscar cliente..." style="max-width:280px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
+      <input type="text" placeholder="Buscar por nombre o teléfono..." style="max-width:280px" value="${STATE.search}" oninput="STATE.search=this.value; render()" />
       <select onchange="clientesSort=this.value; render()" style="max-width:170px">
         <option value="recientes" ${clientesSort==='recientes'?'selected':''}>Ordenar: Más recientes</option>
         <option value="nombre" ${clientesSort==='nombre'?'selected':''}>Ordenar: Nombre</option>
