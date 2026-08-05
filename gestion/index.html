@@ -355,7 +355,7 @@ function viewDashboard(){
 
   const bolosFuturos = STATE.gigs.filter(g => g.event_date && new Date(g.event_date) >= todayMidnight);
   const bolosFuturosConfirmados = bolosFuturos.filter(g => g.magician_status === 'confirmado');
-  const bolosFuturosPendientes = bolosFuturos.filter(g => g.magician_status !== 'confirmado');
+  const bolosFuturosPendientes = bolosFuturos.filter(g => g.magician_status === 'pendiente');
   const confirmados = bolosFuturosConfirmados.length;
   const pendientes = STATE.calls.length;
   const proximosBolos = bolosFuturosConfirmados.filter(g => new Date(g.event_date) <= in14).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
@@ -363,7 +363,7 @@ function viewDashboard(){
 
   const sinMago = bolosFuturos.filter(g => new Date(g.event_date) <= in14 && !g.magician).sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
   const in7 = new Date(todayMidnight); in7.setDate(in7.getDate()+7);
-  const pendingSoon = bolosFuturos.filter(g => new Date(g.event_date) <= in7 && g.magician_status !== 'confirmado').sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  const pendingSoon = bolosFuturos.filter(g => new Date(g.event_date) <= in7 && g.magician_status === 'pendiente').sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
 
   const nowMonth = new Date().toISOString().slice(0,7);
   const nowYear = new Date().getFullYear();
@@ -390,7 +390,7 @@ function viewDashboard(){
 
   const presupuestadosInfo = STATE.clients.filter(c=>c.status==='presupuestado').map(c=>({
     ...c,
-    quotes: STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status!=='confirmado').sort((a,b)=>new Date(a.event_date||'9999-12-31')-new Date(b.event_date||'9999-12-31')),
+    quotes: STATE.gigs.filter(g=>g.client_id===c.id && g.magician_status==='pendiente').sort((a,b)=>new Date(a.event_date||'9999-12-31')-new Date(b.event_date||'9999-12-31')),
   })).sort((a,b)=>{
     const dateA = a.quotes[0]?.event_date || '9999-12-31';
     const dateB = b.quotes[0]?.event_date || '9999-12-31';
@@ -2065,9 +2065,9 @@ function setBolosGroup(g){
 
 function viewBolos(){
   if(bolosSelected===null) bolosSelected = defaultPeriod();
-  const withDate = STATE.gigs.filter(g=>g.event_date && (bolosStatusTab==='confirmados' ? g.magician_status==='confirmado' : g.magician_status!=='confirmado')).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
+  const withDate = STATE.gigs.filter(g=>g.event_date && (bolosStatusTab==='confirmados' ? g.magician_status==='confirmado' : g.magician_status==='pendiente')).sort((a,b)=>new Date(b.event_date)-new Date(a.event_date));
   const countConfirmados = STATE.gigs.filter(g=>g.event_date && g.magician_status==='confirmado').length;
-  const countPendientes = STATE.gigs.filter(g=>g.event_date && g.magician_status!=='confirmado').length;
+  const countPendientes = STATE.gigs.filter(g=>g.event_date && g.magician_status==='pendiente').length;
   const groups = {};
   withDate.forEach(g=>{
     const key = groupKey(g.event_date);
