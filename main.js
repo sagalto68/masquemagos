@@ -14,12 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isHome = ['/', '/index.html', ''].some(p => window.location.pathname.endsWith(p));
     const links = [
-      { text: 'Contratación de magos', href: isHome ? '#magos'         : 'index.html#magos' },
-      { text: 'Espectáculos de magia', href: isHome ? '#espectaculos'  : 'index.html#espectaculos' },
-      { text: 'Festivales de magia',   href: isHome ? '#festivales'    : 'index.html#festivales' },
-      { text: 'Empresas',              href: 'empresas.html' },
-      { text: 'Eventos familiares',    href: 'celebraciones/index.html' },
-      { text: 'Contacto',              href: isHome ? '#contacto'      : 'index.html#contacto' },
+      { text: 'Contratación de magos', href: isHome ? '#magos'         : '/#magos' },
+      { text: 'Espectáculos de magia', href: isHome ? '#espectaculos'  : '/#espectaculos' },
+      { text: 'Festivales de magia',   href: isHome ? '#festivales'    : '/#festivales' },
+      { text: 'Empresas',              href: '/empresas.html' },
+      { text: 'Ayuntamientos',         href: '/ayuntamientos/' },
+      { text: 'Eventos familiares',    href: '/celebraciones/index.html' },
+      { text: 'Contacto',              href: isHome ? '#contacto'      : '/#contacto' },
     ];
 
     links.forEach(({ text, href }) => {
@@ -35,8 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileMenu.appendChild(closeBtn);
     document.body.appendChild(mobileMenu);
 
-    function openMenu()  { mobileMenu.classList.add('open');    document.body.style.overflow = 'hidden'; }
-    function closeMenu() { mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+    mobileMenu.style.zIndex = '99999';
+
+    function openMenu()  {
+      mobileMenu.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      document.querySelectorAll('.mqm-presupuesto-float, .mqm-float').forEach(el => el.style.display = 'none');
+    }
+    function closeMenu() {
+      mobileMenu.classList.remove('open');
+      document.body.style.overflow = '';
+      document.querySelectorAll('.mqm-presupuesto-float').forEach(el => el.style.display = '');
+      document.querySelectorAll('.mqm-float').forEach(el => el.style.display = '');
+    }
 
     menuToggle.addEventListener('click', () => mobileMenu.classList.contains('open') ? closeMenu() : openMenu());
     mobileMenu.querySelectorAll('.nav__link').forEach(l => l.addEventListener('click', closeMenu));
