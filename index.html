@@ -460,12 +460,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isHome = ['/', '/index.html', ''].some(p => window.location.pathname.endsWith(p));
     const links = [
-      { text: 'Contratación de magos', href: isHome ? '#magos'        : 'index.html#magos' },
-      { text: 'Espectáculos de magia', href: isHome ? '#espectaculos' : 'index.html#espectaculos' },
-      { text: 'Festivales de magia',   href: isHome ? '#festivales'   : 'index.html#festivales' },
-      { text: 'Empresas',              href: 'empresas.html' },
-      { text: 'Eventos familiares',    href: 'celebraciones/index.html' },
-      { text: 'Contacto',              href: isHome ? '#contacto'     : 'index.html#contacto' },
+      { text: 'Contratación de magos', href: isHome ? '#magos'        : '/#magos' },
+      { text: 'Espectáculos de magia', href: isHome ? '#espectaculos' : '/#espectaculos' },
+      { text: 'Festivales de magia',   href: isHome ? '#festivales'   : '/#festivales' },
+      { text: 'Empresas',              href: '/empresas.html' },
+      { text: 'Ayuntamientos',         href: '/ayuntamientos/' },
+      { text: 'Eventos familiares',    href: '/celebraciones/index.html' },
+      { text: 'Contacto',              href: isHome ? '#contacto'     : '/#contacto' },
     ];
 
     links.forEach(({ text, href }) => {
