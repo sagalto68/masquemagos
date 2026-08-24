@@ -526,12 +526,27 @@ function closeMobileMenu(){
     <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(196,151,61,.12);color:var(--gold-btn);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:7px 14px;border-radius:100px;margin-bottom:16px">Checklist gratuito</span>
     <h2 class="sec-h2" style="margin-bottom:12px">5 preguntas que hacer <em>antes de contratar</em></h2>
     <p style="font-size:15px;color:var(--muted);margin-bottom:24px;line-height:1.7">Para llegar con las ideas claras y evitar sorpresas de última hora, sea cual sea tu celebración. Gratis, sin compromiso.</p>
-    <form action="https://formspree.io/f/mvzjlbnb" method="POST" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:420px;margin:0 auto">
-      <input type="hidden" name="_subject" value="Descarga checklist · Celebraciones" />
-      <input type="hidden" name="_next" value="https://www.masquemagos.com/celebraciones/checklist-celebraciones.html" />
-      <input type="email" name="email" placeholder="Tu email" required style="flex:1;min-width:200px;padding:13px 18px;border-radius:100px;border:1px solid var(--border);background:var(--warm);color:var(--text);font-size:14px" />
-      <button type="submit" style="background:var(--gold-btn);color:#fff;border:none;padding:13px 24px;border-radius:100px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap">Quiero el checklist</button>
+    <form id="checklist-form" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:420px;margin:0 auto">
+      <input type="email" id="checklist-email" name="email" placeholder="Tu email" required style="flex:1;min-width:200px;padding:13px 18px;border-radius:100px;border:1px solid var(--border);background:var(--warm);color:var(--text);font-size:14px" />
+      <button type="submit" id="checklist-btn" style="background:var(--gold-btn);color:#fff;border:none;padding:13px 24px;border-radius:100px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap">Quiero el checklist</button>
     </form>
+    <script>
+    document.getElementById('checklist-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = document.getElementById('checklist-email').value.trim();
+      var btn = document.getElementById('checklist-btn');
+      if(!email) return;
+      btn.textContent = 'Enviando...';
+      var fd = new FormData();
+      fd.append('email', email);
+      fd.append('_subject', 'Descarga checklist · Celebraciones');
+      fetch('https://formspree.io/f/mvzjlbnb', { method:'POST', body: fd, headers:{ 'Accept':'application/json' } })
+        .catch(function(){})
+        .finally(function(){
+          window.location.href = 'https://www.masquemagos.com/celebraciones/checklist-celebraciones.html';
+        });
+    });
+    </script>
   </div>
 </section>
 
