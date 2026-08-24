@@ -531,6 +531,7 @@ function closeMobileMenu(){
       <input type="email" id="checklist-email" name="email" placeholder="El teu email" required style="flex:1;min-width:200px;padding:13px 18px;border-radius:100px;border:1px solid var(--border);background:var(--warm);color:var(--text);font-size:14px" />
       <button type="submit" id="checklist-btn" style="background:var(--gold-btn);color:#fff;border:none;padding:13px 24px;border-radius:100px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap">Vull el checklist</button>
     </form>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px">En enviar, acceptes la nostra <a href="/politica-privacidad.html" style="color:var(--gold-btn)">política de privacitat</a>.</p>
     <script>
     document.getElementById('checklist-form').addEventListener('submit', function(e){
       e.preventDefault();
@@ -692,6 +693,7 @@ function closeMobileMenu(){
         <div class="fg"><label for="f-msg">Explica'ns més (opcional)</label><textarea id="f-msg" placeholder="Localitat, tipus d'actuació, horari..."></textarea></div>
         <button class="sub-btn" onclick="submitForm()">✉ Enviar sol·licitud</button>
         <p class="form-note">Sense compromís · Resposta garantida en menys de 24h</p>
+        <p class="form-note">En enviar, acceptes la nostra <a href="/politica-privacidad.html" style="color:var(--gold-btn)">política de privacitat</a>.</p>
       </div>
     </div>
     <div id="form-success" class="form-success">
@@ -717,6 +719,9 @@ function closeMobileMenu(){
     <li><a href="https://www.masquemagos.com/cat/empresas.html">Empreses</a></li>
     <li><a href="https://www.masquemagos.com/cat/blog/">Blog</a></li>
     <li><a href="#contacto">Contacte</a></li>
+    <li><a href="/aviso-legal.html">Avís legal</a></li>
+    <li><a href="/politica-privacidad.html">Privacitat</a></li>
+    <li><a href="/politica-cookies.html">Cookies</a></li>
   </ul>
 </footer>
 
@@ -758,5 +763,6 @@ function closeMobileMenu(){
     document.getElementById('form-success').style.display = 'block';
   }
 </script>
+<script src="/js/cookie-banner.js"></script>
 </body>
 </html>
