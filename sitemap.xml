@@ -221,4 +221,178 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/how-much-magician-communion.html" />
   </url>
 
+  <!-- NUEVOS ARTÍCULOS DEL BLOG PÚBLICO -->
+
+  <url>
+    <loc>https://www.masquemagos.com/blog/ideas-originales-cumpleanos-adultos.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/ideas-originales-cumpleanos-adultos.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/idees-originals-aniversari-adults.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/original-ideas-adult-birthday.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/blog/idees-originals-aniversari-adults.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/ideas-originales-cumpleanos-adultos.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/idees-originals-aniversari-adults.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/original-ideas-adult-birthday.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/blog/original-ideas-adult-birthday.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/ideas-originales-cumpleanos-adultos.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/idees-originals-aniversari-adults.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/original-ideas-adult-birthday.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/blog/magia-de-cerca-para-bodas.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/magia-de-cerca-para-bodas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/magia-de-prop-per-a-casaments.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/close-up-magic-for-weddings.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/blog/magia-de-prop-per-a-casaments.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/magia-de-cerca-para-bodas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/magia-de-prop-per-a-casaments.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/close-up-magic-for-weddings.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/blog/close-up-magic-for-weddings.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/blog/magia-de-cerca-para-bodas.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/blog/magia-de-prop-per-a-casaments.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/blog/close-up-magic-for-weddings.html" />
+  </url>
+
+  <!-- BLOG OCULTO: EMPRESAS -->
+
+  <url>
+    <loc>https://www.masquemagos.com/empresas/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/empresas/blog/magia-team-building.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/magia-team-building.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/empresas/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/empresas/blog/magia-team-building.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/magia-team-building.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/empresas/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/empresas/blog/magia-team-building.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/empresas/blog/magia-team-building.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/empresas/blog/magia-team-building.html" />
+  </url>
+
+  <!-- BLOG OCULTO: AYUNTAMIENTOS -->
+
+  <url>
+    <loc>https://www.masquemagos.com/ayuntamientos/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/ayuntamientos/blog/animacion-fiestas-patronales.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/ayuntamientos/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/cat/ayuntamientos/blog/animacion-fiestas-patronales.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/ayuntamientos/blog/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/" />
+  </url>
+
+  <url>
+    <loc>https://www.masquemagos.com/en/ayuntamientos/blog/animacion-fiestas-patronales.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.masquemagos.com/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="cat" href="https://www.masquemagos.com/cat/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.masquemagos.com/en/ayuntamientos/blog/animacion-fiestas-patronales.html" />
+  </url>
+
 </urlset>
