@@ -367,32 +367,46 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div style="text-align:center;margin-bottom:48px">
       <h2 style="font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(28px,4vw,42px);letter-spacing:.02em;color:#fff">¿CÓMO FUNCIONA?</h2>
     </div>
-    <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+    <style>
+      .faq-item{border-bottom:1px solid rgba(255,255,255,.1)}
+      .faq-item summary{list-style:none;cursor:pointer;padding:18px 34px 18px 0;position:relative;
+        font-family:'Playfair Display',serif;font-weight:600;font-size:19px;color:#c9a84c;
+        line-height:1.4;transition:color .2s ease}
+      .faq-item summary::-webkit-details-marker{display:none}
+      .faq-item summary:hover{color:#e8c97a}
+      .faq-item summary::after{content:'+';position:absolute;right:4px;top:50%;
+        transform:translateY(-50%);font-family:'DM Sans',sans-serif;font-size:24px;
+        color:#c9a84c;transition:transform .25s ease}
+      .faq-item[open] summary::after{content:'−'}
+      .faq-item p{font-size:16px;color:rgba(255,255,255,.7);line-height:1.7;
+        margin:0;padding:0 34px 20px 0}
+    </style>
+    <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column">
 
-      <div>
-        <h3 style="font-family:'Playfair Display',serif;font-weight:600;font-size:19px;margin-bottom:8px;color:#c9a84c">¿Qué información hace falta para pedir presupuesto?</h3>
-        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.7">Con la fecha, el tipo de celebración, el espacio disponible y el público esperado ya se puede preparar una propuesta. Cuantos más detalles se faciliten, mejor se puede ajustar.</p>
-      </div>
+      <details class="faq-item">
+        <summary>¿Qué información hace falta para pedir presupuesto?</summary>
+        <p>Con la fecha, el tipo de celebración, el espacio disponible y el público esperado ya se puede preparar una propuesta. Cuantos más detalles se faciliten, mejor se puede ajustar.</p>
+      </details>
 
-      <div>
-        <h3 style="font-family:'Playfair Display',serif;font-weight:600;font-size:19px;margin-bottom:8px;color:#c9a84c">¿Qué formato de espectáculo es mejor para nosotros?</h3>
-        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.7">No hace falta tenerlo decidido de antemano. Según el tipo de evento —fiesta patronal, feria medieval, cabalgata, actividad para mayores...— se recomienda el formato de espectáculo que mejor funciona en cada espacio y con cada público.</p>
-      </div>
+      <details class="faq-item">
+        <summary>¿Qué formato de espectáculo es mejor para nosotros?</summary>
+        <p>No hace falta tenerlo decidido de antemano. Según el tipo de evento —fiesta patronal, feria medieval, cabalgata, actividad para mayores...— se recomienda el formato de espectáculo que mejor funciona en cada espacio y con cada público.</p>
+      </details>
 
-      <div>
-        <h3 style="font-family:'Playfair Display',serif;font-weight:600;font-size:19px;margin-bottom:8px;color:#c9a84c">¿Qué incluye el servicio?</h3>
-        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.7">Puede ser desde un servicio llave en mano que lo incluye todo —material, equipo de sonido, montaje y desmontaje— hasta contratar solo al mago, si el ayuntamiento prefiere encargarse del resto.</p>
-      </div>
+      <details class="faq-item">
+        <summary>¿Qué incluye el servicio?</summary>
+        <p>Puede ser desde un servicio llave en mano que lo incluye todo —material, equipo de sonido, montaje y desmontaje— hasta contratar solo al mago, si el ayuntamiento prefiere encargarse del resto.</p>
+      </details>
 
-      <div>
-        <h3 style="font-family:'Playfair Display',serif;font-weight:600;font-size:19px;margin-bottom:8px;color:#c9a84c">¿Hay también programación de temporada de teatros municipales?</h3>
-        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.7">Sí. Además de las fiestas puntuales, también hay disponibilidad para programación de temporada en teatros municipales, con espectáculos pensados para llenar la sala a lo largo del año. Al contar con diferentes magos y diferentes espectáculos, se pueden programar actuaciones distintas en distintos momentos, para ir teniendo magia durante toda la temporada — algo que suele gustar mucho al público y que ayuda a llenar el teatro cada vez.</p>
-      </div>
+      <details class="faq-item">
+        <summary>¿Hay también programación de temporada de teatros municipales?</summary>
+        <p>Sí. Además de las fiestas puntuales, también hay disponibilidad para programación de temporada en teatros municipales, con espectáculos pensados para llenar la sala a lo largo del año. Al contar con diferentes magos y diferentes espectáculos, se pueden programar actuaciones distintas en distintos momentos, para ir teniendo magia durante toda la temporada — algo que suele gustar mucho al público y que ayuda a llenar el teatro cada vez.</p>
+      </details>
 
-      <div>
-        <h3 style="font-family:'Playfair Display',serif;font-weight:600;font-size:19px;margin-bottom:8px;color:#c9a84c">¿Cuánto cuesta un mago para las fiestas de un pueblo?</h3>
-        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.7">El precio depende del formato, la duración y las necesidades del municipio. Cada propuesta se ajusta al presupuesto y a lo que pida el ayuntamiento.</p>
-      </div>
+      <details class="faq-item">
+        <summary>¿Cuánto cuesta un mago para las fiestas de un pueblo?</summary>
+        <p>El precio depende del formato, la duración y las necesidades del municipio. Cada propuesta se ajusta al presupuesto y a lo que pida el ayuntamiento.</p>
+      </details>
 
       <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:24px;margin-top:8px">
         <p style="font-size:15px;color:rgba(255,255,255,.6)">¿Buscas ideas para las fiestas de tu municipio? Consulta nuestros <a href="/ayuntamientos/blog/" style="color:#c9a84c;text-decoration:underline">recursos sobre magia para eventos municipales</a>.</p>
