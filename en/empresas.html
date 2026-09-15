@@ -223,11 +223,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <main>
   <!-- HERO: texto izq / foto der a sangre -->
   <section class="emp-hero">
+    <style>
+      .emp-hero__text{flex-direction:column;align-items:flex-start;justify-content:center}
+      .hero-dossier{display:inline-flex;align-items:center;gap:10px;margin-top:30px;
+        background:#C4973D;color:#1a1005;text-decoration:none;font-weight:700;font-size:15px;
+        padding:15px 30px;border-radius:100px;transition:background .25s ease,transform .2s ease}
+      .hero-dossier:hover{background:#D4A94E;transform:translateY(-2px)}
+      .hero-dossier svg{flex-shrink:0}
+      @media(max-width:560px){.hero-dossier{font-size:14px;padding:13px 24px;margin-top:24px}}
+    </style>
     <div class="emp-hero__text">
       <h1 class="emp-hero__title">
         we create and produce magical experiences for
         <strong>companies,</strong> custom-designed for every event.
       </h1>
+      <a class="hero-dossier" href="https://canva.link/udxacdblhfq80el" target="_blank" rel="noopener noreferrer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download company dossier
+      </a>
     </div>
     <div class="emp-hero__image">
       <img src="/images/empresas/hero-empresas.jpg" alt="Hands with playing cards in flames" width="1920" height="2557" />
