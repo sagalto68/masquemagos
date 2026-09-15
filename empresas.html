@@ -349,6 +349,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         transition:transform .25s ease,box-shadow .25s ease}
       .cliente-card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(0,0,0,.4)}
       .cliente-card img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+      .dossier-cta{margin-top:40px;text-align:center}
+      .dossier-cta p{color:rgba(255,255,255,.65);font-size:15.5px;margin:0 0 18px;line-height:1.6}
+      .dossier-cta a{display:inline-flex;align-items:center;gap:10px;background:#C4973D;color:#1a1005;
+        text-decoration:none;font-weight:700;font-size:15px;padding:15px 30px;border-radius:100px;
+        transition:background .25s ease,transform .2s ease}
+      .dossier-cta a:hover{background:#D4A94E;transform:translateY(-2px)}
+      .dossier-cta a svg{flex-shrink:0}
       @media(max-width:900px){.clientes-grid{grid-template-columns:repeat(4,1fr)}}
       @media(max-width:600px){.clientes-grid{grid-template-columns:repeat(3,1fr);gap:10px}
         .cliente-card{border-radius:10px;padding:11px}}
@@ -357,24 +364,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h2>EXPERIENCIA EN EMPRESAS</h2>
       <p class="sub">Algunas de las marcas para las que hemos diseñado y producido experiencias de magia.</p>
       <div class="clientes-grid">
-        <div class="cliente-card"><img src="/images/clientes/disney.png" alt="Disney" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/matutano.png" alt="Matutano" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/honda.png" alt="Honda" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/seat.png" alt="SEAT" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/nivea.png" alt="Nivea" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/casa-batllo.png" alt="Casa Batlló" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/elpozo.png" alt="ElPozo" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/sony.png" alt="Sony" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/gallina-blanca.png" alt="Gallina Blanca" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/nestle-purina.png" alt="Nestlé Purina" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/caixabank.png" alt="CaixaBank" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/iberojet.png" alt="Iberojet" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/suzuki.png" alt="Suzuki" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/grupo-planeta.png" alt="Grupo Planeta" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/ford.png" alt="Ford" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/isdin.png" alt="Isdin" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/henkel.png" alt="Henkel" loading="lazy" width="240" height="120" /></div>
-        <div class="cliente-card"><img src="/images/clientes/schwarzkopf.png" alt="Schwarzkopf" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/disney.png" alt="Disney" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/matutano.png" alt="Matutano" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/honda.png" alt="Honda" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/seat.png" alt="SEAT" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/nivea.png" alt="Nivea" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/casa-batllo.png" alt="Casa Batlló" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/elpozo.png" alt="ElPozo" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/sony.png" alt="Sony" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/gallina-blanca.png" alt="Gallina Blanca" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/nestle-purina.png" alt="Nestlé Purina" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/caixabank.png" alt="CaixaBank" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/iberojet.png" alt="Iberojet" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/suzuki.png" alt="Suzuki" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/grupo-planeta.png" alt="Grupo Planeta" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/ford.png" alt="Ford" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/isdin.png" alt="Isdin" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/henkel.png" alt="Henkel" loading="lazy" width="240" height="120" /></div>
+        <div class="cliente-card"><img src="images/clientes/schwarzkopf.png" alt="Schwarzkopf" loading="lazy" width="240" height="120" /></div>
+      </div>
+
+      <div class="dossier-cta">
+        <p>Mira los casos completos: Disney, Honda, Suzuki, Isdin y más.</p>
+        <a href="https://canva.link/udxacdblhfq80el" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar dossier de empresa
+        </a>
       </div>
     </div>
   </section>
