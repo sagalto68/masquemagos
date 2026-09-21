@@ -2206,6 +2206,15 @@ let bbddSearch = '';
 let bbddChannel = 'email';
 let bbddParsedRows = [];
 let bbddEditingId = null;
+let bbddDuplicatesInFile = 0;
+let bbddDuplicatesInDB = 0;
+function bbddDedupeKey(r){
+  const email = (r.email||'').trim().toLowerCase();
+  if(email) return 'e:'+email;
+  const phone = (r.phone||'').replace(/[^0-9]/g,'');
+  if(phone) return 'p:'+phone;
+  return 'n:'+(r.name||'').trim().toLowerCase()+'|'+(r.city||'').trim().toLowerCase();
+}
 
 function bbddFilteredContacts(){
   return STATE.bbdd.filter(c =>
@@ -2446,7 +2455,7 @@ function openBBDDImportPreview(){
           <h2 style="font-size:21px">Importar contactos</h2>
           <button onclick="cancelBBDDImport()" aria-label="Cerrar" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
         </div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Se han detectado <strong>${bbddParsedRows.length}</strong> contactos en el archivo. Elige la categoría a la que pertenecen.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Se han detectado <strong>${bbddParsedRows.length}</strong> contactos válidos y únicos en el archivo${bbddDuplicatesInFile>0?` (se han descartado ${bbddDuplicatesInFile} duplicados dentro del propio archivo)`:''}. Al importar también se omitirán los que ya existan en tu BBDD (mismo email o teléfono). Elige la categoría a la que pertenecen.</p>
         <div style="margin-bottom:14px">
           <label class="f">Categoría</label>
           <select id="bbdd-import-category" onchange="document.getElementById('bbdd-import-category-otra-wrap').style.display = this.value==='__otra__'?'block':'none'">
@@ -2482,7 +2491,12 @@ async function confirmBBDDImport(){
   const category = select === '__otra__' ? otra : select;
   if(!category){ toast('Escribe el nombre de la categoría'); return; }
   if(bbddParsedRows.length===0){ toast('No hay contactos para importar'); return; }
-  const payload = bbddParsedRows.map(r => ({...r, category}));
+  // Omite los que ya existen en la BBDD actual (mismo email o teléfono)
+  const existingKeys = new Set(STATE.bbdd.map(bbddDedupeKey));
+  const toImport = bbddParsedRows.filter(r => !existingKeys.has(bbddDedupeKey(r)));
+  bbddDuplicatesInDB = bbddParsedRows.length - toImport.length;
+  if(toImport.length===0){ toast('Todos los contactos ya existían en la BBDD, no se ha importado nada nuevo'); bbddParsedRows=[]; closeDrawer(); return; }
+  const payload = toImport.map(r => ({...r, category}));
   const btn = document.querySelector('.drawer .btn');
   const CHUNK = 500;
   let imported = 0;
@@ -2501,7 +2515,7 @@ async function confirmBBDDImport(){
   bbddParsedRows = [];
   closeDrawer();
   await loadAll(); render();
-  toast(`${imported} contactos importados en "${bbddCategoryLabel(category)}"`);
+  toast(`${imported} contactos importados en "${bbddCategoryLabel(category)}"${bbddDuplicatesInDB>0?` (${bbddDuplicatesInDB} ya existían y se han omitido)`:''}`);
 }
 
 // ---- Añadir / editar contacto manual ----
@@ -2547,6 +2561,8 @@ async function saveBBDDContact(){
   if(!name){ toast('Ponle al menos un nombre'); return; }
   if(!category){ toast('Escribe el nombre de la categoría'); return; }
   const payload = {name, category, city, phone, email};
+  const dupe = STATE.bbdd.find(c => c.id!==bbddEditingId && bbddDedupeKey(c)===bbddDedupeKey(payload));
+  if(dupe){ toast(`Ya existe un contacto con ese email/teléfono: "${dupe.name}"`); return; }
   let error;
   if(bbddEditingId){
     ({error} = await sb.from('bbdd_contacts').update(payload).eq('id', bbddEditingId));
