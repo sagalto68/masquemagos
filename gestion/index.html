@@ -2207,6 +2207,7 @@ let bbddChannel = 'email';
 let bbddParsedRows = [];
 let bbddEditingId = null;
 let bbddDuplicatesInFile = 0;
+let bbddRegionDetected = false;
 let bbddDuplicatesInDB = 0;
 function bbddDedupeKey(r){
   const email = (r.email||'').trim().toLowerCase();
@@ -2216,9 +2217,14 @@ function bbddDedupeKey(r){
   return 'n:'+(r.name||'').trim().toLowerCase()+'|'+(r.city||'').trim().toLowerCase();
 }
 
+let bbddRegionFilter = 'todas';
+function bbddAllRegions(){
+  return [...new Set(STATE.bbdd.map(c=>c.region).filter(Boolean))].sort();
+}
 function bbddFilteredContacts(){
   return STATE.bbdd.filter(c =>
     (bbddCategoryFilter==='todas' || c.category===bbddCategoryFilter) &&
+    (bbddRegionFilter==='todas' || c.region===bbddRegionFilter) &&
     (!bbddSearch || (c.name||'').toLowerCase().includes(bbddSearch.toLowerCase()) || (c.city||'').toLowerCase().includes(bbddSearch.toLowerCase()))
   );
 }
@@ -2250,6 +2256,10 @@ function viewBBDD(){
     </div>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
       <input type="text" placeholder="Buscar por nombre o ciudad..." value="${bbddSearch}" oninput="bbddSearch=this.value; render()" style="max-width:280px" />
+      <select onchange="bbddRegionFilter=this.value; render()" style="max-width:220px">
+        <option value="todas" ${bbddRegionFilter==='todas'?'selected':''}>Todas las comunidades</option>
+        ${bbddAllRegions().map(r=>`<option value="${r}" ${bbddRegionFilter===r?'selected':''}>${r}</option>`).join('')}
+      </select>
       ${bbddCategoryFilter!=='todas'?`<button onclick="bbddClearCategory('${bbddCategoryFilter}')" style="background:none;border:none;color:#991B1B;font-size:12.5px;cursor:pointer;text-decoration:underline">🗑️ Vaciar categoría "${bbddCategoryLabel(bbddCategoryFilter)}" (${STATE.bbdd.filter(c=>c.category===bbddCategoryFilter).length})</button>`:''}
     </div>
 
@@ -2259,7 +2269,7 @@ function viewBBDD(){
         <div class="row-icon" style="background:var(--warm)">📇</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:600">${c.name||'—'}</div>
-          <div style="font-size:12px;color:var(--muted)">${[bbddCategoryLabel(c.category), c.city, c.phone, c.email].filter(Boolean).join(' · ')}</div>
+          <div style="font-size:12px;color:var(--muted)">${[bbddCategoryLabel(c.category), c.city, c.region, c.phone, c.email].filter(Boolean).join(' · ')}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9+]/g,'')}" target="_blank" style="width:30px;height:30px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>`:''}
@@ -2423,9 +2433,14 @@ function handleBBDDFile(e){
       const emailCol = findColumn([
         ['e-mail','email','correo','mail'],
       ]);
+      const regionCol = findColumn([
+        ['comunitat autonoma','comunidad autonoma','ccaa','comunitat_autonoma','comunidad_autonoma'],
+        ['comunitat','comunidad autonoma'],
+      ]);
       const rawRows = json.map(r => ({
         name: String((nameCol?r[nameCol]:'')||'').trim(),
         city: String((cityCol?r[cityCol]:'')||'').trim(),
+        region: String((regionCol?r[regionCol]:'')||'').trim(),
         phone: String((phoneCol?r[phoneCol]:'')||'').trim(),
         email: String((emailCol?r[emailCol]:'')||'').trim(),
       })).filter(r => r.name || r.phone || r.email);
@@ -2440,6 +2455,7 @@ function handleBBDDFile(e){
       });
       bbddDuplicatesInFile = rawRows.length - rows.length;
       bbddParsedRows = rows;
+      bbddRegionDetected = !!regionCol;
       openBBDDImportPreview();
     }catch(err){
       toast('No se pudo leer el archivo. Comprueba que es un Excel o CSV válido.');
@@ -2470,6 +2486,14 @@ function openBBDDImportPreview(){
           <label class="f">Nombre de la nueva categoría</label>
           <input type="text" id="bbdd-import-category-otra" placeholder="Ej: Fotógrafos" />
         </div>
+        ${bbddRegionDetected ? `
+        <p style="font-size:12px;color:var(--muted);margin-bottom:18px">✓ Se ha detectado la comunidad autónoma de cada contacto en el archivo.</p>
+        ` : `
+        <div style="margin-bottom:18px">
+          <label class="f">Comunidad autónoma (opcional, se aplicará a todos)</label>
+          <input type="text" id="bbdd-import-region" placeholder="Ej: Cataluña" />
+        </div>
+        `}
         <div class="card" style="padding:0;overflow:hidden;max-height:260px;overflow-y:auto;margin-bottom:18px">
           ${bbddParsedRows.slice(0,30).map(r=>`<div class="row" style="cursor:default;padding:8px 12px">
             <div style="flex:1;min-width:0;font-size:12.5px">
@@ -2499,7 +2523,8 @@ async function confirmBBDDImport(){
   const toImport = bbddParsedRows.filter(r => !existingKeys.has(bbddDedupeKey(r)));
   bbddDuplicatesInDB = bbddParsedRows.length - toImport.length;
   if(toImport.length===0){ toast('Todos los contactos ya existían en la BBDD, no se ha importado nada nuevo'); bbddParsedRows=[]; closeDrawer(); return; }
-  const payload = toImport.map(r => ({...r, category}));
+  const manualRegion = document.getElementById('bbdd-import-region')?.value?.trim();
+  const payload = toImport.map(r => ({...r, category, region: r.region || manualRegion || null}));
   const btn = document.querySelector('.drawer .btn');
   const CHUNK = 500;
   let imported = 0;
@@ -2543,6 +2568,7 @@ function openBBDDContactForm(id){
           </div>
           <div id="bc-category-otra-wrap" style="display:none"><label class="f">Nombre de la nueva categoría</label><input type="text" id="bc-category-otra" /></div>
           <div><label class="f">Ciudad</label><input type="text" id="bc-city" value="${c?.city||''}" /></div>
+          <div><label class="f">Comunidad autónoma</label><input type="text" id="bc-region" value="${c?.region||''}" placeholder="Ej: Cataluña" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="bc-phone" value="${c?.phone||''}" /></div>
           <div><label class="f">Email</label><input type="email" id="bc-email" value="${c?.email||''}" /></div>
           <button class="btn" onclick="saveBBDDContact()">Guardar</button>
@@ -2559,11 +2585,12 @@ async function saveBBDDContact(){
   const otra = document.getElementById('bc-category-otra')?.value?.trim();
   const category = select === '__otra__' ? otra : select;
   const city = document.getElementById('bc-city').value.trim();
+  const region = document.getElementById('bc-region').value.trim();
   const phone = document.getElementById('bc-phone').value.trim();
   const email = document.getElementById('bc-email').value.trim();
   if(!name){ toast('Ponle al menos un nombre'); return; }
   if(!category){ toast('Escribe el nombre de la categoría'); return; }
-  const payload = {name, category, city, phone, email};
+  const payload = {name, category, city, region, phone, email};
   const dupe = STATE.bbdd.find(c => c.id!==bbddEditingId && bbddDedupeKey(c)===bbddDedupeKey(payload));
   if(dupe){ toast(`Ya existe un contacto con ese email/teléfono: "${dupe.name}"`); return; }
   let error;
