@@ -240,6 +240,7 @@ let financePct = 20;
 
 const NAV_ITEMS = [
   {id:'dashboard', label:'Resumen', icon:'🏠'},
+  {id:'bbdd-envio', label:'Envío BBDD', icon:'📣'},
   {id:'clientes', label:'Clientes', icon:'👥'},
   {id:'calendario', label:'Calendario', icon:'📅'},
   {id:'bolos', label:'Bolos', icon:'🎩'},
@@ -348,6 +349,7 @@ function render(){
   if(STATE.route==='calculadora'){ main.innerHTML = viewCalculadora(); renderCalc(); }
   if(STATE.route==='finanzas') main.innerHTML = viewFinanzas();
   if(STATE.route==='bbdd') main.innerHTML = viewBBDD();
+  if(STATE.route==='bbdd-envio') main.innerHTML = viewBBDDEnvio();
   if(STATE.route==='emails') main.innerHTML = viewEmails();
 
   if(activeId){
@@ -2279,8 +2281,44 @@ function viewBBDD(){
       </div>`).join('')}
     </div>
 
-    <h3 style="font-size:16px;margin-bottom:4px">✉️ Enviar campaña a esta BBDD</h3>
-    <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px">Usa los filtros de arriba (categoría y búsqueda) para elegir a quién le llega.</p>
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:2px">📣 ¿Quieres mandar una campaña a esta BBDD?</div>
+        <div style="font-size:12.5px;color:var(--muted)">Envía email o WhatsApp de difusión desde el apartado "Envío BBDD" del menú.</div>
+      </div>
+      <button class="btn" onclick="goTo('bbdd-envio')">Ir a Envío BBDD →</button>
+    </div>
+  `;
+}
+
+function viewBBDDEnvio(){
+  const cats = bbddAllCategories();
+  const filtered = bbddFilteredContacts();
+  const matchedEmail = filtered.filter(c=>c.email);
+  const matchedPhone = filtered.filter(c=>c.phone);
+  const matched = bbddChannel==='email' ? matchedEmail : matchedPhone;
+
+  return `
+    <div style="margin-bottom:6px">
+      <h1 style="font-size:24px">📣 Envío BBDD</h1>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;max-width:640px">Envía email o WhatsApp de difusión a tu base de datos de contactos externos. Filtra por categoría, comunidad autónoma o búsqueda para elegir a quién le llega.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="chip ${bbddCategoryFilter==='todas'?'active':''}" onclick="bbddCategoryFilter='todas'; render()">Todas (${STATE.bbdd.length})</button>
+      ${cats.map(cat=>{
+        const count = STATE.bbdd.filter(c=>c.category===cat).length;
+        return `<button class="chip ${bbddCategoryFilter===cat?'active':''}" onclick="bbddCategoryFilter='${cat}'; render()">${bbddCategoryLabel(cat)} (${count})</button>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap">
+      <input type="text" placeholder="Buscar por nombre o ciudad..." value="${bbddSearch}" oninput="bbddSearch=this.value; render()" style="max-width:280px" />
+      <select onchange="bbddRegionFilter=this.value; render()" style="max-width:220px">
+        <option value="todas" ${bbddRegionFilter==='todas'?'selected':''}>Todas las comunidades</option>
+        ${bbddAllRegions().map(r=>`<option value="${r}" ${bbddRegionFilter===r?'selected':''}>${r}</option>`).join('')}
+      </select>
+      <a href="javascript:void(0)" onclick="goTo('bbdd')" style="font-size:12.5px;color:var(--gold-btn)">Ver / editar contactos de la BBDD →</a>
+    </div>
 
     <div style="display:flex;gap:8px;margin-bottom:20px">
       <button class="chip ${bbddChannel==='email'?'active':''}" onclick="bbddChannel='email'; render()">✉️ Email</button>
