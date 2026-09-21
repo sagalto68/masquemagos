@@ -28,6 +28,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -232,7 +233,7 @@ const STATUS_STYLES = {
 };
 function badge(style){ return `<span class="badge" style="background:${style.bg};color:${style.text}">${style.label}</span>`; }
 
-let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], magicians:[], settings:{monthly_goal:0, annual_goal:0}, typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
+let STATE = { clients:[], calls:[], docs:[], gigs:[], expenses:[], magicians:[], bbdd:[], settings:{monthly_goal:0, annual_goal:0}, typeFilter:'todos', statusFilter:'todos', search:'', route:'dashboard' };
 const CCAA = ['Andalucía','Aragón','Asturias','Islas Baleares','Canarias','Cantabria','Castilla-La Mancha','Castilla y León','Cataluña','Extremadura','Galicia','La Rioja','Madrid','Murcia','Navarra','País Vasco','Comunidad Valenciana','Ceuta','Melilla'];
 let financeMonth = new Date().toISOString().slice(0,7); // YYYY-MM
 let financePct = 20;
@@ -248,6 +249,7 @@ const NAV_ITEMS = [
   {id:'documentos', label:'Documentos', icon:'🗂️'},
   {id:'calculadora', label:'Comisión', icon:'🧮'},
   {id:'finanzas', label:'Finanzas', icon:'💰'},
+  {id:'bbdd', label:'BBDD', icon:'📇'},
   {id:'emails', label:'Emails/WhatsApp', icon:'✉️'},
 ];
 
@@ -267,7 +269,7 @@ function closeSidebar(){
 }
 
 async function loadAll(){
-  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}, {data:settings}] = await Promise.all([
+  const [{data:clients}, {data:calls}, {data:docs}, {data:gigs}, {data:expenses}, {data:magicians}, {data:templates}, {data:settings}, {data:bbdd}] = await Promise.all([
     sb.from('clients').select('*, notes(*), client_contacts(*)').order('created_at', {ascending:false}),
     sb.from('calls').select('*, clients(name, phone)').eq('done', false).order('due_date'),
     sb.from('documents').select('*, clients(name)').order('created_at', {ascending:false}),
@@ -276,6 +278,7 @@ async function loadAll(){
     sb.from('magicians').select('*').order('name'),
     sb.from('message_templates').select('*').order('created_at'),
     sb.from('settings').select('*').eq('id', 1).maybeSingle(),
+    sb.from('bbdd_contacts').select('*').order('name'),
   ]);
   STATE.clients = clients || [];
   STATE.calls = calls || [];
@@ -285,6 +288,7 @@ async function loadAll(){
   STATE.magicians = magicians || [];
   STATE.templates = templates || [];
   STATE.settings = settings || {monthly_goal:0, annual_goal:0};
+  STATE.bbdd = bbdd || [];
 }
 
 async function boot(){
@@ -328,6 +332,7 @@ function render(){
   if(STATE.route==='documentos') main.innerHTML = viewDocumentos();
   if(STATE.route==='calculadora'){ main.innerHTML = viewCalculadora(); renderCalc(); }
   if(STATE.route==='finanzas') main.innerHTML = viewFinanzas();
+  if(STATE.route==='bbdd') main.innerHTML = viewBBDD();
   if(STATE.route==='emails') main.innerHTML = viewEmails();
 
   if(activeId){
@@ -2167,6 +2172,336 @@ function openMailClient(){
   if(matched.length===0){ toast('No hay emails que coincidan con el filtro'); return; }
   const bcc = matched.map(c=>c.email).join(',');
   window.location.href = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// ---------------- BBDD (contactos externos: wedding planners, agencias, colegios...) ----------------
+const BBDD_CATEGORIES = {
+  'wedding-planner': 'Wedding planners',
+  'agencia-eventos': 'Agencias de eventos',
+  'colegios': 'Colegios',
+};
+function bbddCategoryLabel(cat){ return BBDD_CATEGORIES[cat] || cat; }
+function bbddAllCategories(){
+  const dynamic = [...new Set(STATE.bbdd.map(c=>c.category).filter(Boolean))];
+  return [...new Set([...Object.keys(BBDD_CATEGORIES), ...dynamic])];
+}
+
+let bbddCategoryFilter = 'todas';
+let bbddSearch = '';
+let bbddChannel = 'email';
+let bbddParsedRows = [];
+let bbddEditingId = null;
+
+function bbddFilteredContacts(){
+  return STATE.bbdd.filter(c =>
+    (bbddCategoryFilter==='todas' || c.category===bbddCategoryFilter) &&
+    (!bbddSearch || (c.name||'').toLowerCase().includes(bbddSearch.toLowerCase()) || (c.city||'').toLowerCase().includes(bbddSearch.toLowerCase()))
+  );
+}
+
+function viewBBDD(){
+  const cats = bbddAllCategories();
+  const filtered = bbddFilteredContacts();
+  const matchedEmail = filtered.filter(c=>c.email);
+  const matchedPhone = filtered.filter(c=>c.phone);
+  const matched = bbddChannel==='email' ? matchedEmail : matchedPhone;
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+      <h1 style="font-size:24px">Base de datos</h1>
+      <div style="display:flex;gap:10px">
+        <input type="file" id="bbdd-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleBBDDFile(event)" />
+        <button class="btn secondary" onclick="document.getElementById('bbdd-file-input').click()">📥 Subir Excel</button>
+        <button class="btn" onclick="openBBDDContactForm()">+ Contacto</button>
+      </div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;max-width:600px">Contactos externos por categoría — wedding planners, agencias de eventos, colegios... Súbelos desde un Excel (columnas: nombre, ciudad, teléfono, email) y luego mándales email o WhatsApp de difusión.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="chip ${bbddCategoryFilter==='todas'?'active':''}" onclick="bbddCategoryFilter='todas'; render()">Todas (${STATE.bbdd.length})</button>
+      ${cats.map(cat=>{
+        const count = STATE.bbdd.filter(c=>c.category===cat).length;
+        return `<button class="chip ${bbddCategoryFilter===cat?'active':''}" onclick="bbddCategoryFilter='${cat}'; render()">${bbddCategoryLabel(cat)} (${count})</button>`;
+      }).join('')}
+    </div>
+    <input type="text" placeholder="Buscar por nombre o ciudad..." value="${bbddSearch}" oninput="bbddSearch=this.value; render()" style="max-width:280px;margin-bottom:18px" />
+
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:32px">
+      ${filtered.length===0?'<div class="empty-state"><div class="icon">📇</div><p>No hay contactos en esta categoría todavía. Sube un Excel o añade uno a mano.</p></div>':''}
+      ${filtered.map(c=>`<div class="row" style="cursor:default">
+        <div class="row-icon" style="background:var(--warm)">📇</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600">${c.name||'—'}</div>
+          <div style="font-size:12px;color:var(--muted)">${[bbddCategoryLabel(c.category), c.city, c.phone, c.email].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9+]/g,'')}" target="_blank" style="width:30px;height:30px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>`:''}
+          <button onclick="openBBDDContactForm('${c.id}')" style="background:none;border:none;color:var(--gold-btn);font-size:13px;cursor:pointer">✎</button>
+          <button onclick="deleteBBDDContact('${c.id}')" style="background:none;border:none;color:#991B1B;font-size:13px;cursor:pointer">✕</button>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <h3 style="font-size:16px;margin-bottom:4px">✉️ Enviar campaña a esta BBDD</h3>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px">Usa los filtros de arriba (categoría y búsqueda) para elegir a quién le llega.</p>
+
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="chip ${bbddChannel==='email'?'active':''}" onclick="bbddChannel='email'; render()">✉️ Email</button>
+      <button class="chip ${bbddChannel==='whatsapp'?'active':''}" onclick="bbddChannel='whatsapp'; render()">💬 WhatsApp</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:flex-start">
+      <div class="card">
+        <div style="background:var(--warm);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13.5px">
+          <strong>${matched.length}</strong> contacto${matched.length!==1?'s':''} con ${bbddChannel==='email'?'email':'teléfono'} coinciden con este filtro
+        </div>
+        ${bbddChannel==='email' ? `
+          <label class="f">Plantilla</label>
+          <select onchange="bbddApplyTemplate(this.value)" style="margin-bottom:16px">
+            <option value="">— Escribir desde cero —</option>
+            ${STATE.templates.filter(t=>t.channel==='email').map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}
+          </select>
+          <label class="f">Asunto</label>
+          <input type="text" id="bbdd-email-subject" placeholder="Ej: 🎩 Magia para vuestros eventos" style="margin-bottom:16px" />
+          <label class="f">Mensaje</label>
+          <textarea id="bbdd-email-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:12px"></textarea>
+          <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+            <button class="btn" onclick="bbddCopyEmails()">📋 Copiar emails (${matched.length})</button>
+            <button class="btn secondary" onclick="bbddOpenMailClient()">Abrir en mi correo</button>
+            <button class="btn secondary" onclick="bbddSaveAsTemplate('email')">💾 Guardar como plantilla</button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:-8px">"Abrir en mi correo" funciona bien con pocos destinatarios. Con muchos, mejor copia los emails y pégalos en el campo CCO de Gmail/Outlook.</p>
+        ` : `
+          <label class="f">Plantilla</label>
+          <select onchange="bbddApplyTemplate(this.value)" style="margin-bottom:16px">
+            <option value="">— Escribir desde cero —</option>
+            ${STATE.templates.filter(t=>t.channel==='whatsapp').map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}
+          </select>
+          <label class="f">Mensaje de WhatsApp</label>
+          <textarea id="bbdd-wa-body" placeholder="Escribe aquí tu mensaje..." style="min-height:160px;margin-bottom:12px"></textarea>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn secondary" onclick="bbddCopyPhones()">📋 Copiar teléfonos (${matched.length})</button>
+            <button class="btn secondary" onclick="bbddSaveAsTemplate('whatsapp')">💾 Guardar como plantilla</button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px">WhatsApp no permite enviar a varios de golpe gratis. Toca cada botón — se abre WhatsApp con el mensaje ya escrito.</p>
+          <div style="display:grid;gap:6px;max-height:280px;overflow-y:auto">
+            ${matched.length===0?'<p style="font-size:13px;color:var(--muted)">Ningún contacto con teléfono coincide.</p>':''}
+            ${matched.map(c=>`<button class="btn secondary" style="justify-content:space-between;text-align:left" onclick="bbddSendWhatsapp('${c.phone}')">💬 ${c.name} <span style="opacity:.6">${c.phone}</span></button>`).join('')}
+          </div>
+        `}
+      </div>
+      <div>
+        <h3 style="font-size:13px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Contactos seleccionados</h3>
+        <div class="card" style="padding:0;overflow:hidden;max-height:420px;overflow-y:auto">
+          ${matched.length===0?'<div style="padding:16px;font-size:13px;color:var(--muted)">Ningún contacto coincide.</div>':''}
+          ${matched.map(c=>`<div class="row" style="cursor:default;padding:10px 14px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600">${c.name}</div>
+              <div style="font-size:11.5px;color:var(--muted)">${bbddChannel==='email'?c.email:c.phone} ${c.city?'· '+c.city:''}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bbddApplyTemplate(id){
+  if(!id) return;
+  const t = STATE.templates.find(x=>x.id===id);
+  if(!t) return;
+  if(t.channel==='email'){
+    document.getElementById('bbdd-email-subject').value = t.subject || '';
+    document.getElementById('bbdd-email-body').value = t.body || '';
+  } else {
+    document.getElementById('bbdd-wa-body').value = t.body || '';
+  }
+}
+async function bbddSaveAsTemplate(channel){
+  const name = prompt('¿Cómo quieres llamar a esta plantilla?');
+  if(!name) return;
+  const subject = channel==='email' ? document.getElementById('bbdd-email-subject').value : null;
+  const body = channel==='email' ? document.getElementById('bbdd-email-body').value : document.getElementById('bbdd-wa-body').value;
+  if(!body){ toast('Escribe primero el mensaje'); return; }
+  await sb.from('message_templates').insert({channel, name, subject, body});
+  await loadAll(); render(); toast('Plantilla guardada');
+}
+function bbddSendWhatsapp(phone){
+  const msg = document.getElementById('bbdd-wa-body')?.value || '';
+  const cleanPhone = phone.replace(/[^0-9+]/g, '');
+  window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+function bbddCopyEmails(){
+  const filtered = bbddFilteredContacts().filter(c=>c.email);
+  const list = filtered.map(c=>c.email).join(', ');
+  if(!list){ toast('No hay emails que coincidan con el filtro'); return; }
+  navigator.clipboard.writeText(list);
+  toast(`${filtered.length} emails copiados al portapapeles`);
+}
+function bbddCopyPhones(){
+  const filtered = bbddFilteredContacts().filter(c=>c.phone);
+  const list = filtered.map(c=>c.phone).join(', ');
+  if(!list){ toast('No hay teléfonos que coincidan con el filtro'); return; }
+  navigator.clipboard.writeText(list);
+  toast(`${filtered.length} teléfonos copiados al portapapeles`);
+}
+function bbddOpenMailClient(){
+  const filtered = bbddFilteredContacts().filter(c=>c.email);
+  const subject = document.getElementById('bbdd-email-subject').value;
+  const body = document.getElementById('bbdd-email-body').value;
+  if(filtered.length===0){ toast('No hay emails que coincidan con el filtro'); return; }
+  const bcc = filtered.map(c=>c.email).join(',');
+  window.location.href = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// ---- Importar Excel ----
+function normalizeHeader(h){
+  return String(h).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
+function handleBBDDFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(typeof XLSX === 'undefined'){ toast('Error cargando el lector de Excel. Recarga la página.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      const rows = json.map(r => {
+        const norm = {};
+        Object.keys(r).forEach(k => { norm[normalizeHeader(k)] = r[k]; });
+        return {
+          name: String(norm['nombre']||norm['name']||norm['empresa']||norm['contacto']||'').trim(),
+          city: String(norm['ciudad']||norm['poblacion']||norm['city']||'').trim(),
+          phone: String(norm['telefono']||norm['tel']||norm['phone']||norm['movil']||'').trim(),
+          email: String(norm['email']||norm['correo']||norm['e-mail']||norm['mail']||'').trim(),
+        };
+      }).filter(r => r.name || r.phone || r.email);
+      if(rows.length===0){ toast('No se ha encontrado ninguna fila válida en el archivo'); e.target.value=''; return; }
+      bbddParsedRows = rows;
+      openBBDDImportPreview();
+    }catch(err){
+      toast('No se pudo leer el archivo. Comprueba que es un Excel o CSV válido.');
+      console.error(err);
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+function openBBDDImportPreview(){
+  const cats = bbddAllCategories();
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="font-size:21px">Importar contactos</h2>
+          <button onclick="cancelBBDDImport()" aria-label="Cerrar" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Se han detectado <strong>${bbddParsedRows.length}</strong> contactos en el archivo. Elige la categoría a la que pertenecen.</p>
+        <div style="margin-bottom:14px">
+          <label class="f">Categoría</label>
+          <select id="bbdd-import-category" onchange="document.getElementById('bbdd-import-category-otra-wrap').style.display = this.value==='__otra__'?'block':'none'">
+            ${cats.map(c=>`<option value="${c}">${bbddCategoryLabel(c)}</option>`).join('')}
+            <option value="__otra__">Otra categoría...</option>
+          </select>
+        </div>
+        <div id="bbdd-import-category-otra-wrap" style="display:none;margin-bottom:18px">
+          <label class="f">Nombre de la nueva categoría</label>
+          <input type="text" id="bbdd-import-category-otra" placeholder="Ej: Fotógrafos" />
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;max-height:260px;overflow-y:auto;margin-bottom:18px">
+          ${bbddParsedRows.slice(0,30).map(r=>`<div class="row" style="cursor:default;padding:8px 12px">
+            <div style="flex:1;min-width:0;font-size:12.5px">
+              <strong>${r.name||'—'}</strong> · ${r.city||'sin ciudad'} · ${r.phone||'sin tel'} · ${r.email||'sin email'}
+            </div>
+          </div>`).join('')}
+          ${bbddParsedRows.length>30?`<div style="padding:8px 12px;font-size:12px;color:var(--muted)">... y ${bbddParsedRows.length-30} más</div>`:''}
+        </div>
+        <button class="btn" style="width:100%" onclick="confirmBBDDImport()">Importar ${bbddParsedRows.length} contactos</button>
+        <button onclick="cancelBBDDImport()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function cancelBBDDImport(){
+  bbddParsedRows = [];
+  closeDrawer();
+}
+async function confirmBBDDImport(){
+  const select = document.getElementById('bbdd-import-category').value;
+  const otra = document.getElementById('bbdd-import-category-otra')?.value?.trim();
+  const category = select === '__otra__' ? otra : select;
+  if(!category){ toast('Escribe el nombre de la categoría'); return; }
+  if(bbddParsedRows.length===0){ toast('No hay contactos para importar'); return; }
+  const payload = bbddParsedRows.map(r => ({...r, category}));
+  const {error} = await sb.from('bbdd_contacts').insert(payload);
+  if(error){ toast('Error al importar: '+error.message); console.error(error); return; }
+  const count = payload.length;
+  bbddParsedRows = [];
+  closeDrawer();
+  await loadAll(); render();
+  toast(`${count} contactos importados en "${bbddCategoryLabel(category)}"`);
+}
+
+// ---- Añadir / editar contacto manual ----
+function openBBDDContactForm(id){
+  bbddEditingId = id || null;
+  const c = id ? STATE.bbdd.find(x=>x.id===id) : null;
+  const cats = bbddAllCategories();
+  const html = `
+    <div class="drawer-bg">
+      <div class="drawer" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="font-size:21px">${c?'Editar contacto':'Nuevo contacto'}</h2>
+          <button onclick="closeDrawer()" aria-label="Cerrar" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+        </div>
+        <div style="display:grid;gap:12px">
+          <div><label class="f">Nombre</label><input type="text" id="bc-name" value="${c?.name||''}" /></div>
+          <div><label class="f">Categoría</label>
+            <select id="bc-category" onchange="document.getElementById('bc-category-otra-wrap').style.display = this.value==='__otra__'?'block':'none'">
+              ${cats.map(cat=>`<option value="${cat}" ${c?.category===cat?'selected':''}>${bbddCategoryLabel(cat)}</option>`).join('')}
+              <option value="__otra__">Otra categoría...</option>
+            </select>
+          </div>
+          <div id="bc-category-otra-wrap" style="display:none"><label class="f">Nombre de la nueva categoría</label><input type="text" id="bc-category-otra" /></div>
+          <div><label class="f">Ciudad</label><input type="text" id="bc-city" value="${c?.city||''}" /></div>
+          <div><label class="f">Teléfono</label><input type="tel" id="bc-phone" value="${c?.phone||''}" /></div>
+          <div><label class="f">Email</label><input type="email" id="bc-email" value="${c?.email||''}" /></div>
+          <button class="btn" onclick="saveBBDDContact()">Guardar</button>
+        </div>
+        <button onclick="closeDrawer()" style="width:100%;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-size:13px">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  setTimeout(()=>document.getElementById('bc-name')?.focus(), 50);
+}
+async function saveBBDDContact(){
+  const name = document.getElementById('bc-name').value.trim();
+  const select = document.getElementById('bc-category').value;
+  const otra = document.getElementById('bc-category-otra')?.value?.trim();
+  const category = select === '__otra__' ? otra : select;
+  const city = document.getElementById('bc-city').value.trim();
+  const phone = document.getElementById('bc-phone').value.trim();
+  const email = document.getElementById('bc-email').value.trim();
+  if(!name){ toast('Ponle al menos un nombre'); return; }
+  if(!category){ toast('Escribe el nombre de la categoría'); return; }
+  const payload = {name, category, city, phone, email};
+  let error;
+  if(bbddEditingId){
+    ({error} = await sb.from('bbdd_contacts').update(payload).eq('id', bbddEditingId));
+  } else {
+    ({error} = await sb.from('bbdd_contacts').insert(payload));
+  }
+  if(error){ toast('Error al guardar: '+error.message); console.error(error); return; }
+  bbddEditingId = null;
+  closeDrawer(); await loadAll(); render(); toast('Contacto guardado');
+}
+async function deleteBBDDContact(id){
+  if(!confirm('¿Borrar este contacto de la BBDD?')) return;
+  await sb.from('bbdd_contacts').delete().eq('id', id);
+  await loadAll(); render(); toast('Contacto borrado');
 }
 
 // ---------------- BOLOS (archivo agrupado) ----------------
