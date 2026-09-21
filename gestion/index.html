@@ -2369,16 +2369,39 @@ function handleBBDDFile(e){
       const wb = XLSX.read(data, {type:'array'});
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet, {defval:''});
-      const rows = json.map(r => {
-        const norm = {};
-        Object.keys(r).forEach(k => { norm[normalizeHeader(k)] = r[k]; });
-        return {
-          name: String(norm['nombre']||norm['name']||norm['empresa']||norm['contacto']||'').trim(),
-          city: String(norm['ciudad']||norm['poblacion']||norm['city']||'').trim(),
-          phone: String(norm['telefono']||norm['tel']||norm['phone']||norm['movil']||'').trim(),
-          email: String(norm['email']||norm['correo']||norm['e-mail']||norm['mail']||'').trim(),
-        };
-      }).filter(r => r.name || r.phone || r.email);
+      if(json.length===0){ toast('El archivo está vacío'); e.target.value=''; return; }
+      // Detecta la columna adecuada para cada campo por palabras clave (soporta ES/CAT/EN y variantes oficiales)
+      const origHeaders = Object.keys(json[0]);
+      const normHeaders = origHeaders.map(h => ({orig:h, norm:normalizeHeader(h)}));
+      function findColumn(keywordGroups){
+        // keywordGroups: array de arrays de keywords, en orden de prioridad
+        for(const keywords of keywordGroups){
+          const match = normHeaders.find(h => keywords.some(kw => h.norm.includes(kw)));
+          if(match) return match.orig;
+        }
+        return null;
+      }
+      const nameCol = findColumn([
+        ['denominacio','denominac'], // catalán oficial (denominació completa)
+        ['nombre','name','empresa','contacto','centre','entidad','razon social'],
+      ]);
+      const cityCol = findColumn([
+        ['localitat'], // prioriza localidad sobre municipio si existe
+        ['municipi','municipio'],
+        ['ciudad','poblacion','poblacio','city','localidad'],
+      ]);
+      const phoneCol = findColumn([
+        ['telefon','telefono','tel','phone','movil','mobil'],
+      ]);
+      const emailCol = findColumn([
+        ['e-mail','email','correo','mail'],
+      ]);
+      const rows = json.map(r => ({
+        name: String((nameCol?r[nameCol]:'')||'').trim(),
+        city: String((cityCol?r[cityCol]:'')||'').trim(),
+        phone: String((phoneCol?r[phoneCol]:'')||'').trim(),
+        email: String((emailCol?r[emailCol]:'')||'').trim(),
+      })).filter(r => r.name || r.phone || r.email);
       if(rows.length===0){ toast('No se ha encontrado ninguna fila válida en el archivo'); e.target.value=''; return; }
       bbddParsedRows = rows;
       openBBDDImportPreview();
@@ -2436,13 +2459,25 @@ async function confirmBBDDImport(){
   if(!category){ toast('Escribe el nombre de la categoría'); return; }
   if(bbddParsedRows.length===0){ toast('No hay contactos para importar'); return; }
   const payload = bbddParsedRows.map(r => ({...r, category}));
-  const {error} = await sb.from('bbdd_contacts').insert(payload);
-  if(error){ toast('Error al importar: '+error.message); console.error(error); return; }
-  const count = payload.length;
+  const btn = document.querySelector('.drawer .btn');
+  const CHUNK = 500;
+  let imported = 0;
+  for(let i=0; i<payload.length; i+=CHUNK){
+    const chunk = payload.slice(i, i+CHUNK);
+    if(btn) btn.textContent = `Importando... ${imported}/${payload.length}`;
+    const {error} = await sb.from('bbdd_contacts').insert(chunk);
+    if(error){
+      toast(`Error al importar (fila ${imported}): ${error.message}`);
+      console.error(error);
+      if(imported>0){ await loadAll(); render(); }
+      return;
+    }
+    imported += chunk.length;
+  }
   bbddParsedRows = [];
   closeDrawer();
   await loadAll(); render();
-  toast(`${count} contactos importados en "${bbddCategoryLabel(category)}"`);
+  toast(`${imported} contactos importados en "${bbddCategoryLabel(category)}"`);
 }
 
 // ---- Añadir / editar contacto manual ----
