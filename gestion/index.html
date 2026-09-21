@@ -2248,7 +2248,10 @@ function viewBBDD(){
         return `<button class="chip ${bbddCategoryFilter===cat?'active':''}" onclick="bbddCategoryFilter='${cat}'; render()">${bbddCategoryLabel(cat)} (${count})</button>`;
       }).join('')}
     </div>
-    <input type="text" placeholder="Buscar por nombre o ciudad..." value="${bbddSearch}" oninput="bbddSearch=this.value; render()" style="max-width:280px;margin-bottom:18px" />
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+      <input type="text" placeholder="Buscar por nombre o ciudad..." value="${bbddSearch}" oninput="bbddSearch=this.value; render()" style="max-width:280px" />
+      ${bbddCategoryFilter!=='todas'?`<button onclick="bbddClearCategory('${bbddCategoryFilter}')" style="background:none;border:none;color:#991B1B;font-size:12.5px;cursor:pointer;text-decoration:underline">🗑️ Vaciar categoría "${bbddCategoryLabel(bbddCategoryFilter)}" (${STATE.bbdd.filter(c=>c.category===bbddCategoryFilter).length})</button>`:''}
+    </div>
 
     <div class="card" style="padding:0;overflow:hidden;margin-bottom:32px">
       ${filtered.length===0?'<div class="empty-state"><div class="icon">📇</div><p>No hay contactos en esta categoría todavía. Sube un Excel o añade uno a mano.</p></div>':''}
@@ -2577,6 +2580,16 @@ async function deleteBBDDContact(id){
   if(!confirm('¿Borrar este contacto de la BBDD?')) return;
   await sb.from('bbdd_contacts').delete().eq('id', id);
   await loadAll(); render(); toast('Contacto borrado');
+}
+async function bbddClearCategory(cat){
+  const count = STATE.bbdd.filter(c=>c.category===cat).length;
+  if(count===0) return;
+  if(!confirm(`¿Borrar los ${count} contactos de la categoría "${bbddCategoryLabel(cat)}"? Esta acción no se puede deshacer.`)) return;
+  const {error} = await sb.from('bbdd_contacts').delete().eq('category', cat);
+  if(error){ toast('Error al borrar: '+error.message); console.error(error); return; }
+  bbddCategoryFilter = 'todas';
+  await loadAll(); render();
+  toast(`${count} contactos borrados de "${bbddCategoryLabel(cat)}"`);
 }
 
 // ---------------- BOLOS (archivo agrupado) ----------------
