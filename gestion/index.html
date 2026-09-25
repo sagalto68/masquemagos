@@ -223,6 +223,7 @@ const TYPE_STYLES = {
   ayuntamiento: { label:'Ayuntamiento', bg:'#FEF3C7', text:'#92400E', icon:'🏛️' },
   agencia: { label:'Agencia de eventos', bg:'#FDF2F8', text:'#9D174D', icon:'🎪' },
   asociacion: { label:'Asociación de fiestas', bg:'#ECFEFF', text:'#0E7490', icon:'🎉' },
+  colegio: { label:'Colegio', bg:'#F5F3FF', text:'#6D28D9', icon:'🎓' },
 };
 const STATUS_STYLES = {
   nuevo: { label:'Nuevo', bg:'#F1F5F9', text:'#475569' },
@@ -671,7 +672,7 @@ function viewClientes(){
       </select>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      ${['todos','particular','empresa','ayuntamiento','agencia','asociacion'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
+      ${['todos','particular','empresa','ayuntamiento','colegio','agencia','asociacion'].map(f=>`<button class="chip ${STATE.typeFilter===f?'active':''}" onclick="STATE.typeFilter='${f}'; render()">${f==='todos'?'todos':TYPE_STYLES[f].label}</button>`).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
       ${['todos','nuevo','contactado','presupuestado','confirmado','perdido'].map(s=>{
@@ -717,7 +718,7 @@ function openClientForm(){
         <h4 style="font-size:11px;font-weight:700;color:var(--gold-btn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Datos de contacto</h4>
         <div style="display:grid;gap:12px;margin-bottom:22px">
           <div><label class="f" id="nc-name-label">Nombre</label><input type="text" id="nc-name" oninput="checkDuplicateClient()" /></div>
-          <div><label class="f">Tipo</label><select id="nc-type" onchange="toggleAgencyField()"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="agencia">Agencia de eventos</option><option value="asociacion">Asociación de fiestas</option></select></div>
+          <div><label class="f">Tipo</label><select id="nc-type" onchange="toggleAgencyField()"><option value="particular">Particular</option><option value="empresa">Empresa</option><option value="ayuntamiento">Ayuntamiento</option><option value="colegio">Colegio</option><option value="agencia">Agencia de eventos</option><option value="asociacion">Asociación de fiestas</option></select></div>
           <div id="nc-agency-wrap" style="display:none"><label class="f">Nombre de la agencia</label><input type="text" id="nc-agency-name" oninput="checkDuplicateClient()" placeholder="Ej: Eventos Barcelona SL" /></div>
           <div><label class="f">Teléfono</label><input type="tel" id="nc-phone" oninput="checkDuplicateClient()" /></div>
           <div><label class="f">Email</label><input type="email" id="nc-email" /></div>
@@ -932,6 +933,7 @@ async function openClientDetail(id){
             <option value="particular" ${c.type==='particular'?'selected':''}>Particular</option>
             <option value="empresa" ${c.type==='empresa'?'selected':''}>Empresa</option>
             <option value="ayuntamiento" ${c.type==='ayuntamiento'?'selected':''}>Ayuntamiento</option>
+            <option value="colegio" ${c.type==='colegio'?'selected':''}>Colegio</option>
             <option value="agencia" ${c.type==='agencia'?'selected':''}>Agencia de eventos</option>
             <option value="asociacion" ${c.type==='asociacion'?'selected':''}>Asociación de fiestas</option>
           </select></div>
@@ -1995,7 +1997,7 @@ function viewDocumentos(){
 }
 
 // ---------------- EMAILS ----------------
-let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true, agencia:true, asociacion:true };
+let emailTypeFilter = { particular:true, empresa:true, ayuntamiento:true, colegio:true, agencia:true, asociacion:true };
 let emailLocalityFilter = 'todas';
 
 let campaignChannel = 'email';
@@ -2026,7 +2028,7 @@ function viewEmails(){
       <div class="card">
         <label class="f">Segmentar por tipo</label>
         <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
-          ${['particular','empresa','ayuntamiento','agencia','asociacion'].map(t=>`
+          ${['particular','empresa','ayuntamiento','colegio','agencia','asociacion'].map(t=>`
             <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer">
               <input type="checkbox" ${emailTypeFilter[t]?'checked':''} onchange="emailTypeFilter['${t}']=this.checked; render()" />
               ${TYPE_STYLES[t].label}
